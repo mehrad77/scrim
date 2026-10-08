@@ -1,6 +1,6 @@
 import type { Action, Cue, Moment, Show, VarValue } from '@scrim/format';
 import { cueOrder } from '@scrim/format';
-import { evaluateAll } from './conditions.js';
+import { evaluateAll, explain } from './conditions.js';
 import {
   counterValue,
   idleMoment,
@@ -506,18 +506,24 @@ function round(n: number): number {
 function runRules(ctx: Ctx): void {
   const rules = ctx.show.rules.filter((r) => r.enabled);
   if (!rules.length) return;
+  let seen = 0;
   for (let i = 0; i < ctx.events.length; i++) {
-    if (i >= MAX_RULE_EVENTS) {
+    const event = ctx.events[i]!;
+    // Traces describe rules; they never trigger them.
+    if (event.type === 'ruleEvaluated') continue;
+    if (++seen > MAX_RULE_EVENTS) {
       ctx.events.push({
         type: 'warning',
         message: 'Rules stopped: too many chained events (loop?)',
       });
       return;
     }
-    const event = ctx.events[i]!;
     for (const rule of rules) {
-      if (matches(rule.when, event) && evaluateAll(rule.if, ctx.state.vars))
-        applyActions(ctx, rule.then);
+      if (!matches(rule.when, event)) continue;
+      const checks = explain(rule.if, ctx.state.vars);
+      const ran = checks.every((c) => c.ok);
+      ctx.events.push({ type: 'ruleEvaluated', ruleId: rule.id, ran, checks });
+      if (ran) applyActions(ctx, rule.then);
     }
   }
 }

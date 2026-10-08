@@ -5,10 +5,11 @@ import QRCode from 'qrcode';
 import { useEffect, useState } from 'react';
 import { appBase, audienceUrl, remoteUrl } from '../../host/room.js';
 import { epochNow } from '../../lib/clock.js';
+import { fakePhones } from '../../lib/simulate.js';
 import { isLocalHost } from '../../lib/config.js';
 import { cn } from '../../lib/cn.js';
 import { Button } from '../../ui/Button.js';
-import { CommitInput, Select } from '../../ui/Field.js';
+import { CommitInput, NumberInput, Select } from '../../ui/Field.js';
 import { Badge, Empty, Panel } from '../../ui/Panel.js';
 import { toast } from '../../ui/toast.js';
 import { useHost } from './Operator.js';
@@ -187,6 +188,7 @@ function MomentCard({
   const [host] = useHost();
   const [now, setNow] = useState(epochNow);
   const [override, setOverride] = useState('');
+  const [phones, setPhones] = useState(20);
   const open = ms?.status === 'open';
   useEffect(() => {
     if (!open) return;
@@ -216,7 +218,11 @@ function MomentCard({
       {(open || ms.status === 'closed') && <Results moment={m} ms={ms} />}
       {ms.status === 'closed' && (
         <div className="mt-1 text-caption text-fg-muted">
-          Result: <span className="font-mono text-fg">{formatValue(ms.result)}</span>
+          Result:{' '}
+          <span className="font-mono text-fg">
+            {(m.type === 'vote' && m.options.find((o) => o.id === ms.result)?.label) ||
+              formatValue(ms.result)}
+          </span>
           {ms.usedDefault && (
             <Badge tone="warn" className="ml-2">
               Default — no input
@@ -294,6 +300,31 @@ function MomentCard({
                   }
                 >
                   Force
+                </Button>
+              </div>
+            )}
+            {rehearsal && (
+              <div
+                className="flex items-center gap-1"
+                data-info="Rehearsal only: pretend phones answer. Real phones' totals replace them."
+              >
+                <NumberInput
+                  aria-label="Pretend phones"
+                  className="w-16"
+                  value={phones}
+                  min={1}
+                  max={2000}
+                  onCommit={setPhones}
+                />
+                <Button
+                  size="sm"
+                  icon={<Smartphone size={12} />}
+                  onClick={() => {
+                    const agg = fakePhones(host.engine.show, m.id, phones, ms);
+                    if (agg) host.dispatch(agg);
+                  }}
+                >
+                  Simulate phones
                 </Button>
               </div>
             )}

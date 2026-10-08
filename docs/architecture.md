@@ -46,6 +46,7 @@ step(show, state, input, now) → { state, events }
 - **Inputs** are what can happen: `go`, `fireCue`, `standby*`, `hold`, `panic`/`release`, `trigger`, `tick`, audience totals (`momentAgg`), moment control, `mediaEnded`, `setVar`, `seek`, a direct `action`, and `reset`.
 - **Events** describe what happened: `cueFired`, `momentOpened`/`momentClosed`, `varChanged`, `trigger`, `mediaEnded`, `panic`, `warning`, and so on.
 - **Rules** run after every input on the events it produced. A rule's actions may cause further events, up to 200 per input; past that the engine stops and emits a warning, so a looping rule cannot hang the show.
+- **Rule traces.** Every rule whose `when` matched emits `ruleEvaluated` with whether it ran and each check with the value it saw. Traces never trigger rules and don't count toward the 200.
 
 Time never advances inside the engine. Instead, state stores _when_ things happen:
 
@@ -64,7 +65,7 @@ When a show is edited mid-run, `reconcile(show, state)` adapts the running state
 
 - **Outputs.** It broadcasts `show` and `state` on the show's BroadcastChannel. It collects heartbeats from output windows; one silent for 2 s is marked _lost_ and offered for reopening.
 - **Journal.** It writes engine state to IndexedDB at most every 250 ms, and immediately on GO or panic. Reopening the operator view restores it.
-- **Run log.** It records cues, audience results, triggers and warnings, flushed to IndexedDB every second.
+- **Run log.** It records cues, audience results, triggers, the rules that ran (skipped rules fold into one "N skipped" line that says what each saw) and warnings, flushed to IndexedDB every second.
 - **Audio.** Audio layers play in the operator tab (`AudioEngine`), so sound comes from the show machine even if every output is remote. Volume follows the layer's opacity, which turns fades into sound fades, and the blackout.
 - **Inputs.** Keyboard (also forwarded from output and editor windows), Web MIDI and the Gamepad API all map to commands through the show's `inputs`. A second GO within 300 ms is ignored.
 - **Relay** (optional). It sends `state`, the set of open moments and the remote-control view; it turns relay totals into `momentAgg` inputs and remote triggers into `trigger` inputs.

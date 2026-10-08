@@ -1,5 +1,5 @@
 import { Download, History, Lock, PanelsTopLeft, Play, Redo2, Undo2 } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router';
 import { isTyping, overlayOpen } from '../../host/inputs.js';
 import { flushSave, forwardKey, useEditor } from '../../state/editor.js';
@@ -7,6 +7,7 @@ import { exportShow, getShow } from '../../storage/shows.js';
 import { Button, IconButton } from '../../ui/Button.js';
 import { CommitInput } from '../../ui/Field.js';
 import { Tabs } from '../../ui/Tabs.js';
+import { checkLogic } from '../../lib/logic.js';
 import { errorToast, toast } from '../../ui/toast.js';
 import { CuesTab } from './CuesTab.js';
 import { HistoryTab } from './HistoryTab.js';
@@ -123,6 +124,12 @@ function EditorHeader({ tab, setTab }: { tab: Tab; setTab: (t: Tab) => void }) {
   const saving = useEditor((s) => s.saving);
   const canUndo = useEditor((s) => s.past.length > 0);
   const canRedo = useEditor((s) => s.future.length > 0);
+  // The logic check, counted on the tab where each problem is fixed.
+  const problems = useMemo(() => {
+    const count: Partial<Record<Tab, number>> = {};
+    for (const i of checkLogic(show)) count[i.area] = (count[i.area] ?? 0) + 1;
+    return count;
+  }, [show]);
   return (
     <header className="flex shrink-0 flex-wrap items-center gap-3 border-b border-line-subtle bg-panel px-3 py-2">
       <Link to="/" data-info="All shows" aria-label="All shows" className="shrink-0">
@@ -134,7 +141,12 @@ function EditorHeader({ tab, setTab }: { tab: Tab; setTab: (t: Tab) => void }) {
         onCommit={(name) => name.trim() && update((d) => void (d.name = name.trim()))}
         className="w-56 border-transparent bg-transparent text-base font-semibold hover:border-line-subtle"
       />
-      <Tabs value={tab} onChange={setTab} tabs={TABS} className="overflow-x-auto" />
+      <Tabs
+        value={tab}
+        onChange={setTab}
+        tabs={TABS.map((t) => ({ ...t, badge: problems[t.id] }))}
+        className="overflow-x-auto"
+      />
       <div className="ml-auto flex items-center gap-1">
         <span className="mr-2 text-caption text-fg-subtle" aria-live="polite">
           {saving === 'pending' ? 'Saving…' : saving === 'error' ? 'Not saved!' : 'Saved'}

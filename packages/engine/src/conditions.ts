@@ -1,4 +1,5 @@
 import type { Condition, Show, VarValue } from '@scrim/format';
+import type { ConditionCheck } from './types.js';
 
 export function formatValue(value: VarValue | null | undefined): string {
   if (value === null || value === undefined) return '';
@@ -45,6 +46,17 @@ export function evaluate(cond: Condition, vars: Record<string, VarValue>): boole
 
 export function evaluateAll(conds: Condition[], vars: Record<string, VarValue>): boolean {
   return conds.every((c) => evaluate(c, vars));
+}
+
+/** Evaluate every condition and keep what each one saw, for traces and the "why" view. */
+export function explain(conds: Condition[], vars: Record<string, VarValue>): ConditionCheck[] {
+  return conds.map((c) => ({
+    varId: c.varId,
+    op: c.op,
+    expected: c.value,
+    actual: formatValue(vars[c.varId]),
+    ok: evaluate(c, vars),
+  }));
 }
 
 /** Replace {{varName}} placeholders with current values. */

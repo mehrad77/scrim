@@ -392,6 +392,45 @@ describe('audience moments and branching', () => {
     expect(events.at(-1)).toMatchObject({ type: 'warning' });
   });
 
+  it('traces every rule whose trigger matched, with the values it saw', () => {
+    const show = demo();
+    const s = run(show, [[0, { type: 'fireCue', cueId: 'c2' }]]);
+    const { events } = step(show, s, { type: 'closeMoment', momentId: 'vote', result: 'right' }, 3);
+    const traces = events.filter((e) => e.type === 'ruleEvaluated');
+    expect(traces).toEqual([
+      {
+        type: 'ruleEvaluated',
+        ruleId: 'r1',
+        ran: false,
+        checks: [{ varId: 'door', op: 'eq', expected: 'left', actual: 'right', ok: false }],
+      },
+      {
+        type: 'ruleEvaluated',
+        ruleId: 'r2',
+        ran: true,
+        checks: [{ varId: 'door', op: 'eq', expected: 'right', actual: 'right', ok: true }],
+      },
+    ]);
+  });
+
+  it('traces never trigger rules or count toward the loop cap', () => {
+    const show = demo();
+    // 150 chained rules: each fires the next. Traces double the event count but must not
+    // trip the 200-event loop guard.
+    show.rules = Array.from({ length: 150 }, (_, i) => ({
+      id: `chain${i}`,
+      name: `chain ${i}`,
+      enabled: true,
+      when: { type: 'varChanged' as const, varId: 'score' },
+      if: [{ varId: 'score', op: 'eq' as const, value: i + 1 }],
+      then: [{ type: 'addVar' as const, varId: 'score', amount: 1 }],
+    }));
+    const s = { ...initialState(show), vars: { ...initialState(show).vars, score: 0 } };
+    const { state, events } = step(show, s, { type: 'setVar', varId: 'score', value: 1 }, 0);
+    expect(state.vars.score).toBe(151);
+    expect(events.some((e) => e.type === 'warning')).toBe(false);
+  });
+
   it('conditional branch actions inside a cue', () => {
     const show = demo();
     show.cues[0]!.actions = [

@@ -3,6 +3,7 @@ import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { testTone } from '../../host/audio.js';
 import { formatBytes } from '../../lib/clock.js';
 import { AUDIO_DEVICES_KEY, readLocal } from '../../lib/local.js';
+import { checkLogic } from '../../lib/logic.js';
 import { verifyMedia } from '../../storage/media.js';
 import { requestPersistence, storageInfo, type StorageInfo } from '../../storage/quota.js';
 import { Button } from '../../ui/Button.js';
@@ -54,8 +55,23 @@ export function PreshowCheck({ onClose }: { onClose: () => void }) {
   const needsRoom = show.moments.length > 0;
   const needsRemotes = show.triggers.length > 0;
   const usesMidi = show.inputs.midi.length > 0;
+  const logic = checkLogic(show);
 
   const items: Item[] = [
+    {
+      id: 'logic',
+      title: 'Show logic checks out',
+      status: logic.length ? 'warn' : 'ok',
+      detail: logic.length ? (
+        <ul className="list-disc pl-4">
+          {logic.map((i) => (
+            <li key={i.id}>{i.text}</li>
+          ))}
+        </ul>
+      ) : (
+        'Every option is handled, every scene can be reached, and nothing points at a deleted item.'
+      ),
+    },
     {
       id: 'media',
       title: 'All media is on this machine and decodes',

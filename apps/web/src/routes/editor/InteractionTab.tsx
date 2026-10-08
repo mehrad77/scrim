@@ -1,28 +1,35 @@
-import {
-  cueOrder,
-  uid,
-  type Moment,
-  type MomentType,
-  type Rule,
-  type RuleWhen,
-  type Show,
-  type Var,
-  type VarValue,
-} from '@scrim/format';
-import { Plus, Trash2, Wand2 } from 'lucide-react';
-import { useState } from 'react';
-import { AnimatePresence, motion } from 'motion/react';
+import { uid, type Moment, type MomentType, type Show, type Var } from '@scrim/format';
+import { ArrowRight, Plus, Trash2, Wand2 } from 'lucide-react';
+import { useMemo, useState } from 'react';
 import { cn } from '../../lib/cn.js';
+import { checkLogic, usage } from '../../lib/logic.js';
+import {
+  createResultVars,
+  initialFor,
+  MOMENT_TYPES,
+  newMoment,
+  slug,
+  syncResultVars,
+  uniqueName,
+} from '../../lib/moments.js';
 import { removeMoment, removeTrigger, removeVar } from '../../lib/refs.js';
+import { tryOutcomes } from '../../lib/simulate.js';
 import { useEditor, useShow } from '../../state/editor.js';
 import { Button, IconButton } from '../../ui/Button.js';
 import { CommitInput, Field, NumberInput, Select, TextArea, Toggle } from '../../ui/Field.js';
 import { Columns, Divider, Pane } from '../../ui/Layout.js';
 import { Empty, Panel } from '../../ui/Panel.js';
 import { toast } from '../../ui/toast.js';
-import { ActionList, Conditions } from './ActionEditor.js';
+import { RulesPanel } from './RulesPanel.js';
 
+/**
+ * Interaction (UX principle 7): values and triggers on the left, rules as grouped sentences in
+ * the middle, the selected audience moment on the right with "Try every outcome".
+ */
 export function InteractionTab() {
+  const show = useShow();
+  const [moment, setMoment] = useState<string | null>(show.moments[0]?.id ?? null);
+  const issues = useMemo(() => checkLogic(show), [show]);
   return (
     <Columns id="editor.interaction">
       <Pane id="values" size={300} min={240} side>
@@ -32,33 +39,23 @@ export function InteractionTab() {
         </div>
       </Pane>
       <Divider />
-      <Pane id="moments" size="35%" min={300}>
-        <MomentsPanel />
+      <Pane id="rules" min={360}>
+        <RulesPanel issues={issues} onPickMoment={setMoment} />
       </Pane>
       <Divider />
-      <Pane id="rules" min={360}>
-        <RulesPanel />
+      <Pane id="moments" size={360} min={300} side>
+        <MomentsPanel selected={moment} onSelect={setMoment} />
       </Pane>
     </Columns>
   );
 }
 
-const slug = (s: string) =>
-  s
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '_')
-    .replace(/^_+|_+$/g, '')
-    .replace(/^(\d)/, '_$1') || 'value';
-
-function uniqueName(show: Show, base: string): string {
-  let name = slug(base);
-  let i = 2;
-  while (show.vars.some((v) => v.name === name)) name = `${slug(base)}_${i++}`;
-  return name;
-}
-
-function initialFor(type: Var['type']): VarValue {
-  return type === 'number' ? 0 : type === 'tally' ? {} : type === 'list' ? [] : '';
+function UsedBy({ n }: { n: number }) {
+  return (
+    <span className={cn('shrink-0 text-caption tabular-nums', n ? 'text-fg-subtle' : 'text-warn')}>
+      {n ? `used by ${n}` : 'unused'}
+    </span>
+  );
 }
 
 // ---- state values ----
@@ -66,6 +63,7 @@ function initialFor(type: Var['type']): VarValue {
 function VarsPanel() {
   const show = useShow();
   const update = useEditor((s) => s.update);
+  const use = usage(show);
   const setVar = (id: string, fn: (v: Var) => void) =>
     update((d) => {
       const v = d.vars.find((x) => x.id === id);
@@ -178,6 +176,9 @@ function VarsPanel() {
                 </>
               )}
               {v.type === 'list' && <span>starts empty</span>}
+              <span className="ml-auto">
+                <UsedBy n={use.usedBy(v.id)} />
+              </span>
             </div>
           </div>
         ))}
@@ -191,6 +192,7 @@ function VarsPanel() {
 function TriggersPanel() {
   const show = useShow();
   const update = useEditor((s) => s.update);
+  const use = usage(show);
   return (
     <Panel
       title="Triggers"
@@ -244,6 +246,7 @@ function TriggersPanel() {
               })
             }
           />
+          <UsedBy n={use.usedBy(t.id)} />
           <IconButton
             label="Delete trigger"
             icon={<Trash2 size={12} />}
@@ -257,137 +260,20 @@ function TriggersPanel() {
 
 // ---- audience moments ----
 
-const MOMENT_TYPES: { type: MomentType; label: string; hint: string }[] = [
-  { type: 'vote', label: 'Vote', hint: '2–6 options; the winner and the tally are stored.' },
-  { type: 'tap', label: 'Tap / shake', hint: 'A big button; the total count is stored.' },
-  {
-    type: 'slider',
-    label: 'Slider',
-    hint: 'A scale; the average is stored, the spread in a tally.',
-  },
-  {
-    type: 'text',
-    label: 'Text / name',
-    hint: 'Short text; approved entries are stored as a list.',
-  },
-  {
-    type: 'prop',
-    label: 'Personal prop',
-    hint: 'Each phone shows one variant (a clue, a role); the split is stored.',
-  },
-];
-
-function newMoment(type: MomentType, show: Show): Moment {
-  const n = show.moments.filter((m) => m.type === type).length + 1;
-  return {
-    id: uid('mom'),
-    name: `${MOMENT_TYPES.find((t) => t.type === type)!.label} ${n}`,
-    type,
-    prompt:
-      type === 'vote'
-        ? 'What should happen next?'
-        : type === 'tap'
-          ? 'Tap as fast as you can!'
-          : type === 'slider'
-            ? 'How scared are you?'
-            : type === 'text'
-              ? 'Tell us your name'
-              : 'Your secret role',
-    options:
-      type === 'vote'
-        ? [
-            { id: 'a', label: 'Option A' },
-            { id: 'b', label: 'Option B' },
-          ]
-        : [],
-    min: 0,
-    max: 10,
-    variants:
-      type === 'prop'
-        ? [
-            {
-              id: uid('var').slice(4),
-              label: 'Variant A',
-              content: 'You are the detective.',
-              weight: 1,
-            },
-            { id: uid('var').slice(4), label: 'Variant B', content: 'You saw nothing.', weight: 3 },
-          ]
-        : [],
-    durationSec: type === 'text' ? 0 : 20,
-    resultVarId: null,
-    tallyVarId: null,
-    defaultResult: type === 'vote' ? 'a' : type === 'text' ? '' : 0,
-    moderated: true,
-  };
-}
-
-/** Create the state values a moment writes into, named after it. */
-function createResultVars(show: Show, m: Moment): void {
-  const base = slug(m.name);
-  const add = (suffix: string, type: Var['type'], extra: Partial<Var> = {}) => {
-    const v: Var = {
-      id: uid('var'),
-      name: uniqueName(show, `${base}_${suffix}`),
-      type,
-      initial: initialFor(type),
-      ...extra,
-    };
-    show.vars.push(v);
-    return v.id;
-  };
-  switch (m.type) {
-    case 'vote':
-      m.resultVarId ??= add('winner', 'choice', { options: m.options.map((o) => o.id) });
-      m.tallyVarId ??= add('tally', 'tally', {
-        options: m.options.map((o) => o.id),
-        initial: Object.fromEntries(m.options.map((o) => [o.id, 0])),
-      });
-      break;
-    case 'tap':
-      m.resultVarId ??= add('taps', 'number');
-      break;
-    case 'slider':
-      m.resultVarId ??= add('average', 'number');
-      m.tallyVarId ??= add('spread', 'tally');
-      break;
-    case 'text':
-      m.resultVarId ??= add('entries', 'list');
-      break;
-    case 'prop':
-      m.tallyVarId ??= add('split', 'tally', { options: m.variants.map((v) => v.id) });
-      m.resultVarId ??= add('phones', 'number');
-      break;
-  }
-}
-
-/** Keep a moment's choice and tally values offering exactly its options. */
-function syncResultVars(show: Show, m: Moment): void {
-  const keys =
-    m.type === 'vote'
-      ? m.options.map((o) => o.id)
-      : m.type === 'prop'
-        ? m.variants.map((v) => v.id)
-        : null;
-  if (!keys) return;
-  for (const v of show.vars) {
-    if (v.id === m.resultVarId && v.type === 'choice') v.options = [...keys];
-    if (v.id === m.tallyVarId && v.type === 'tally') {
-      v.options = [...keys];
-      v.initial = Object.fromEntries(keys.map((k) => [k, 0]));
-    }
-  }
-  if (m.type === 'vote' && !keys.includes(String(m.defaultResult))) m.defaultResult = keys[0] ?? '';
-}
-
-function MomentsPanel() {
+function MomentsPanel({
+  selected,
+  onSelect: setSelected,
+}: {
+  selected: string | null;
+  onSelect: (id: string | null) => void;
+}) {
   const show = useShow();
   const update = useEditor((s) => s.update);
-  const [selected, setSelected] = useState<string | null>(show.moments[0]?.id ?? null);
-  const moment = show.moments.find((m) => m.id === selected);
+  const moment = show.moments.find((m) => m.id === selected) ?? show.moments[0];
   return (
     <Panel
       title="Audience moments"
+      className="h-full"
       bodyClassName="p-2"
       actions={
         <Select
@@ -426,7 +312,7 @@ function MomentsPanel() {
             onClick={() => setSelected(m.id)}
             className={cn(
               'rounded-control border px-2 py-1 text-caption',
-              m.id === selected
+              m.id === moment?.id
                 ? 'border-accent bg-control-hover'
                 : 'border-line-subtle hover:bg-control-hover',
             )}
@@ -671,6 +557,7 @@ function MomentEditor({
           Create state values for the result
         </Button>
       )}
+      <TryEveryOutcome show={show} moment={m} />
       <Field
         label="If nobody responds, use"
         hint="Every branch needs a default in case phones can't connect."
@@ -714,227 +601,41 @@ function MomentEditor({
   );
 }
 
-// ---- rules ----
-
-function RulesPanel() {
-  const show = useShow();
-  const update = useEditor((s) => s.update);
-  const setRule = (id: string, fn: (r: Rule) => void) =>
-    update((d) => {
-      const r = d.rules.find((x) => x.id === id);
-      if (r) fn(r);
-    });
+/** One line per possible result, with the path the show then takes (UX principle 7). */
+function TryEveryOutcome({ show, moment }: { show: Show; moment: Moment }) {
+  const outcomes = useMemo(() => tryOutcomes(show, moment.id), [show, moment.id]);
   return (
-    <Panel
-      title="Rules"
-      bodyClassName="p-2"
-      actions={
-        <Button
-          size="sm"
-          icon={<Plus size={13} />}
-          onClick={() =>
-            update(
-              (d) =>
-                void d.rules.push({
-                  id: uid('rul'),
-                  name: 'New rule',
-                  enabled: true,
-                  when: d.moments[0]
-                    ? { type: 'momentClosed', momentId: d.moments[0].id }
-                    : { type: 'trigger', triggerId: d.triggers[0]?.id ?? '' },
-                  if: [],
-                  then: [],
-                }),
-            )
-          }
-        >
-          Rule
-        </Button>
-      }
-    >
-      {show.rules.length === 0 && (
-        <Empty>
-          Rules are “when … if … then …”. Example: when the door vote closes, if <code>door</code>{' '}
-          is <code>left</code>, go to the scene “Cellar”.
-        </Empty>
-      )}
-      <div className="flex flex-col gap-3">
-        <AnimatePresence initial={false}>
-          {show.rules.map((r) => (
-            <motion.div
-              key={r.id}
-              layout="position"
-              initial={{ opacity: 0, y: 4 }}
-              animate={{ opacity: r.enabled ? 1 : 0.5, y: 0 }}
-              exit={{ opacity: 0, transition: { duration: 0.1 } }}
-              className="rounded-control border border-line-subtle bg-control p-3"
-            >
-              <div className="mb-2 flex items-center gap-2">
-                <CommitInput
-                  className="font-medium"
-                  value={r.name}
-                  onCommit={(name) => setRule(r.id, (x) => void (x.name = name))}
-                />
-                <Toggle
-                  checked={r.enabled}
-                  onChange={(v) => setRule(r.id, (x) => void (x.enabled = v))}
-                  label={<span className="text-caption">On</span>}
-                />
-                <IconButton
-                  label="Delete rule"
-                  icon={<Trash2 size={13} />}
-                  onClick={() =>
-                    update((d) => void (d.rules = d.rules.filter((x) => x.id !== r.id)))
-                  }
-                />
-              </div>
-              <div className="flex flex-col gap-2">
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="w-12 text-caption font-medium text-fg-muted">when</span>
-                  <WhenPicker
-                    show={show}
-                    when={r.when}
-                    onChange={(when) => setRule(r.id, (x) => void (x.when = when))}
-                  />
-                </div>
-                <Conditions
-                  show={show}
-                  conditions={r.if}
-                  onChange={(c) => setRule(r.id, (x) => void (x.if = c))}
-                />
-                <div className="flex gap-2">
-                  <span className="mt-1.5 w-12 shrink-0 text-caption font-medium text-fg-muted">
-                    then
+    <section aria-label="Try every outcome" className="rounded-control border border-line-subtle">
+      <h3 className="label-caps border-b border-line-subtle px-2 py-1.5 text-fg-subtle">
+        Try every outcome
+      </h3>
+      {outcomes.length === 0 ? (
+        <p className="p-2 text-caption text-fg-subtle">
+          Add this moment to a cue to see where each result leads.
+        </p>
+      ) : (
+        <ul className="divide-y divide-line-subtle">
+          {outcomes.map((o) => (
+            <li key={String(o.value)} className="px-2 py-1.5 text-caption">
+              <div className="flex min-w-0 items-center gap-1.5">
+                <span className="shrink-0 font-medium text-fg">{o.label}</span>
+                <ArrowRight size={12} className="shrink-0 text-fg-icon" aria-hidden />
+                {o.standby ? (
+                  <span className="min-w-0 truncate text-fg">
+                    {o.standby.scene} · cue {o.standby.number} “{o.standby.name}”
                   </span>
-                  <div className="min-w-0 flex-1">
-                    <ActionList
-                      show={show}
-                      actions={r.then}
-                      onChange={(then) => setRule(r.id, (x) => void (x.then = then))}
-                    />
-                  </div>
-                </div>
+                ) : (
+                  <span className="text-warn">the show ends here</span>
+                )}
               </div>
-            </motion.div>
+              <div className="text-fg-subtle">
+                {o.ran.length ? `Runs ${o.ran.map((r) => `“${r}”`).join(', ')}` : 'No rule runs'}
+                {o.changes.map((c) => ` · ${c.name}: ${c.before || 'empty'} → ${c.after}`).join('')}
+              </div>
+            </li>
           ))}
-        </AnimatePresence>
-      </div>
-    </Panel>
-  );
-}
-
-function WhenPicker({
-  show,
-  when,
-  onChange,
-}: {
-  show: Show;
-  when: RuleWhen;
-  onChange: (w: RuleWhen) => void;
-}) {
-  const type = when.type;
-  const change = (t: RuleWhen['type']) => {
-    switch (t) {
-      case 'trigger':
-        return onChange({ type: t, triggerId: show.triggers[0]?.id ?? '' });
-      case 'momentClosed':
-        return onChange({ type: t, momentId: show.moments[0]?.id ?? '' });
-      case 'varChanged':
-        return onChange({ type: t, varId: show.vars[0]?.id ?? '' });
-      case 'cueFired':
-        return onChange({ type: t, cueId: show.cues[0]?.id ?? '' });
-      case 'mediaEnded':
-        return onChange({
-          type: t,
-          layerId: show.layers.find((l) => l.kind === 'video' || l.kind === 'audio')?.id ?? '',
-        });
-    }
-  };
-  return (
-    <>
-      <Select
-        className="w-56"
-        value={type}
-        onChange={(e) => change(e.target.value as RuleWhen['type'])}
-      >
-        <option value="trigger">trigger fires</option>
-        <option value="momentClosed">audience moment closes</option>
-        <option value="varChanged">state value changes</option>
-        <option value="cueFired">cue fires</option>
-        <option value="mediaEnded">media finishes</option>
-      </Select>
-      {when.type === 'trigger' && (
-        <Select
-          className="w-44"
-          value={when.triggerId}
-          onChange={(e) => onChange({ ...when, triggerId: e.target.value })}
-        >
-          <option value="">Trigger…</option>
-          {show.triggers.map((t) => (
-            <option key={t.id} value={t.id}>
-              {t.name}
-            </option>
-          ))}
-        </Select>
+        </ul>
       )}
-      {when.type === 'momentClosed' && (
-        <Select
-          className="w-44"
-          value={when.momentId}
-          onChange={(e) => onChange({ ...when, momentId: e.target.value })}
-        >
-          <option value="">Moment…</option>
-          {show.moments.map((m) => (
-            <option key={m.id} value={m.id}>
-              {m.name}
-            </option>
-          ))}
-        </Select>
-      )}
-      {when.type === 'varChanged' && (
-        <Select
-          className="w-44"
-          value={when.varId}
-          onChange={(e) => onChange({ ...when, varId: e.target.value })}
-        >
-          <option value="">State value…</option>
-          {show.vars.map((v) => (
-            <option key={v.id} value={v.id}>
-              {v.name}
-            </option>
-          ))}
-        </Select>
-      )}
-      {when.type === 'cueFired' && (
-        <Select
-          className="w-44"
-          value={when.cueId}
-          onChange={(e) => onChange({ ...when, cueId: e.target.value })}
-        >
-          <option value="">Cue…</option>
-          {cueOrder(show).map((c, i) => (
-            <option key={c.id} value={c.id}>
-              {i + 1}. {c.name}
-            </option>
-          ))}
-        </Select>
-      )}
-      {when.type === 'mediaEnded' && (
-        <Select
-          className="w-44"
-          value={when.layerId}
-          onChange={(e) => onChange({ ...when, layerId: e.target.value })}
-        >
-          <option value="">Media layer…</option>
-          {show.layers
-            .filter((l) => l.kind === 'video' || l.kind === 'audio')
-            .map((l) => (
-              <option key={l.id} value={l.id}>
-                {l.name}
-              </option>
-            ))}
-        </Select>
-      )}
-    </>
+    </section>
   );
 }

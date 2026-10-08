@@ -1,19 +1,45 @@
 import { formatValue, mediaPosition } from '@scrim/engine';
 import type { AudioLayer, Var, VarValue, VideoLayer } from '@scrim/format';
-import { Pause, Play, Zap } from 'lucide-react';
+import { Pause, Pin, PinOff, Play, Zap } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { epochNow, formatClock } from '../../lib/clock.js';
+import { cn } from '../../lib/cn.js';
+import { valueLabel } from '../../lib/logic.js';
 import { Button, IconButton } from '../../ui/Button.js';
-import { CommitInput, NumberInput, Select } from '../../ui/Field.js';
+import { CommitInput, NumberInput, Select, Toggle } from '../../ui/Field.js';
 import { Empty, Panel } from '../../ui/Panel.js';
 import { useHost } from './Operator.js';
+import { usePins } from './pins.js';
 
+/**
+ * Show state as values (UX principle 7): now, before the last cue, and at the top of the show.
+ * Rehearsal can override "now"; any value can be pinned to the message strip.
+ */
 export function StatePanel() {
   const [host, snap] = useHost();
   const { show, state, mode } = snap;
   const rehearsal = mode === 'rehearsal';
+  const [changedOnly, setChangedOnly] = useState(false);
+  const [pins, togglePin] = usePins(show.id);
+  const before = state.back?.state.vars;
+  const text = (varId: string, v: VarValue | undefined) =>
+    typeof v === 'string' || typeof v === 'number'
+      ? valueLabel(show, varId, v) || '—'
+      : formatValue(v) || '—';
+  const vars = show.vars.filter(
+    (v) => !changedOnly || text(v.id, state.vars[v.id]) !== text(v.id, v.initial),
+  );
   return (
-    <Panel title="Show state" className="h-full" bodyClassName="p-2">
+    <Panel
+      title="Show state"
+      className="h-full"
+      bodyClassName="p-2"
+      actions={
+        show.vars.length > 0 && (
+          <Toggle checked={changedOnly} onChange={setChangedOnly} label="Changed only" />
+        )
+      }
+    >
       {show.triggers.length > 0 && (
         <div className="mb-3">
           <div className="mb-1 text-caption text-fg-subtle">Fire a trigger</div>
@@ -34,24 +60,50 @@ export function StatePanel() {
         </div>
       )}
       {show.vars.length === 0 && <Empty>No state values in this show.</Empty>}
-      {show.vars.map((v) => (
-        <div key={v.id} className="flex items-center gap-2 border-b border-line-subtle py-1.5">
-          <span className="w-32 shrink-0 truncate font-mono text-caption text-fg-muted">
-            {v.name}
-          </span>
-          {rehearsal ? (
-            <VarEditor
-              def={v}
-              value={state.vars[v.id]}
-              onSet={(value) => host.dispatch({ type: 'setVar', varId: v.id, value })}
-            />
-          ) : (
-            <span className="min-w-0 flex-1 truncate font-mono text-ui">
-              {formatValue(state.vars[v.id]) || '—'}
-            </span>
-          )}
-        </div>
-      ))}
+      {show.vars.length > 0 && (
+        <ul aria-label="State values">
+          {vars.map((v) => {
+            const now = text(v.id, state.vars[v.id]);
+            const was = before ? text(v.id, before[v.id]) : '—';
+            const pinned = pins.includes(v.id);
+            return (
+              <li key={v.id} className="border-b border-line-subtle py-1.5">
+                <div className="flex items-center gap-2">
+                  <span className="w-24 shrink-0 truncate font-mono text-caption text-fg-muted">
+                    {v.name}
+                  </span>
+                  {rehearsal ? (
+                    <VarEditor
+                      def={v}
+                      value={state.vars[v.id]}
+                      label={(o) => valueLabel(show, v.id, o)}
+                      onSet={(value) => host.dispatch({ type: 'setVar', varId: v.id, value })}
+                    />
+                  ) : (
+                    <span className="min-w-0 flex-1 truncate text-ui text-fg">{now}</span>
+                  )}
+                  <IconButton
+                    label={pinned ? 'Unpin from the message strip' : 'Pin to the message strip'}
+                    icon={pinned ? <PinOff size={12} /> : <Pin size={12} />}
+                    className={pinned ? 'text-fg' : undefined}
+                    onClick={() => togglePin(v.id)}
+                  />
+                </div>
+                <div className="mt-0.5 ml-26 flex gap-3 text-caption text-fg-subtle">
+                  <span className="min-w-0 truncate">
+                    before last cue{' '}
+                    <span className={cn(was !== now && was !== '—' && 'text-fg-muted')}>{was}</span>
+                  </span>
+                  <span className="min-w-0 truncate">at the top {text(v.id, v.initial)}</span>
+                </div>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+      {changedOnly && vars.length === 0 && show.vars.length > 0 && (
+        <p className="py-2 text-caption text-fg-subtle">Nothing has changed since the top.</p>
+      )}
       {!rehearsal && show.vars.length > 0 && (
         <p className="mt-2 text-caption text-fg-subtle">Switch to Rehearsal to override values.</p>
       )}
@@ -62,10 +114,12 @@ export function StatePanel() {
 function VarEditor({
   def,
   value,
+  label,
   onSet,
 }: {
   def: Var;
   value: VarValue | undefined;
+  label: (option: string) => string;
   onSet: (v: VarValue) => void;
 }) {
   if (def.type === 'number')
@@ -79,7 +133,9 @@ function VarEditor({
       >
         <option value="">—</option>
         {def.options.map((o) => (
-          <option key={o}>{o}</option>
+          <option key={o} value={o}>
+            {label(o)}
+          </option>
         ))}
       </Select>
     );

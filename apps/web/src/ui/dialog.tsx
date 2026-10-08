@@ -1,8 +1,10 @@
 import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
 import { createRoot } from 'react-dom/client';
+import { cn } from '../lib/cn.js';
 import { Button } from './Button.js';
 import { isEscapePanic } from './escape.js';
 import { TextInput } from './Field.js';
+import { PortalContext } from './portal.js';
 
 interface Choice<T> {
   label: string;
@@ -51,19 +53,49 @@ export function promptDialog(title: string, initial = '', label?: string): Promi
   });
 }
 
+/**
+ * A modal with any content, such as a recipe form. `render` gets `done`, which closes the
+ * dialog and resolves the promise.
+ */
+export function formDialog<T>(
+  title: string,
+  render: (done: (v: T | null) => void) => ReactNode,
+  wide = false,
+): Promise<T | null> {
+  return new Promise((resolve) => {
+    const host = document.createElement('div');
+    document.body.appendChild(host);
+    const root = createRoot(host);
+    const done = (v: T | null) => {
+      root.unmount();
+      host.remove();
+      resolve(v);
+    };
+    root.render(
+      <Shell title={title} onCancel={() => done(null)} wide={wide}>
+        {render(done)}
+      </Shell>,
+    );
+  });
+}
+
 function Shell({
   title,
   children,
   onCancel,
+  wide = false,
 }: {
   title: string;
   children: ReactNode;
   onCancel: () => void;
+  wide?: boolean;
 }) {
   const ref = useRef<HTMLDialogElement>(null);
+  const [container, setContainer] = useState<HTMLDialogElement | null>(null);
   const titleId = useId();
   useEffect(() => {
     ref.current?.showModal();
+    setContainer(ref.current);
   }, []);
   return (
     <dialog
@@ -73,14 +105,19 @@ function Shell({
         e.preventDefault();
         if (!isEscapePanic()) onCancel();
       }}
-      className="m-auto w-[min(440px,calc(100vw-32px))] rounded-overlay border border-line-strong bg-overlay p-0 text-fg shadow-overlay backdrop:bg-black/60"
+      className={cn(
+        'm-auto rounded-overlay border border-line-strong bg-overlay p-0 text-fg shadow-overlay backdrop:bg-black/60',
+        wide ? 'w-[min(600px,calc(100vw-32px))]' : 'w-[min(440px,calc(100vw-32px))]',
+      )}
     >
-      <div className="p-5">
-        <h2 id={titleId} className="mb-3 text-base font-semibold">
-          {title}
-        </h2>
-        {children}
-      </div>
+      <PortalContext.Provider value={container}>
+        <div className="p-5">
+          <h2 id={titleId} className="mb-3 text-base font-semibold">
+            {title}
+          </h2>
+          {children}
+        </div>
+      </PortalContext.Provider>
     </dialog>
   );
 }

@@ -21,8 +21,10 @@ export interface JournalRecord {
 
 export interface RunLogEntry {
   at: number;
-  kind: 'cue' | 'moment' | 'trigger' | 'panic' | 'warning' | 'info';
+  kind: 'cue' | 'moment' | 'trigger' | 'rule' | 'panic' | 'warning' | 'info';
   text: string;
+  /** Folded lines under the entry, such as why each skipped rule didn't run. */
+  detail?: string[];
 }
 
 export interface RunRecord {

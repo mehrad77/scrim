@@ -5,7 +5,12 @@ const name = (list: { id: string; name: string }[], id: string) =>
 
 /** A short sentence of what a cue does, for cue rows ("Shows Attic · opens Door vote"). */
 export function summarizeCue(show: Show, cue: Cue): string {
-  const parts = cue.actions.map((a) => describe(show, a));
+  return summarizeActions(show, cue.actions);
+}
+
+/** The same sentence for any list of actions, such as a rule's "then". */
+export function summarizeActions(show: Show, actions: Action[]): string {
+  const parts = actions.map((a) => describe(show, a));
   if (!parts.length) return 'Does nothing yet';
   return parts.length > 2
     ? `${parts.slice(0, 2).join(' · ')} · +${parts.length - 2}`

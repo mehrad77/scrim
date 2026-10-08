@@ -150,6 +150,7 @@ Command = go | panic | hold | back | standbyNext | standbyPrev | trigger(trigger
 inputs  = { keys: {key, command}[], midi: {kind: note|cc, channel|null, number, command}[], gamepad: {button, command}[] }
 ```
 
+- **Every matching rule runs**, top to bottom in `rules` order. The editor groups rules by `when` and numbers them in that order.
 - **Esc is always PANIC.** The app adds it at runtime whatever `keys` says; a show can map extra panic keys.
 - **`back`** returns to the state before the operator's last GO (one step). Older apps don't know this command, so they can't open shows that map a key to it.
 

@@ -8,6 +8,7 @@ import {
   Plus,
   Timer,
   Trash2,
+  TriangleAlert,
 } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import {
@@ -19,6 +20,8 @@ import {
 } from 'react-aria-components';
 import { cn } from '../../lib/cn.js';
 import { summarizeCue } from '../../lib/cueSummary.js';
+import { readLocal, writeLocal } from '../../lib/local.js';
+import { cueExits, sceneGraph } from '../../lib/logic.js';
 import { removeScene } from '../../lib/refs.js';
 import { TAPES, tapeOf } from '../../lib/tape.js';
 import { useEditor, useShow } from '../../state/editor.js';
@@ -27,7 +30,9 @@ import { confirmDialog, promptDialog } from '../../ui/dialog.js';
 import { CommitInput } from '../../ui/Field.js';
 import { MenuButton } from '../../ui/Menu.js';
 import { Panel } from '../../ui/Panel.js';
+import { Tabs } from '../../ui/Tabs.js';
 import { toast } from '../../ui/toast.js';
+import { SceneMap } from './SceneMap.js';
 
 const CUE_TYPE = 'application/x-scrim-cue';
 
@@ -63,7 +68,13 @@ export function CueList() {
   const select = useEditor((s) => s.select);
   const cueId = useEditor((s) => s.selection.cueId);
   const numbers = useMemo(() => new Map(cueOrder(show).map((c, i) => [c.id, i + 1])), [show]);
+  const reachable = useMemo(() => sceneGraph(show).reachable, [show]);
   const [announce, setAnnounce] = useState('');
+  const [view, setViewState] = useState<'list' | 'map'>(() => readLocal('scrim.cues.view', 'list'));
+  const setView = (v: 'list' | 'map') => {
+    setViewState(v);
+    writeLocal('scrim.cues.view', v);
+  };
 
   const addScene = async () => {
     const name = await promptDialog('New scene', `Scene ${show.scenes.length + 1}`, 'Scene name');
@@ -124,117 +135,143 @@ export function CueList() {
 
   return (
     <Panel
-      title="Cue list"
-      bodyClassName="p-1"
+      title="Cues"
+      className="h-full"
+      bodyClassName={view === 'list' ? 'p-1' : ''}
       actions={
-        <Button size="sm" icon={<FolderPlus size={13} />} onClick={addScene}>
-          Scene
-        </Button>
+        <>
+          <Tabs
+            label="Cue list view"
+            value={view}
+            onChange={setView}
+            tabs={[
+              { id: 'list', label: 'List' },
+              { id: 'map', label: 'Map' },
+            ]}
+          />
+          <Button size="sm" icon={<FolderPlus size={13} />} onClick={addScene}>
+            Scene
+          </Button>
+        </>
       }
     >
       <span className="sr-only" aria-live="polite">
         {announce}
       </span>
-      {show.scenes.map((scene) => {
-        const cues = show.cues.filter((c) => c.sceneId === scene.id);
-        const tape = tapeOf(undefined, scene);
-        return (
-          <div key={scene.id} className="mb-2">
-            <div className="group flex items-center gap-1 px-1 py-1">
-              <span
-                aria-hidden
-                className={cn('h-4 w-1 shrink-0', tape ? tape.bg : 'bg-line-subtle')}
-              />
-              <CommitInput
-                aria-label="Scene name"
-                value={scene.name}
-                onCommit={(name) =>
-                  update((d) => {
-                    const s = d.scenes.find((x) => x.id === scene.id);
-                    if (s && name.trim()) s.name = name.trim();
-                  })
-                }
-                className="label-caps h-7 border-transparent bg-transparent text-fg-muted hover:border-line-subtle"
-              />
-              <div className="flex opacity-0 group-focus-within:opacity-100 group-hover:opacity-100">
-                <MenuButton
-                  label="Scene tape colour"
-                  icon={<Palette size={13} />}
-                  items={[
-                    ...TAPES.map((t) => ({
-                      id: String(t.n),
-                      label: t.name,
-                      icon: <span className={cn('block size-3', t.bg)} />,
-                      onAction: () =>
-                        update((d) => {
-                          const s = d.scenes.find((x) => x.id === scene.id);
-                          if (s) s.tape = t.n;
-                        }),
-                    })),
-                    'separator' as const,
-                    {
-                      id: 'none',
-                      label: 'No colour',
-                      onAction: () =>
-                        update((d) => {
-                          const s = d.scenes.find((x) => x.id === scene.id);
-                          if (s) delete s.tape;
-                        }),
-                    },
-                  ]}
+      {view === 'map' && <SceneMap show={show} />}
+      {view === 'list' &&
+        show.scenes.map((scene) => {
+          const cues = show.cues.filter((c) => c.sceneId === scene.id);
+          const tape = tapeOf(undefined, scene);
+          const lost = cues.length > 0 && !reachable.has(scene.id);
+          return (
+            <div key={scene.id} className="mb-2">
+              <div className="group flex items-center gap-1 px-1 py-1">
+                <span
+                  aria-hidden
+                  className={cn('h-4 w-1 shrink-0', tape ? tape.bg : 'bg-line-subtle')}
                 />
-                <IconButton
-                  label="Move scene up"
-                  icon={<ArrowUp size={12} />}
-                  onClick={() => moveScene(scene.id, -1)}
+                <CommitInput
+                  aria-label="Scene name"
+                  value={scene.name}
+                  onCommit={(name) =>
+                    update((d) => {
+                      const s = d.scenes.find((x) => x.id === scene.id);
+                      if (s && name.trim()) s.name = name.trim();
+                    })
+                  }
+                  className={cn(
+                    'label-caps h-7 border-transparent bg-transparent hover:border-line-subtle',
+                    lost ? 'text-fg-subtle' : 'text-fg-muted',
+                  )}
                 />
+                {lost && (
+                  <TriangleAlert
+                    size={13}
+                    className="shrink-0 text-warn"
+                    aria-label="Unreachable: no cue or rule leads here"
+                    data-info="Unreachable: no cue or rule leads here"
+                  />
+                )}
+                <div className="flex opacity-0 group-focus-within:opacity-100 group-hover:opacity-100">
+                  <MenuButton
+                    label="Scene tape colour"
+                    icon={<Palette size={13} />}
+                    items={[
+                      ...TAPES.map((t) => ({
+                        id: String(t.n),
+                        label: t.name,
+                        icon: <span className={cn('block size-3', t.bg)} />,
+                        onAction: () =>
+                          update((d) => {
+                            const s = d.scenes.find((x) => x.id === scene.id);
+                            if (s) s.tape = t.n;
+                          }),
+                      })),
+                      'separator' as const,
+                      {
+                        id: 'none',
+                        label: 'No colour',
+                        onAction: () =>
+                          update((d) => {
+                            const s = d.scenes.find((x) => x.id === scene.id);
+                            if (s) delete s.tape;
+                          }),
+                      },
+                    ]}
+                  />
+                  <IconButton
+                    label="Move scene up"
+                    icon={<ArrowUp size={12} />}
+                    onClick={() => moveScene(scene.id, -1)}
+                  />
+                  <IconButton
+                    label="Move scene down"
+                    icon={<ArrowDown size={12} />}
+                    onClick={() => moveScene(scene.id, 1)}
+                  />
+                  <IconButton
+                    label="Delete scene"
+                    icon={<Trash2 size={12} />}
+                    onClick={async () => {
+                      if (
+                        await confirmDialog(
+                          `Delete scene “${scene.name}”?`,
+                          <>
+                            Its {cues.length} cue{cues.length === 1 ? '' : 's'} will be removed too.
+                          </>,
+                          'Delete scene',
+                          true,
+                        )
+                      ) {
+                        const before = structuredClone(show);
+                        update((d) => removeScene(d, scene.id));
+                        toast(`Deleted “${scene.name}”`, 'info', {
+                          label: 'Undo',
+                          run: () => update((d) => void Object.assign(d, before)),
+                        });
+                      }
+                    }}
+                  />
+                </div>
                 <IconButton
-                  label="Move scene down"
-                  icon={<ArrowDown size={12} />}
-                  onClick={() => moveScene(scene.id, 1)}
-                />
-                <IconButton
-                  label="Delete scene"
-                  icon={<Trash2 size={12} />}
-                  onClick={async () => {
-                    if (
-                      await confirmDialog(
-                        `Delete scene “${scene.name}”?`,
-                        <>
-                          Its {cues.length} cue{cues.length === 1 ? '' : 's'} will be removed too.
-                        </>,
-                        'Delete scene',
-                        true,
-                      )
-                    ) {
-                      const before = structuredClone(show);
-                      update((d) => removeScene(d, scene.id));
-                      toast(`Deleted “${scene.name}”`, 'info', {
-                        label: 'Undo',
-                        run: () => update((d) => void Object.assign(d, before)),
-                      });
-                    }
-                  }}
+                  label="Add cue to scene"
+                  icon={<Plus size={13} />}
+                  onClick={() => addCue(scene.id)}
                 />
               </div>
-              <IconButton
-                label="Add cue to scene"
-                icon={<Plus size={13} />}
-                onClick={() => addCue(scene.id)}
+              <SceneCues
+                sceneId={scene.id}
+                cues={cues}
+                selected={cueId ?? null}
+                numbers={numbers}
+                onSelect={(id) => select({ cueId: id })}
+                onMove={(id, target) => update((d) => moveCueTo(d, id, scene.id, target))}
+                onStep={step}
               />
             </div>
-            <SceneCues
-              sceneId={scene.id}
-              cues={cues}
-              selected={cueId ?? null}
-              numbers={numbers}
-              onSelect={(id) => select({ cueId: id })}
-              onMove={(id, target) => update((d) => moveCueTo(d, id, scene.id, target))}
-              onStep={step}
-            />
-          </div>
-        );
-      })}
+          );
+        })}
     </Panel>
   );
 }
@@ -258,6 +295,7 @@ function SceneCues({
 }) {
   const show = useShow();
   const scene = show.scenes.find((s) => s.id === sceneId);
+  const exits = (cue: Cue) => cueExits(show, cue).join(' | ');
   const { dragAndDropHooks } = useDragAndDrop({
     getItems: (keys) =>
       [...keys].map((k) => ({
@@ -348,6 +386,7 @@ function SceneCues({
                 <div className="truncate text-ui">{cue.name}</div>
                 <div className="truncate text-caption text-fg-subtle">
                   {summarizeCue(show, cue)}
+                  {exits(cue) && <span className="text-fg-muted"> → {exits(cue)}</span>}
                 </div>
               </div>
               {cue.follow.auto && (

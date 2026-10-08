@@ -18,7 +18,7 @@ import { Button, IconButton } from '../../ui/Button.js';
 import { Select, Toggle } from '../../ui/Field.js';
 import { Lamp } from '../../ui/Lamp.js';
 import { Badge, Panel } from '../../ui/Panel.js';
-import { settle } from '../editor/preview.js';
+import { settle } from '../../lib/simulate.js';
 import { errorToast, toast } from '../../ui/toast.js';
 import { useHost } from './Operator.js';
 

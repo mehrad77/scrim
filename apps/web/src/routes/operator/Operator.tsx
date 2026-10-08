@@ -1,3 +1,4 @@
+import { formatValue } from '@scrim/engine';
 import { cueOrder, type Show } from '@scrim/format';
 import { ClipboardCheck, Lock, LockOpen, Pencil, RotateCcw } from 'lucide-react';
 import { createContext, useContext, useEffect, useState, useSyncExternalStore } from 'react';
@@ -5,6 +6,8 @@ import { Link, useParams } from 'react-router';
 import { isTyping, PANIC_KEY } from '../../host/inputs.js';
 import { ShowHost, type HostSnapshot } from '../../host/ShowHost.js';
 import { setShowModeMotion } from '../../lib/prefs.js';
+import { valueLabel } from '../../lib/logic.js';
+import { takeRehearsal } from '../../lib/simulate.js';
 import { db, getSetting } from '../../storage/db.js';
 import { getShow, listRuns } from '../../storage/shows.js';
 import { Button } from '../../ui/Button.js';
@@ -21,6 +24,7 @@ import { GoPanel } from './GoPanel.js';
 import { LogPanel } from './LogPanel.js';
 import { MediaPanel, StatePanel } from './LivePanels.js';
 import { OutputsPanel } from './OutputsPanel.js';
+import { usePins } from './pins.js';
 import { PreshowCheck } from './PreshowCheck.js';
 import { StatusChips } from './StatusChips.js';
 
@@ -58,12 +62,22 @@ export default function Operator() {
       const [journal, runs] = await Promise.all([(await db()).get('journal', id), listRuns(id)]);
       if (cancelled) return release();
       const resumable = journal && journal.state.lastFired !== null;
-      host = new ShowHost(show, {
-        state: resumable ? journal.state : undefined,
-        mode: journal?.mode,
-        lastRunAt: runs.find((r) => r.cuesFired > 0)?.startedAt ?? null,
-        resumed: !!resumable,
-      });
+      const lastRunAt = runs.find((r) => r.cuesFired > 0)?.startedAt ?? null;
+      // "Rehearse from here" in the editor leaves a hand-off that wins over the crash journal.
+      const handoff = takeRehearsal(id);
+      host = handoff
+        ? new ShowHost(show, {
+            state: handoff.state,
+            mode: 'rehearsal',
+            lastRunAt,
+            from: handoff.cueName,
+          })
+        : new ShowHost(show, {
+            state: resumable ? journal.state : undefined,
+            mode: journal?.mode,
+            lastRunAt,
+            resumed: !!resumable,
+          });
       setPhase({ kind: 'ready', host });
       if (await getSetting<boolean>(`roomActive:${id}`)) void host.connectRelay();
     })();
@@ -319,14 +333,34 @@ function OperatorView() {
 function MessageStrip({ typing }: { typing: boolean }) {
   const [, snap] = useHost();
   const [resumeHidden, setResumeHidden] = useState(false);
-  const resumed = !resumeHidden && !!snap.resumedAt && !!snap.state.lastFired;
+  const resumed =
+    !resumeHidden && ((!!snap.resumedAt && !!snap.state.lastFired) || !!snap.rehearsingFrom);
   const text = useNotice();
+  const [pins] = usePins(snap.show.id);
+  const pinned = snap.show.vars.filter((v) => pins.includes(v.id));
   return (
     <div className="flex h-11 shrink-0 items-center gap-3 overflow-hidden border-b border-line-subtle px-4 text-ui">
       {resumed && <ResumeMessage onDone={() => setResumeHidden(true)} />}
       {text && !resumed && <span className="truncate text-fg">{text}</span>}
+      {pinned.length > 0 && (
+        <span className="ml-auto flex shrink-0 gap-3 text-caption" aria-label="Pinned values">
+          {pinned.map((v) => {
+            const val = snap.state.vars[v.id];
+            return (
+              <span key={v.id} className="flex gap-1">
+                <span className="font-mono text-fg-subtle">{v.name}</span>
+                <span className="text-fg tabular-nums">
+                  {typeof val === 'string' || typeof val === 'number'
+                    ? valueLabel(snap.show, v.id, val) || '—'
+                    : formatValue(val) || '—'}
+                </span>
+              </span>
+            );
+          })}
+        </span>
+      )}
       {typing && (
-        <span className="ml-auto rounded-control border border-line-subtle px-2 py-0.5 text-caption text-fg-muted">
+        <span className="ml-auto shrink-0 rounded-control border border-line-subtle px-2 py-0.5 text-caption text-fg-muted">
           Keys paused while typing · Esc still panics
         </span>
       )}
@@ -340,8 +374,9 @@ function ResumeMessage({ onDone }: { onDone: () => void }) {
   return (
     <div className="flex min-w-0 flex-1 items-center gap-3 text-fg">
       <span className="truncate">
-        Resumed where the show left off — last cue “{cue?.name}”. Outputs show the same picture as
-        before the reload.
+        {snap.rehearsingFrom
+          ? `Rehearsing from “${snap.rehearsingFrom}”: everything before it has run, with the results you assumed.`
+          : `Resumed where the show left off — last cue “${cue?.name}”. Outputs show the same picture as before the reload.`}
       </span>
       <Button size="sm" className="ml-auto" onClick={onDone}>
         OK

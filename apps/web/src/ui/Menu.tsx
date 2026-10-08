@@ -10,6 +10,7 @@ import {
 } from 'react-aria-components';
 import { cn } from '../lib/cn.js';
 import { isEscapePanic } from './escape.js';
+import { usePortal } from './portal.js';
 
 export interface MenuAction {
   id: string;
@@ -54,8 +55,10 @@ export function MenuButton({
 }
 
 export function MenuPopover({ items }: { items: (MenuAction | 'separator')[] }) {
+  const portal = usePortal();
   return (
     <Popover
+      {...portal}
       data-overlay-open
       isKeyboardDismissDisabled={isEscapePanic()}
       className="min-w-48 rounded-overlay border border-line-strong bg-raised p-1 shadow-overlay"

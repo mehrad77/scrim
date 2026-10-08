@@ -46,7 +46,7 @@ import { Select, Toggle } from '../../ui/Field.js';
 import { MenuButton } from '../../ui/Menu.js';
 import { Empty, Panel } from '../../ui/Panel.js';
 import { toast } from '../../ui/toast.js';
-import { previewState } from './preview.js';
+import { previewState } from '../../lib/simulate.js';
 
 const PAD = 32;
 const RULER = 16;

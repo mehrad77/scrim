@@ -2,6 +2,7 @@ import { cueOrder, type Action, type ActionType, type Condition, type Show } fro
 import { ArrowDown, ArrowUp, GitBranch, Plus, Trash2 } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { cn } from '../../lib/cn.js';
+import { OP_TEXT, valueLabel } from '../../lib/logic.js';
 import { IconButton } from '../../ui/Button.js';
 import { CommitInput, NumberInput, Select, Toggle } from '../../ui/Field.js';
 
@@ -550,15 +551,7 @@ export function VarPick({
   );
 }
 
-const OPS: { op: Condition['op']; label: string }[] = [
-  { op: 'eq', label: 'is' },
-  { op: 'neq', label: 'is not' },
-  { op: 'gt', label: '>' },
-  { op: 'gte', label: '≥' },
-  { op: 'lt', label: '<' },
-  { op: 'lte', label: '≤' },
-  { op: 'contains', label: 'contains' },
-];
+const OPS = (Object.keys(OP_TEXT) as Condition['op'][]).map((op) => ({ op, label: OP_TEXT[op] }));
 
 export function Conditions({
   show,
@@ -581,7 +574,7 @@ export function Conditions({
             </span>
             <VarPick show={show} value={c.varId} onChange={(varId) => set(i, { ...c, varId })} />
             <Select
-              className="w-24"
+              className="w-32"
               value={c.op}
               onChange={(e) => set(i, { ...c, op: e.target.value as Condition['op'] })}
             >
@@ -599,7 +592,9 @@ export function Conditions({
               >
                 <option value="">…</option>
                 {def.options.map((o) => (
-                  <option key={o}>{o}</option>
+                  <option key={o} value={o}>
+                    {valueLabel(show, c.varId, o)}
+                  </option>
                 ))}
               </Select>
             ) : (

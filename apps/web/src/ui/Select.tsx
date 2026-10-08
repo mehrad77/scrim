@@ -8,17 +8,22 @@ import {
   type ReactNode,
 } from 'react';
 import {
+  Autocomplete,
   Button,
   Header,
+  Input,
   ListBox,
   ListBoxItem,
   ListBoxSection,
   Popover,
+  SearchField,
   Select as RACSelect,
   SelectValue,
+  useFilter,
 } from 'react-aria-components';
 import { cn } from '../lib/cn.js';
 import { isEscapePanic } from './escape.js';
+import { usePortal } from './portal.js';
 
 interface Option {
   key: string;
@@ -81,7 +86,15 @@ export interface SelectProps {
   className?: string;
   disabled?: boolean;
   'aria-label'?: string;
+  /**
+   * `chip` is a slot in a sentence (rule builder): it sizes to its label and shows a dashed
+   * border with "Choose…" while empty.
+   */
+  variant?: 'field' | 'chip';
 }
+
+/** Lists longer than this get a search field. */
+const SEARCH_FROM = 8;
 
 /**
  * A searchable, keyboard-friendly select built on React Aria. It takes native `<option>` and
@@ -94,8 +107,17 @@ export function Select({
   className,
   disabled,
   'aria-label': ariaLabel,
+  variant = 'field',
 }: SelectProps) {
   const items = parse(children);
+  const { contains } = useFilter({ sensitivity: 'base' });
+  const count = items.reduce((n, it) => n + ('key' in it ? 1 : it.options.length), 0);
+  const chip = variant === 'chip';
+  const portal = usePortal();
+  // An empty chip says "Choose…", unless the list names its empty choice ("the default").
+  const empty =
+    (value === '' || value === undefined) &&
+    !items.some((it) => 'key' in it && it.key === EMPTY);
   const option = (o: Option) => (
     <ListBoxItem
       key={o.key}
@@ -112,6 +134,20 @@ export function Select({
       )}
     </ListBoxItem>
   );
+  const list = (
+    <ListBox className="min-h-0 overflow-auto outline-none">
+      {items.map((it, i) =>
+        'key' in it ? (
+          option(it)
+        ) : (
+          <ListBoxSection key={`g${i}`} id={`g${i}`}>
+            <Header className="label-caps px-2 pt-2 pb-1 text-fg-subtle">{it.label}</Header>
+            {it.options.map(option)}
+          </ListBoxSection>
+        ),
+      )}
+    </ListBox>
+  );
   return (
     <RACSelect
       aria-label={ariaLabel ?? 'Choose'}
@@ -126,28 +162,36 @@ export function Select({
     >
       <Button
         data-select-trigger
-        className="flex h-control w-full min-w-0 items-center gap-1 rounded-control border border-line-control bg-control px-2 text-left text-ui text-fg outline-none hover:bg-control-hover disabled:opacity-50"
+        className={cn(
+          'flex h-control min-w-0 items-center gap-1 rounded-control border border-line-control bg-control px-2 text-left text-ui text-fg outline-none hover:bg-control-hover disabled:opacity-50',
+          chip ? 'w-auto max-w-64' : 'w-full',
+          chip && empty && 'border-dashed text-fg-subtle',
+        )}
       >
-        <SelectValue className="min-w-0 flex-1 truncate data-[placeholder]:text-fg-subtle" />
-        <ChevronDown size={14} className="shrink-0 text-fg-icon" />
+        <SelectValue className="min-w-0 flex-1 truncate data-[placeholder]:text-fg-subtle">
+          {chip && empty ? 'Choose…' : undefined}
+        </SelectValue>
+        <ChevronDown size={chip ? 12 : 14} className="shrink-0 text-fg-icon" />
       </Button>
       <Popover
+        {...portal}
         data-overlay-open
         isKeyboardDismissDisabled={isEscapePanic()}
-        className="max-h-80 min-w-(--trigger-width) overflow-auto rounded-overlay border border-line-strong bg-raised p-1 shadow-overlay"
+        className="flex max-h-80 min-w-(--trigger-width) flex-col rounded-overlay border border-line-strong bg-raised p-1 shadow-overlay"
       >
-        <ListBox className="outline-none">
-          {items.map((it, i) =>
-            'key' in it ? (
-              option(it)
-            ) : (
-              <ListBoxSection key={`g${i}`} id={`g${i}`}>
-                <Header className="label-caps px-2 pt-2 pb-1 text-fg-subtle">{it.label}</Header>
-                {it.options.map(option)}
-              </ListBoxSection>
-            ),
-          )}
-        </ListBox>
+        {count >= SEARCH_FROM ? (
+          <Autocomplete filter={contains}>
+            <SearchField aria-label="Search" autoFocus className="mb-1 shrink-0">
+              <Input
+                placeholder="Search…"
+                className="h-control w-full rounded-control border border-line-control bg-control px-2 text-ui text-fg outline-none placeholder:text-fg-subtle"
+              />
+            </SearchField>
+            {list}
+          </Autocomplete>
+        ) : (
+          list
+        )}
       </Popover>
     </RACSelect>
   );

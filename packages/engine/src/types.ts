@@ -1,4 +1,4 @@
-import type { Action, VarValue } from '@scrim/format';
+import type { Action, Condition, VarValue } from '@scrim/format';
 
 export type InputSource =
   'operator' | 'keyboard' | 'midi' | 'gamepad' | 'remote' | 'rule' | 'follow' | 'system';
@@ -49,4 +49,15 @@ export type EngineEvent =
   | { type: 'hold'; on: boolean }
   | { type: 'reset' }
   | { type: 'back'; cueId: string; name: string }
+  /** A rule's trigger matched: whether it ran, and each check with the value it saw. */
+  | { type: 'ruleEvaluated'; ruleId: string; ran: boolean; checks: ConditionCheck[] }
   | { type: 'warning'; message: string };
+
+export interface ConditionCheck {
+  varId: string;
+  op: Condition['op'];
+  expected: string | number;
+  /** The variable's value when the rule was checked, formatted for people. */
+  actual: string;
+  ok: boolean;
+}

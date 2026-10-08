@@ -19,6 +19,7 @@ import {
   type RunMode,
 } from '@scrim/protocol';
 import { epochNow } from '../lib/clock.js';
+import { conditionText, valueLabel } from '../lib/logic.js';
 import { db, setSetting, type RunLogEntry, type RunRecord } from '../storage/db.js';
 import { saveShow } from '../storage/shows.js';
 import { ShowChannel } from '../transport/local.js';
@@ -70,6 +71,8 @@ export interface HostSnapshot {
   gamepads: string[];
   lastRunAt: number | null;
   resumedAt: string | null;
+  /** The cue "Rehearse from here" started at, in the editor. */
+  rehearsingFrom: string | null;
   /** Date.now() until which a second GO is ignored (the double-GO guard). */
   goLockedUntil: number;
   /** When a GO was last ignored by the guard, so the GO button can say so. */
@@ -107,6 +110,7 @@ export class ShowHost {
   #run: RunRecord;
   #lastRunAt: number | null;
   #resumedAt: string | null;
+  #rehearsingFrom: string | null;
   #wakeLock: WakeLockSentinel | null = null;
   #midi: string[] | null = null;
   #gamepads: string[] = [];
@@ -133,6 +137,8 @@ export class ShowHost {
       mode?: RunMode;
       lastRunAt?: number | null;
       resumed?: boolean;
+      /** Started by "Rehearse from here" at this cue. */
+      from?: string;
     } = {},
   ) {
     this.engine = new Engine(show, epochNow, opts.state);
@@ -140,6 +146,7 @@ export class ShowHost {
     this.#lastRunAt = opts.lastRunAt ?? null;
     const standby = cueOrder(show).find((c) => c.id === this.engine.state.lastFired);
     this.#resumedAt = opts.resumed ? (standby?.name ?? 'the top') : null;
+    this.#rehearsingFrom = opts.from ?? null;
     this.#run = {
       id: uid('run'),
       showId: show.id,
@@ -156,7 +163,11 @@ export class ShowHost {
     this.#timers.push(setInterval(() => this.#beat(), BEAT_MS));
     this.#log(
       'info',
-      opts.resumed ? `Resumed after reload at ${this.#resumedAt}` : 'Operator view opened',
+      opts.from
+        ? `Rehearsing from “${opts.from}”`
+        : opts.resumed
+          ? `Resumed after reload at ${this.#resumedAt}`
+          : 'Operator view opened',
     );
     this.#build();
     this.#broadcastShow();
@@ -417,7 +428,7 @@ export class ShowHost {
   // ---- internals ----
 
   #onEngine(state: EngineState, events: EngineEvent[]): void {
-    for (const e of events) this.#logEvent(e);
+    this.#logEvents(events);
     this.#broadcastState();
     this.#audio.update(this.engine.show, state);
     this.#scheduleMediaEnds();
@@ -677,6 +688,38 @@ export class ShowHost {
     }
   }
 
+  /**
+   * Log what happened and why (UX principle 7). Rules that ran get a line each; the ones a
+   * trigger checked but skipped fold into one "N skipped" line that says what each one saw.
+   */
+  #logEvents(events: EngineEvent[]): void {
+    const show = this.engine.show;
+    let skipped: string[] = [];
+    const flush = () => {
+      if (!skipped.length) return;
+      this.#log('rule', `${skipped.length} rule${skipped.length > 1 ? 's' : ''} skipped`, skipped);
+      skipped = [];
+    };
+    for (const e of events) {
+      if (e.type !== 'ruleEvaluated') {
+        flush();
+        this.#logEvent(e);
+        continue;
+      }
+      const name = show.rules.find((r) => r.id === e.ruleId)?.name ?? 'A rule';
+      const checks = e.checks.map((c) => {
+        const said = conditionText(show, { varId: c.varId, op: c.op, value: c.expected });
+        return c.ok
+          ? `${said} ✓`
+          : `${said} ✗ (it was ${c.actual ? valueLabel(show, c.varId, c.actual) : 'empty'})`;
+      });
+      if (e.ran)
+        this.#log('rule', `Rule “${name}” ran${checks.length ? `: ${checks.join(', ')}` : ''}`);
+      else skipped.push(`“${name}”: ${checks.filter((c) => c.endsWith(')')).join(', ')}`);
+    }
+    flush();
+  }
+
   #logEvent(e: EngineEvent): void {
     const show = this.engine.show;
     switch (e.type) {
@@ -692,10 +735,14 @@ export class ShowHost {
           `Opened "${show.moments.find((m) => m.id === e.momentId)?.name ?? e.momentId}"`,
         );
       case 'momentClosed': {
-        const name = show.moments.find((m) => m.id === e.momentId)?.name ?? e.momentId;
+        const def = show.moments.find((m) => m.id === e.momentId);
+        const name = def?.name ?? e.momentId;
+        const option = def?.type === 'vote' && def.options.find((o) => o.id === e.result);
         const result = Array.isArray(e.result)
           ? `${e.result.length} entries`
-          : String(e.result ?? '');
+          : option
+            ? option.label
+            : String(e.result ?? '');
         return this.#log(
           'moment',
           `Closed "${name}": ${result}${e.usedDefault ? ' (default — no input)' : ''}`,
@@ -723,8 +770,8 @@ export class ShowHost {
     }
   }
 
-  #log(kind: RunLogEntry['kind'], text: string): void {
-    this.#run.entries.push({ at: Date.now(), kind, text });
+  #log(kind: RunLogEntry['kind'], text: string, detail?: string[]): void {
+    this.#run.entries.push({ at: Date.now(), kind, text, ...(detail ? { detail } : {}) });
     if (this.#run.entries.length > LOG_LIMIT * 4)
       this.#run.entries.splice(0, this.#run.entries.length - LOG_LIMIT * 4);
     this.#logTimer ??= setTimeout(() => this.#flushLog(), 1000);
@@ -789,6 +836,7 @@ export class ShowHost {
       gamepads: this.#gamepads,
       lastRunAt: this.#lastRunAt,
       resumedAt: this.#resumedAt,
+      rehearsingFrom: this.#rehearsingFrom,
       goLockedUntil: this.#lastGo + DOUBLE_GO_MS,
       goDroppedAt: this.#goDroppedAt,
       offScript: this.#offScript,

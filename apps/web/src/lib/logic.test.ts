@@ -1,0 +1,217 @@
+import { createCue, createShow, type Show } from '@scrim/format';
+import { describe, expect, it } from 'vitest';
+import {
+  checkLogic,
+  conditionText,
+  cueExits,
+  sceneGraph,
+  unhandledOptions,
+  usage,
+} from './logic.js';
+import {
+  checkPath,
+  momentsBefore,
+  previewAt,
+  tryOutcomes,
+  walkTo,
+  bookmarkPath,
+} from './simulate.js';
+
+/** Hallway → a door vote → Cellar or Attic → Ending. */
+export function doors(): Show {
+  const show = createShow('Doors');
+  const out = show.outputs[0]!.id;
+  show.scenes = [
+    { id: 'hall', name: 'Hallway' },
+    { id: 'cellar', name: 'Cellar' },
+    { id: 'attic', name: 'Attic' },
+    { id: 'end', name: 'Ending' },
+  ];
+  show.layers = [
+    {
+      id: 'sign',
+      name: 'Sign',
+      kind: 'text',
+      outputId: out,
+      x: 0,
+      y: 0,
+      w: 100,
+      h: 100,
+      z: 0,
+      opacity: 1,
+      visible: false,
+      crop: { top: 0, right: 0, bottom: 0, left: 0 },
+      text: 'Door: {{door}}',
+      fontSize: 72,
+      color: '#ffffff',
+      fontFamily: 'sans-serif',
+      fontWeight: 400,
+      align: 'center',
+      background: 'transparent',
+    },
+  ];
+  show.vars = [
+    { id: 'door', name: 'door', type: 'choice', initial: '', options: ['left', 'right', 'up'] },
+    { id: 'tally', name: 'tally', type: 'tally', initial: {} },
+  ];
+  show.moments = [
+    {
+      id: 'vote',
+      name: 'Door vote',
+      type: 'vote',
+      prompt: 'Which door?',
+      options: [
+        { id: 'left', label: 'The red door' },
+        { id: 'right', label: 'The green door' },
+      ],
+      min: 0,
+      max: 10,
+      variants: [],
+      durationSec: 20,
+      resultVarId: 'door',
+      tallyVarId: 'tally',
+      defaultResult: 'right',
+      moderated: true,
+    },
+  ];
+  const cue = (
+    id: string,
+    sceneId: string,
+    name: string,
+    actions: Show['cues'][number]['actions'] = [],
+  ) => ({
+    ...createCue(sceneId, name),
+    id,
+    actions,
+  });
+  show.cues = [
+    cue('c1', 'hall', 'Lights up'),
+    cue('c2', 'hall', 'Ask', [{ type: 'openMoment', momentId: 'vote' }]),
+    cue('c3', 'cellar', 'Cellar', [
+      { type: 'show', layerId: 'sign', duration: 2, easing: 'linear', delay: 1 },
+    ]),
+    cue('c4', 'cellar', 'Leave cellar', [{ type: 'jumpScene', sceneId: 'end', fire: false }]),
+    cue('c5', 'attic', 'Attic'),
+    cue('c6', 'end', 'Ending'),
+  ];
+  show.rules = [
+    {
+      id: 'r1',
+      name: 'Red wins',
+      enabled: true,
+      when: { type: 'momentClosed', momentId: 'vote' },
+      if: [{ varId: 'door', op: 'eq', value: 'left' }],
+      then: [{ type: 'jumpScene', sceneId: 'cellar', fire: false }],
+    },
+    {
+      id: 'r2',
+      name: 'Green wins',
+      enabled: true,
+      when: { type: 'momentClosed', momentId: 'vote' },
+      if: [{ varId: 'door', op: 'eq', value: 'right' }],
+      then: [{ type: 'jumpScene', sceneId: 'attic', fire: false }],
+    },
+  ];
+  return show;
+}
+
+describe('logic', () => {
+  it('reads conditions with labels, not keys', () => {
+    const show = doors();
+    expect(conditionText(show, show.rules[0]!.if[0]!)).toBe('door is The red door');
+  });
+
+  it('derives the scene map from fall-through, jumps and rules', () => {
+    const g = sceneGraph(doors());
+    const edges = g.edges.map((e) => `${e.from}>${e.to}:${e.kind}`);
+    expect(edges).toContain('hall>cellar:next');
+    expect(edges).toContain('hall>cellar:rule');
+    expect(edges).toContain('hall>attic:rule');
+    expect(edges).toContain('cellar>end:jump');
+    // The cellar's last cue always jumps, so it never falls through into the attic.
+    expect(edges).not.toContain('cellar>attic:next');
+    expect([...g.reachable].sort()).toEqual(['attic', 'cellar', 'end', 'hall']);
+  });
+
+  it('lists cue exits', () => {
+    const show = doors();
+    expect(cueExits(show, show.cues[1]!)).toEqual(['Cellar', 'Attic']);
+    expect(cueExits(show, show.cues[3]!)).toEqual(['Ending']);
+  });
+
+  it('a clean show has no problems', () => {
+    expect(checkLogic(doors())).toEqual([]);
+  });
+
+  it('flags unhandled options, unreachable scenes, broken refs, unread values and loops', () => {
+    const show = doors();
+    show.moments[0]!.options.push({ id: 'up', label: 'The trapdoor' });
+    show.rules[1]!.enabled = false;
+    show.cues[5]!.actions.push({ type: 'goToCue', cueId: 'gone', fire: false });
+    show.vars.push({ id: 'score', name: 'score', type: 'number', initial: 0 });
+    show.rules.push({
+      id: 'r3',
+      name: 'Feedback',
+      enabled: true,
+      when: { type: 'varChanged', varId: 'score' },
+      if: [],
+      then: [{ type: 'addVar', varId: 'score', amount: 1 }],
+    });
+    const ids = checkLogic(show).map((i) => i.id);
+    expect(ids).toContain('unhandled:vote:up');
+    expect(ids).toContain('unhandled:vote:right');
+    expect(ids).toContain('unreachable:attic');
+    expect(ids).toContain('broken:c6:a cue that was deleted');
+    expect(ids).toContain('loop:r3');
+    expect(unhandledOptions(show, 'vote').map((o) => o.id)).toEqual(['right', 'up']);
+  });
+
+  it('counts uses', () => {
+    const u = usage(doors());
+    expect(u.reads('door')).toBe(3); // two rules and the sign's {{door}}
+    expect(u.writes('door')).toBe(1); // the vote
+    expect(u.usedBy('vote')).toBe(3); // opened by a cue, closed into two rules
+  });
+});
+
+describe('simulate', () => {
+  it('walks the branch the assumed result picks', () => {
+    const show = doors();
+    expect(walkTo(show, 'c6', { vote: 'left' }).fired).toEqual(['c1', 'c2', 'c3', 'c4', 'c6']);
+    expect(walkTo(show, 'c6').fired).toEqual(['c1', 'c2', 'c5', 'c6']); // default: right
+    expect(walkTo(show, 'c3').reached).toBe(false);
+  });
+
+  it('previews off the path in running order, and runs delayed actions', () => {
+    const show = doors();
+    const on = previewAt(show, 'c3', { vote: 'left' });
+    expect(on.onPath).toBe(true);
+    expect(on.state.layers.sign!.opacity.to).toBe(1);
+    expect(previewAt(show, 'c3').onPath).toBe(false);
+  });
+
+  it('knows which moments come before a cue', () => {
+    expect(momentsBefore(doors(), 'c5')).toEqual(['vote']);
+    // The cue that opens a moment doesn't assume its result.
+    expect(momentsBefore(doors(), 'c2')).toEqual([]);
+  });
+
+  it('tries every outcome', () => {
+    const outcomes = tryOutcomes(doors(), 'vote');
+    expect(outcomes.map((o) => [o.label, o.ran, o.standby?.scene])).toEqual([
+      ['The red door', ['Red wins'], 'Cellar'],
+      ['The green door', ['Green wins'], 'Attic'],
+    ]);
+    expect(outcomes[0]!.changes).toEqual([{ name: 'door', before: '', after: 'The red door' }]);
+  });
+
+  it('notices when an edit breaks or reroutes a saved path', () => {
+    const show = doors();
+    const path = bookmarkPath(show, 'c6', { vote: 'left' }, 'Red route');
+    expect(checkPath(show, path)).toBe('ok');
+    show.cues[3]!.actions = [];
+    expect(checkPath(show, path)).toBe('rerouted');
+    show.cues = show.cues.filter((c) => c.id !== 'c6');
+    expect(checkPath(show, path)).toBe('broken');
+  });
+});
