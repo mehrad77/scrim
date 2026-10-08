@@ -1,3 +1,9 @@
+/* The audience page's own Tailwind build: only its classes, so phones download less CSS. */
+@import 'tailwindcss' source(none);
+@source '../audience';
+@source '../ui/BrandMark.tsx';
+@import '../theme.css';
+
 /*
  * The audience page (DESIGN_SYSTEM.md › Fonts): `font-display: optional`, so text never swaps
  * after first paint and answer buttons never move under a thumb, plus fallbacks sized to the

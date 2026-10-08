@@ -48,7 +48,7 @@ import { CommandPalette } from '../ui/CommandPalette.js';
 import { ask, confirmDialog, promptDialog } from '../ui/dialog.js';
 import { KeyHints } from '../ui/KeyHints.js';
 import { Badge, Empty } from '../ui/Panel.js';
-import { openPreferences, PreferencesHost } from '../ui/Preferences.js';
+import { openPreferences, PreferencesHost } from '../ui/PreferencesHost.js';
 import { ShortcutSheet } from '../ui/ShortcutSheet.js';
 import { errorToast, toast } from '../ui/toast.js';
 import { FirstRun, WELCOMED_KEY } from './library/FirstRun.js';

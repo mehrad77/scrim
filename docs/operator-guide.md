@@ -18,30 +18,43 @@ A runbook for the stage manager or operator running a show in Scrim.
 3. If an output says _Not full screen_ or _Click output once for sound_, click that output window once.
 4. Press **Identify** to flash each output's name on its screen.
 5. For audience or performer moments, choose **Open audience room**. Project or print the audience QR code, and give performers the performer QR code. Scan both with a phone to test.
-6. Open **Pre-show check** and work down the list until it says **READY**.
-7. Switch to **Show** mode. Editing is locked in every window until someone deliberately unlocks it.
+6. Map pedals, presenter clickers or MIDI pads: choose **Map keys** (the keyboard button in the header), pick GO, Hold, Back, standby, PANIC or a trigger, then press the key or pad. If it already does something else, choose **Replace**, **Swap** or **Cancel**. **Preset** offers Scrim and QLab-style keys. Esc is always PANIC.
+7. Open **Pre-show check** and work down the list until it says **READY**. It includes the show's logic check: unhandled vote options, scenes nothing leads to, and anything pointing at a deleted item.
+8. Switch to **Show** mode (the lock in the header). Editing, panel layouts, the palette and help sheets are locked away in every window, and nothing animates. Leaving Show mode takes a one-second hold on **Hold to unlock**.
 
 ## During the show
 
-| Do this                              | How                                                                                                          |
-| ------------------------------------ | ------------------------------------------------------------------------------------------------------------ |
-| Fire the next cue                    | **GO** or Space (also from an output window). A second press within 0.3 s is ignored.                        |
-| Look ahead                           | The **Standby** cue and its notes are shown above GO                                                         |
-| Skip or go back                      | ↑ / ↓, or click a cue to put it on standby                                                                   |
-| Pause auto-follows and moment timers | **Hold** (H); press again to resume                                                                          |
-| Emergency                            | **PANIC** (Esc), from any Scrim window: every output goes black and all sound mutes. **Release** fades back. |
-| Audience moment                      | Watch the live tally. **+10s** extends, **Close now** ends it early, **Override… / Force** picks the result. |
-| Text entries                         | Approve ✓ or reject ✕ each entry; nothing reaches the stage unapproved.                                      |
+| Do this                              | How                                                                                                                                |
+| ------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------- |
+| Fire the next cue                    | **GO** or Space (also from an output window). A second press within 0.3 s is ignored, and GO's ring flashes so you know.           |
+| Undo the last GO                     | **Back** (B with the Scrim keys): the stage returns to just before that GO, one step.                                              |
+| Look ahead                           | The **Standby** cue and its notes are shown above GO                                                                               |
+| Skip or go back                      | ↑ / ↓, or click a cue to put it on standby                                                                                         |
+| Pause auto-follows and moment timers | **Hold** (H, or [ with QLab-style keys); press again to resume                                                                     |
+| Wait for a performer                 | A cue that waits for a performer says **Waiting for Bell** beside Standby, then **Bell ready** once they tap Ready on their phone. |
+| Emergency                            | **PANIC** (Esc), from any Scrim window: every output goes black and all sound mutes. **Release** fades back.                       |
+| Audience moment                      | Watch the live tally. **+10s** extends, **Close now** ends it early, **Override… / Force** picks the result.                       |
+| Text entries                         | Approve ✓ or reject ✕ each entry; nothing reaches the stage unapproved.                                                            |
+| Keep an eye on a value               | In the **State** tab, pin it: it stays in the message strip above GO.                                                              |
+| Find out why something happened      | The **Log** tab names every rule that ran and what it checked; skipped rules fold into one line you can open.                      |
+| See every key                        | Press **?** (not in Show mode).                                                                                                    |
 
 ## If something goes wrong
 
-| Symptom                                          | What to do                                                                                                        |
-| ------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------- |
-| An output shows **Output window lost**           | Press **Reopen**. It returns to the current picture.                                                              |
-| The operator tab crashed or was closed           | Reopen it from the library. The show resumes at the same cue, and the outputs and audience room reconnect.        |
-| The audience room shows **Reconnecting**         | Carry on. Moments that get no input close with their designed default. Phones and remotes reconnect on their own. |
-| A performer remote says **Link no longer valid** | The room was replaced. Have them scan the current performer QR code.                                              |
-| No sound from a video                            | Click that output window once, then check **Outputs & audio** for the bus device on this machine.                 |
+| Symptom                                                  | What to do                                                                                                        |
+| -------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| An output shows **Output window lost**                   | Press **Reopen**. It returns to the current picture.                                                              |
+| The operator tab crashed or was closed                   | Reopen it from the library. The show resumes at the same cue, and the outputs and audience room reconnect.        |
+| The audience room shows **Reconnecting**                 | Carry on. Moments that get no input close with their designed default. Phones and remotes reconnect on their own. |
+| A performer remote says **Link out of date**             | The room was replaced. Have them scan the current performer QR code.                                              |
+| You went **off script** (forced a result, moved standby) | The **Off script** chip lists what changed; **Back to script** puts the next cue in running order on standby.     |
+| No sound from a video                                    | Click that output window once, then check **Outputs & audio** for the bus device on this machine.                 |
+
+## In rehearsal
+
+- **Rehearse from here:** in the editor's Cues tab, pick a cue and choose **Rehearse from here** in _After this cue_. The operator view opens with everything before it already run, using the vote results you assumed.
+- **Simulate phones:** while a moment is open, **Simulate phones** pretends a number of phones answered. Real phones' totals replace them.
+- **Commands:** ⌘K (Ctrl+K) finds any command; ⌘, (Ctrl+,) opens Preferences.
 
 ## After the show
 

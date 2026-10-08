@@ -31,7 +31,7 @@ pnpm dev:relay
 pnpm dev
 ```
 
-Open http://localhost:5173 and choose **Demo show** for a ten-minute interactive piece with a vote, a branch and a performer trigger.
+Open http://localhost:5173. The Library's start gallery offers a blank show, **The demo** (a ten-minute interactive piece with a vote, a branch and a performer trigger, with a Learn checklist), and starters for an audience vote, slides with cues and a performer counter. ⌘K (Ctrl+K) finds any command, `?` lists the keys, and ⌘, (Ctrl+,) opens Preferences.
 
 For phones on the venue network, open the app by this machine's LAN address (for example `http://192.168.1.20:5173`), or set that address in the operator view's audience panel. In development the relay is reached on the same host at port 8790; set `VITE_RELAY_URL` to point the app elsewhere.
 
@@ -49,14 +49,18 @@ pnpm e2e
 pnpm loadtest -- --phones 200 --rounds 3
 ```
 
-The load test needs the relay running. The MVP target is p95 vote → stage under 1 s; locally it measures about 200 ms, most of which is the relay's 200 ms batching window.
+```bash
+pnpm build && pnpm --filter @scrim/web budget
+```
+
+The bundle budget checks what output windows, the audience page and the editor download, against the build before the design-system migration (`apps/web/bundle-budget.json`). The load test needs the relay running. The MVP target is p95 vote → stage under 1 s; locally it measures about 200 ms, most of which is the relay's 200 ms batching window.
 
 ## Running a show
 
-1. **Design** in the editor: place media and text on each output's canvas, build cues in scenes, define state values, audience moments, triggers and "when / if / then" rules. The stage preview shows the picture after any cue, without a projector.
-2. **Rehearse** in the operator view: click a cue to put it on standby, double-click to fire it, scrub media, override state values. Edits made in the editor apply live, and cues changed since the last run are marked.
-3. **Go live**: press _Go live: open all_ once. With the Window Management permission, each output opens full screen on its assigned display; otherwise click each output window once. Then run the **Pre-show check** until it says READY, and switch to **Show mode** (editing locked).
-4. **Perform**: GO (Space by default), Hold, and PANIC (Esc) work from the operator view and from any output window; PANIC also works from the editor. GO ignores a second press within 300 ms, so a bounced key or pedal can't skip a cue. See the [operator guide](docs/operator-guide.md) for the full show-night runbook.
+1. **Design** in the editor: place media and text on each output's canvas, build cues in scenes, time each cue's actions on the cue dock, and define state values, audience moments, triggers and rules that read as sentences ("When the door vote closes, and door is The red door, go to Cellar"). Recipes set up common patterns. _After this cue_ shows the picture and state after any cue, following the branches you assume; **Try every outcome**, the scene map and the logic check show where each answer leads.
+2. **Rehearse** in the operator view: click a cue to put it on standby, double-click to fire it, scrub media, override state values, simulate phones, or **Rehearse from here** from the editor. Edits made in the editor apply live, and cues changed since the last run are marked. **Map keys** assigns keys, pedals and MIDI pads on the real operator view.
+3. **Go live**: press _Go live: open all_ once. With the Window Management permission, each output opens full screen on its assigned display; otherwise click each output window once. Then run the **Pre-show check** until it says READY, and switch to **Show mode** (editing locked, nothing animates; leaving takes a one-second hold).
+4. **Perform**: GO (Space by default), Hold, Back and PANIC (Esc, always) work from the operator view and from any output window; PANIC also works from the editor. Performers tap **Ready** on their phone when a cue waits for them. GO ignores a second press within 300 ms, so a bounced key or pedal can't skip a cue. See the [operator guide](docs/operator-guide.md) for the full show-night runbook.
 
 ### When something goes wrong
 

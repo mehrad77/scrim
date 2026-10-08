@@ -1,5 +1,5 @@
 import { RotateCcw, Search, X } from 'lucide-react';
-import { useEffect, useRef, useState, type ChangeEvent, type ReactNode } from 'react';
+import { useRef, useState, type ChangeEvent, type ReactNode } from 'react';
 import {
   Button as AriaButton,
   Dialog,
@@ -34,41 +34,22 @@ import { Toggle } from './Field.js';
 import { resetLayouts } from './Layout.js';
 import { toast } from './toast.js';
 
-const OPEN_EVENT = 'scrim:open-preferences';
-
-/** Open the Preferences dialog, the same as ⌘, (Ctrl+,). */
-export function openPreferences(): void {
-  window.dispatchEvent(new Event(OPEN_EVENT));
-}
-
 /**
- * Mount once per surface: it listens for ⌘, (Ctrl+,) and `openPreferences()` and shows the
- * Preferences dialog. Preferences are per machine and never part of a show.
+ * The Preferences dialog itself. `PreferencesHost` (PreferencesHost.tsx) loads this module the
+ * first time it opens, so no surface pays for it up front.
  */
-export function PreferencesHost() {
-  const [open, setOpen] = useState(false);
-
-  useEffect(() => {
-    const show = () => setOpen(true);
-    const onKey = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === ',') {
-        e.preventDefault();
-        show();
-      }
-    };
-    window.addEventListener(OPEN_EVENT, show);
-    window.addEventListener('keydown', onKey);
-    return () => {
-      window.removeEventListener(OPEN_EVENT, show);
-      window.removeEventListener('keydown', onKey);
-    };
-  }, []);
-
+export default function PreferencesDialog({
+  open,
+  onOpenChange,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}) {
   return (
     // Below the toast lane (z-40), so an Undo toast stays visible and clickable over the backdrop.
     <ModalOverlay
       isOpen={open}
-      onOpenChange={setOpen}
+      onOpenChange={onOpenChange}
       isDismissable
       isKeyboardDismissDisabled={isEscapePanic()}
       className="fixed inset-0 z-30 flex items-center justify-center bg-black/60 p-4"

@@ -9,7 +9,8 @@
     "preview": "vite preview --host",
     "typecheck": "tsc -p .",
     "test": "vitest run --passWithNoTests",
-    "e2e": "playwright test"
+    "e2e": "playwright test",
+    "budget": "node scripts/bundle-budget.mjs"
   },
   "dependencies": {
     "@scrim/engine": "workspace:*",

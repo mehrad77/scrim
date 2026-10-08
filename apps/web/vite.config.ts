@@ -42,6 +42,8 @@ export default defineConfig({
   ],
   build: {
     target: 'es2022',
+    // dist/.vite/manifest.json lets scripts/bundle-budget.mjs see what each surface loads.
+    manifest: true,
     rollupOptions: { input: { main: 'index.html', audience: 'audience.html' } },
   },
   server: { port: 5173 },

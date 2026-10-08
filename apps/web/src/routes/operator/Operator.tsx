@@ -21,7 +21,7 @@ import { getShow, listRuns } from '../../storage/shows.js';
 import { Button, IconButton } from '../../ui/Button.js';
 import { CommandPalette } from '../../ui/CommandPalette.js';
 import { KeyHints } from '../../ui/KeyHints.js';
-import { openPreferences, PreferencesHost } from '../../ui/Preferences.js';
+import { openPreferences, PreferencesHost } from '../../ui/PreferencesHost.js';
 import { ShortcutSheet, type SheetRow } from '../../ui/ShortcutSheet.js';
 import { setEscapeIsPanic } from '../../ui/escape.js';
 import { HoldButton } from '../../ui/HoldButton.js';

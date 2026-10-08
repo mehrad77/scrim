@@ -1,5 +1,5 @@
 import { Download, History, Lock, PanelsTopLeft, Play, Redo2, Settings, Undo2 } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { lazy, Suspense, useEffect, useMemo, useState, type ReactElement } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
 import { isTyping, overlayOpen } from '../../host/inputs.js';
 import { flushSave, forwardKey, useEditor } from '../../state/editor.js';
@@ -9,18 +9,22 @@ import { CommitInput } from '../../ui/Field.js';
 import { Tabs } from '../../ui/Tabs.js';
 import { checkLogic } from '../../lib/logic.js';
 import { errorToast, toast } from '../../ui/toast.js';
-import { CuesTab } from './CuesTab.js';
-import { HistoryTab } from './HistoryTab.js';
-import { InputsTab } from './InputsTab.js';
-import { InteractionTab } from './InteractionTab.js';
-import { OutputsTab } from './OutputsTab.js';
 import { StageTab } from './StageTab.js';
+
+// Stage is the first tab; the others load when opened, so the editor's first paint stays light.
+const lazyTab = <K extends string>(load: () => Promise<Record<K, () => ReactElement>>, name: K) =>
+  lazy(() => load().then((m) => ({ default: m[name] })));
+const CuesTab = lazyTab(() => import('./CuesTab.js'), 'CuesTab');
+const InteractionTab = lazyTab(() => import('./InteractionTab.js'), 'InteractionTab');
+const InputsTab = lazyTab(() => import('./InputsTab.js'), 'InputsTab');
+const OutputsTab = lazyTab(() => import('./OutputsTab.js'), 'OutputsTab');
+const HistoryTab = lazyTab(() => import('./HistoryTab.js'), 'HistoryTab');
 import { openShortcutSheet, useCommands } from '../../lib/commands.js';
 import { readPrefs } from '../../lib/prefs.js';
 import { usePrefs } from '../../lib/usePrefs.js';
 import { CommandPalette } from '../../ui/CommandPalette.js';
 import { KeyHints } from '../../ui/KeyHints.js';
-import { openPreferences, PreferencesHost } from '../../ui/Preferences.js';
+import { openPreferences, PreferencesHost } from '../../ui/PreferencesHost.js';
 import { ShortcutSheet } from '../../ui/ShortcutSheet.js';
 import { RECIPES } from './recipes.js';
 import { resetLayouts, toggleFocusCanvas } from '../../ui/Layout.js';
@@ -113,12 +117,14 @@ export default function Editor() {
         <EditorHeader tab={tab} setTab={setTab} />
         <LockBanner />
         <main className="min-h-0 flex-1 border-t border-line-subtle">
-          {tab === 'stage' && <StageTab />}
-          {tab === 'cues' && <CuesTab />}
-          {tab === 'interaction' && <InteractionTab />}
-          {tab === 'inputs' && <InputsTab />}
-          {tab === 'outputs' && <OutputsTab />}
-          {tab === 'history' && <HistoryTab />}
+          <Suspense fallback={<div className="p-6 text-ui text-fg-subtle">Loading…</div>}>
+            {tab === 'stage' && <StageTab />}
+            {tab === 'cues' && <CuesTab />}
+            {tab === 'interaction' && <InteractionTab />}
+            {tab === 'inputs' && <InputsTab />}
+            {tab === 'outputs' && <OutputsTab />}
+            {tab === 'history' && <HistoryTab />}
+          </Suspense>
         </main>
         <InfoStrip />
         <EditorCommands tab={tab} setTab={setTab} />

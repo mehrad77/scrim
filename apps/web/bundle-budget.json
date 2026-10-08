@@ -1,0 +1,6 @@
+{
+  "about": "gzip bytes each surface loads. Baselines are the first measured build, before the Tech Table redesign (2294117). Output and audience may grow 5%; the editor may add 160 KB for React Aria and Motion.",
+  "output": { "baseline": 173890, "growth": 0.05 },
+  "audience": { "baseline": 115192, "growth": 0.05 },
+  "editor": { "baseline": 274701, "add": 163840 }
+}

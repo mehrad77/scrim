@@ -20,6 +20,8 @@ jobs:
       - run: pnpm lint
       - run: pnpm test
       - run: pnpm build
+      - name: Bundle budgets
+        run: pnpm --filter @scrim/web budget
 
   e2e:
     runs-on: ubuntu-latest

@@ -1,7 +1,6 @@
 import { StrictMode, lazy, Suspense } from 'react';
 import { createRoot } from 'react-dom/client';
 import { createBrowserRouter, RouterProvider } from 'react-router';
-import { Library } from './routes/Library.js';
 import './fonts.css';
 import './styles.css';
 import { Toaster } from './ui/toast.js';
@@ -12,6 +11,8 @@ const root = document.documentElement;
 window.addEventListener('keydown', () => (root.dataset.modality = 'keyboard'), true);
 window.addEventListener('pointerdown', () => (root.dataset.modality = 'pointer'), true);
 
+// Every route loads on demand, so output windows never download the Library or the editor.
+const Library = lazy(() => import('./routes/Library.js').then((m) => ({ default: m.Library })));
 const Editor = lazy(() => import('./routes/editor/Editor.js'));
 const Operator = lazy(() => import('./routes/operator/Operator.js'));
 const OutputWindow = lazy(() => import('./routes/OutputWindow.js'));

@@ -559,7 +559,7 @@ The audience page defaults to Booth, because a bright phone in a dark auditorium
 
 ### Token file
 
-This replaces `apps/web/src/styles.css`. The `ink-*` and `live` aliases at the end of `@theme inline` keep today's classes working until each file is migrated; delete them afterwards.
+This is `apps/web/src/theme.css`, shared by the app (`styles.css`) and the audience page (`audience/audience.css`), which each run their own Tailwind build. During the migration, `ink-*` and `live` aliases at the end of `@theme inline` kept older classes working; they are now removed, and a lint rule rejects them.
 
 ```css
 @import 'tailwindcss';

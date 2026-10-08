@@ -54,6 +54,10 @@ export default tseslint.config(
               message: 'Use a semantic colour role (fg, go, standby, fault, warn, info, accent…).',
             },
             {
+              selector: `${node}[${value}=/\\b(bg|text|border|ring|outline|fill|stroke|divide)-(ink-\\d+|live)\\b/]`,
+              message: 'The ink-* and live colours are gone: use fg, line, surface or fault roles.',
+            },
+            {
               selector: `${node}[${value}=/\\btext-\\[\\d+px\\]/]`,
               message: 'Use the type scale (label-caps, text-caption, text-ui…), 12 px minimum.',
             },
