@@ -227,7 +227,7 @@ export function PreshowCheck({ onClose }: { onClose: () => void }) {
       <div className="flex items-center gap-3 border-b border-line-subtle p-4">
         <h2 className="text-lg font-semibold">Pre-show check</h2>
         {blocking === 0 ? (
-          <span className="rounded bg-go px-2 py-0.5 text-ui font-bold text-app">
+          <span className="rounded-control bg-go px-2 py-0.5 text-ui font-bold text-app">
             READY{warnings ? ` · ${warnings} warning${warnings > 1 ? 's' : ''}` : ''}
           </span>
         ) : (

@@ -115,7 +115,7 @@ export default function Remote() {
               relay.current?.send({ t: 'trigger', triggerId: t.id });
             }}
             className={cn(
-              'min-h-24 rounded-2xl text-2xl font-bold text-white shadow-lg transition-transform active:scale-95 disabled:opacity-40',
+              'min-h-24 rounded-control text-2xl font-bold text-white shadow-lg transition-transform active:scale-95 disabled:opacity-40',
               flash === t.id && 'ring-4 ring-fg',
             )}
             style={{ background: t.color }}

@@ -16,20 +16,29 @@ import { removeMoment, removeTrigger, removeVar } from '../../lib/refs.js';
 import { useEditor, useShow } from '../../state/editor.js';
 import { Button, IconButton } from '../../ui/Button.js';
 import { CommitInput, Field, NumberInput, Select, TextArea, Toggle } from '../../ui/Field.js';
+import { Columns, Divider, Pane } from '../../ui/Layout.js';
 import { Empty, Panel } from '../../ui/Panel.js';
 import { toast } from '../../ui/toast.js';
 import { ActionList, Conditions } from './ActionEditor.js';
 
 export function InteractionTab() {
   return (
-    <div className="grid h-full grid-cols-[300px_minmax(0,1fr)_minmax(0,1.3fr)] gap-2 p-2">
-      <div className="flex min-h-0 flex-col gap-2">
-        <VarsPanel />
-        <TriggersPanel />
-      </div>
-      <MomentsPanel />
-      <RulesPanel />
-    </div>
+    <Columns id="editor.interaction">
+      <Pane id="values" size={300} min={240} side>
+        <div className="flex h-full min-h-0 flex-col gap-px bg-line-subtle">
+          <VarsPanel />
+          <TriggersPanel />
+        </div>
+      </Pane>
+      <Divider />
+      <Pane id="moments" size="35%" min={300}>
+        <MomentsPanel />
+      </Pane>
+      <Divider />
+      <Pane id="rules" min={360}>
+        <RulesPanel />
+      </Pane>
+    </Columns>
   );
 }
 
@@ -92,7 +101,7 @@ function VarsPanel() {
       )}
       <div className="flex flex-col gap-2">
         {show.vars.map((v) => (
-          <div key={v.id} className="rounded-md border border-line-subtle p-2">
+          <div key={v.id} className="rounded-control border border-line-subtle p-2">
             <div className="flex items-center gap-1">
               <CommitInput
                 aria-label="Name"
@@ -214,7 +223,7 @@ function TriggersPanel() {
             type="color"
             aria-label="Color"
             value={t.color}
-            className="h-8 w-9 shrink-0 rounded border border-line-subtle bg-panel"
+            className="h-8 w-9 shrink-0 rounded-control border border-line-subtle bg-panel"
             onChange={(e) =>
               update(
                 (d) => {
@@ -415,7 +424,7 @@ function MomentsPanel() {
             key={m.id}
             onClick={() => setSelected(m.id)}
             className={cn(
-              'rounded-md border px-2 py-1 text-caption',
+              'rounded-control border px-2 py-1 text-caption',
               m.id === selected
                 ? 'border-accent bg-control-hover'
                 : 'border-line-subtle hover:bg-control-hover',
@@ -565,7 +574,7 @@ function MomentEditor({
         <Field label="Variants (each phone gets one, by weight)">
           <div className="flex flex-col gap-2">
             {m.variants.map((v, i) => (
-              <div key={v.id} className="rounded border border-line-subtle p-2">
+              <div key={v.id} className="rounded-control border border-line-subtle p-2">
                 <div className="flex gap-1">
                   <CommitInput
                     value={v.label}
@@ -753,7 +762,7 @@ function RulesPanel() {
           <div
             key={r.id}
             className={cn(
-              'rounded-lg border border-line-subtle bg-control p-3',
+              'rounded-control border border-line-subtle bg-control p-3',
               !r.enabled && 'opacity-50',
             )}
           >

@@ -15,12 +15,7 @@ export function Panel({
   bodyClassName?: string;
 }) {
   return (
-    <section
-      className={cn(
-        'flex min-h-0 flex-col rounded-control border border-line-subtle bg-panel',
-        className,
-      )}
-    >
+    <section className={cn('flex min-h-0 flex-col bg-panel', className)}>
       {(title || actions) && (
         <header className="flex h-panel-head shrink-0 items-center justify-between gap-2 border-b border-line-subtle px-3">
           <h2 className="label-caps truncate text-fg-muted">{title}</h2>
@@ -51,7 +46,7 @@ export function Badge({
   return (
     <span
       className={cn(
-        'inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-caption font-medium',
+        'inline-flex items-center gap-1 rounded-control px-1.5 py-0.5 text-caption font-medium',
         tones[tone],
         className,
       )}

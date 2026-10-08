@@ -139,7 +139,7 @@ export function ActionList({
         <div
           key={i}
           className={cn(
-            'group rounded-md border border-line-subtle bg-control p-2',
+            'group rounded-control border border-line-subtle bg-control p-2',
             a.type === 'branch' && 'border-line-strong',
           )}
         >

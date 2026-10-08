@@ -21,7 +21,7 @@ export function HistoryTab() {
   useEffect(() => void refresh(), [refresh]);
 
   return (
-    <div className="grid h-full grid-cols-2 gap-2 p-2">
+    <div className="grid h-full grid-cols-2 gap-px bg-line-subtle">
       <Panel
         title="Versions"
         bodyClassName="p-2"

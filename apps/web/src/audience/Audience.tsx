@@ -152,7 +152,7 @@ function CodeEntry({ onCode }: { onCode: (c: string) => void }) {
         placeholder="CODE"
         value={clean}
         onChange={(e) => setValue(e.target.value)}
-        className="w-48 rounded-xl border border-line-control bg-panel py-3 text-center font-mono text-3xl tracking-[0.3em] uppercase"
+        className="w-48 rounded-control border border-line-control bg-panel py-3 text-center font-mono text-3xl tracking-[0.3em] uppercase"
       />
       <button
         type="submit"
@@ -223,7 +223,7 @@ function MomentView({
       {m.type === 'slider' && <Slider moment={m} send={send} />}
       {m.type === 'text' && <TextEntry moment={m} send={send} />}
       {m.type === 'prop' && m.prop && (
-        <div className="rounded-2xl border border-line-control bg-control p-6">
+        <div className="rounded-control border border-line-control bg-control p-6">
           <div className="label-caps text-fg-subtle">{m.prop.label}</div>
           <p className="mt-2 text-xl whitespace-pre-wrap">{m.prop.content}</p>
           <p className="mt-4 text-caption text-fg-subtle">Only your phone shows this.</p>
@@ -247,7 +247,7 @@ function Vote({ moment: m, send }: { moment: PublicMoment; send: Send }) {
             }
           }}
           className={cn(
-            'rounded-2xl border-2 px-5 py-5 text-left text-xl font-semibold transition-colors',
+            'rounded-control border-2 px-5 py-5 text-left text-xl font-semibold transition-colors',
             choice === o.id
               ? 'border-accent bg-accent text-accent-fg'
               : 'border-line-control bg-control active:bg-control-active',
@@ -386,7 +386,7 @@ function TextEntry({ moment: m, send }: { moment: PublicMoment; send: Send }) {
         maxLength={280}
         onChange={(e) => setText(e.target.value)}
         placeholder="Type here"
-        className="rounded-xl border border-line-control bg-panel px-4 py-3 text-lg"
+        className="rounded-control border border-line-control bg-panel px-4 py-3 text-lg"
         aria-label={m.prompt}
       />
       <button

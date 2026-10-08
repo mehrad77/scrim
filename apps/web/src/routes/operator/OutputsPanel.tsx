@@ -98,11 +98,11 @@ export function OutputsPanel() {
             <div
               key={o.id}
               className={cn(
-                'rounded-lg border p-2',
+                'rounded-control border p-2',
                 health === 'lost' ? 'border-lamp-fault' : 'border-line-subtle',
               )}
             >
-              <div className="relative aspect-video overflow-hidden rounded bg-black">
+              <div className="relative aspect-video overflow-hidden rounded-control bg-black">
                 {live ? (
                   <Stage show={snap.show} state={snap.state} outputId={o.id} variant="thumb" />
                 ) : (

@@ -13,29 +13,56 @@ import {
 } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import Moveable from 'react-moveable';
+import type { PanelImperativeHandle } from 'react-resizable-panels';
 import { cn } from '../../lib/cn.js';
 import { layerKindLabel, syntheticLayer, type SyntheticKind } from '../../lib/layers.js';
 import { Stage } from '../../render/Stage.js';
 import { useEditor, useShow } from '../../state/editor.js';
 import { IconButton } from '../../ui/Button.js';
 import { Select, Toggle } from '../../ui/Field.js';
+import { Columns, Divider, FOCUS_CANVAS_EVENT, Pane } from '../../ui/Layout.js';
+import { MenuButton } from '../../ui/Menu.js';
 import { Empty, Panel } from '../../ui/Panel.js';
 import { LayerInspector } from './LayerInspector.js';
 import { MediaPanel, useDropMedia } from './MediaPanel.js';
 import { previewState } from './preview.js';
 
 export function StageTab() {
+  const left = useRef<PanelImperativeHandle | null>(null);
+  const right = useRef<PanelImperativeHandle | null>(null);
+
+  // Focus canvas (Shift+\ or View › Focus canvas) hides both sides; again brings them back.
+  useEffect(() => {
+    const toggle = () => {
+      const hidden = left.current?.isCollapsed() && right.current?.isCollapsed();
+      for (const p of [left.current, right.current]) {
+        if (hidden) p?.expand();
+        else p?.collapse();
+      }
+    };
+    window.addEventListener(FOCUS_CANVAS_EVENT, toggle);
+    return () => window.removeEventListener(FOCUS_CANVAS_EVENT, toggle);
+  }, []);
+
   return (
-    <div className="grid h-full grid-cols-[260px_minmax(0,1fr)_288px] gap-2 p-2">
-      <div className="flex min-h-0 flex-col gap-2">
-        <MediaPanel />
-        <LayersPanel />
-      </div>
-      <Canvas />
-      <Panel title="Layer">
-        <LayerInspector />
-      </Panel>
-    </div>
+    <Columns id="editor.stage" preview>
+      <Pane id="assets" size={260} min={200} side collapsible paneRef={left}>
+        <div className="flex h-full min-h-0 flex-col gap-px bg-line-subtle">
+          <MediaPanel />
+          <LayersPanel />
+        </div>
+      </Pane>
+      <Divider />
+      <Pane id="canvas" min={320}>
+        <Canvas />
+      </Pane>
+      <Divider />
+      <Pane id="inspector" size={288} min={240} max={420} side collapsible paneRef={right}>
+        <Panel title="Layer" className="h-full">
+          <LayerInspector />
+        </Panel>
+      </Pane>
+    </Columns>
   );
 }
 
@@ -73,7 +100,7 @@ function LayersPanel() {
       key={l.id}
       onClick={() => select({ layerId: l.id })}
       className={cn(
-        'group flex cursor-pointer items-center gap-1 rounded px-2 py-1',
+        'group flex cursor-pointer items-center gap-1 rounded-control px-2 py-1',
         l.id === layerId ? 'bg-control-active' : 'hover:bg-control-hover',
       )}
     >
@@ -115,19 +142,24 @@ function LayersPanel() {
       className="flex-1"
       bodyClassName="p-1"
       actions={
-        output &&
-        ADD.map((a) => (
-          <IconButton
-            key={a.kind}
-            label={`Add ${a.label.toLowerCase()}`}
-            icon={<a.icon size={14} />}
-            onClick={() => {
-              const layer = syntheticLayer(show, output, a.kind);
-              update((d) => void d.layers.push(layer));
-              select({ layerId: layer.id });
-            }}
-          />
-        ))
+        output && (
+          <MenuButton
+            label="Add a layer"
+            icon={<Plus size={14} />}
+            items={ADD.map((a) => ({
+              id: a.kind,
+              label: a.label,
+              icon: <a.icon size={14} />,
+              onAction: () => {
+                const layer = syntheticLayer(show, output, a.kind);
+                update((d) => void d.layers.push(layer));
+                select({ layerId: layer.id });
+              },
+            }))}
+          >
+            Add
+          </MenuButton>
+        )
       }
     >
       {layers.length === 0 && sounds.length === 0 ? (
@@ -214,8 +246,8 @@ function Canvas() {
     .filter((e): e is HTMLElement => !!e);
 
   return (
-    <section className="flex min-h-0 flex-col rounded-lg border border-line-subtle bg-panel">
-      <header className="flex h-10 shrink-0 items-center gap-2 border-b border-line-subtle px-3">
+    <section className="flex h-full min-h-0 flex-col bg-panel">
+      <header className="flex h-panel-head shrink-0 items-center gap-2 border-b border-line-subtle px-3">
         {show.outputs.length > 1 && (
           <Select
             value={output.id}

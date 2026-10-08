@@ -310,7 +310,7 @@ function Inspector({ show, layer }: { show: Show; layer: Layer }) {
               <input
                 type="color"
                 value={layer.color}
-                className="h-8 w-full rounded border border-line-subtle bg-panel"
+                className="h-8 w-full rounded-control border border-line-subtle bg-panel"
                 onChange={(e) => set({ color: e.target.value } as Partial<Layer>, 'color')}
               />
             </Field>
@@ -345,7 +345,7 @@ function Inspector({ show, layer }: { show: Show; layer: Layer }) {
               <input
                 type="color"
                 value={layer.background.startsWith('#') ? layer.background : '#000000'}
-                className="h-8 w-12 rounded border border-line-subtle bg-panel"
+                className="h-8 w-12 rounded-control border border-line-subtle bg-panel"
                 onChange={(e) => set({ background: e.target.value } as Partial<Layer>, 'bg')}
               />
               <Button

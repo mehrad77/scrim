@@ -139,14 +139,14 @@ export function Library() {
       )}
 
       {busy && (
-        <div className="rounded-lg border border-line-subtle bg-control p-3 text-ui text-fg-muted">
+        <div className="rounded-control border border-line-subtle bg-control p-3 text-ui text-fg-muted">
           {busy}
         </div>
       )}
 
       <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {shows === null ? null : shows.length === 0 ? (
-          <div className="col-span-full rounded-xl border border-dashed border-line-subtle p-10 text-center">
+          <div className="col-span-full rounded-control border border-dashed border-line-subtle p-10 text-center">
             <p className="text-fg-muted">No shows on this machine yet.</p>
             <p className="mt-1 text-ui text-fg-subtle">
               Start a new one, import a .scrim file, or open the demo to see an interactive show.
@@ -193,7 +193,7 @@ function ShowCard({
   const size = show.media.reduce((n, m) => n + m.size, 0);
   const run = () => window.open(`/show/${show.id}/run`, `scrim-run-${show.id}`);
   return (
-    <article className="group flex flex-col rounded-xl border border-line-subtle bg-panel p-4 transition-colors hover:border-line-control">
+    <article className="group flex flex-col rounded-control border border-line-subtle bg-panel p-4 transition-colors hover:border-line-control">
       <Link to={`/show/${show.id}`} className="flex-1">
         <h2 className="truncate text-base font-semibold">{show.name}</h2>
         <p className="mt-1 text-caption text-fg-subtle">

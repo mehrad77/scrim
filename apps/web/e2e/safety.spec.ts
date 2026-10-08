@@ -21,9 +21,8 @@ test('GO still fires after picking a value from a select', async ({ page }) => {
   await expect(standbyRow(page)).toContainText('Red up');
 
   await page.getByRole('tab', { name: 'State' }).click();
-  const select = page.locator('main select').first();
-  await select.focus();
-  await select.selectOption('right');
+  await page.locator('main [data-select-trigger]').first().click();
+  await page.getByRole('option', { name: 'right' }).click();
   await page.keyboard.press('Space');
   await expect(standbyRow(page)).toContainText('Vote');
 });
@@ -44,4 +43,14 @@ test('operator messages never move GO', async ({ page }) => {
   await page.getByRole('button', { name: 'OK', exact: true }).click();
   await expect(message).toBeHidden();
   expect(await go.boundingBox()).toEqual(before);
+});
+
+test('Esc fires PANIC with a select popover open in the operator', async ({ page }) => {
+  const { showId } = await seedShow(page);
+  await page.goto(`/show/${showId}/run`);
+  await page.getByRole('tab', { name: 'State' }).click();
+  await page.locator('main [data-select-trigger]').first().click();
+  await expect(page.getByRole('option', { name: 'right' })).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(page.getByRole('button', { name: /Blacked out/ })).toBeVisible();
 });

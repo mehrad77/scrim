@@ -16,7 +16,7 @@ import { errorToast, toast } from '../../ui/toast.js';
 
 export function InputsTab() {
   return (
-    <div className="grid h-full grid-cols-3 gap-2 p-2">
+    <div className="grid h-full grid-cols-3 gap-px bg-line-subtle">
       <KeysPanel />
       <MidiPanel />
       <GamepadPanel />
@@ -112,7 +112,10 @@ function KeysPanel() {
       <p className="mb-2 text-caption text-fg-subtle">
         Keys work in the operator view and in output windows. Panic also works from the editor.
       </p>
-      <div className="mb-1 flex items-center gap-2" title="Esc always fires Panic, in every window">
+      <div
+        className="mb-1 flex items-center gap-2"
+        data-info="Esc always fires Panic, in every window"
+      >
         <span className="w-24 py-1 text-center">
           <Kbd>Esc</Kbd>
         </span>
@@ -123,9 +126,9 @@ function KeysPanel() {
         k.key === PANIC_KEY ? null : (
           <div key={i} className="mb-1 flex items-center gap-2">
             <button
-              className="w-24 rounded border border-line-subtle py-1 text-center hover:border-fg-subtle"
+              className="w-24 rounded-control border border-line-subtle py-1 text-center hover:border-fg-subtle"
               onClick={() => setRecording(i)}
-              title="Click, then press a key"
+              data-info="Click, then press a key"
             >
               {recording === i ? (
                 <span className="text-caption text-accent-text">Press a key…</span>

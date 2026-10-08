@@ -3,9 +3,10 @@ import {
   useState,
   type InputHTMLAttributes,
   type ReactNode,
-  type SelectHTMLAttributes,
   type TextareaHTMLAttributes,
 } from 'react';
+import { Check } from 'lucide-react';
+import { Checkbox } from 'react-aria-components';
 import { cn } from '../lib/cn.js';
 
 const control =
@@ -39,13 +40,7 @@ export function TextArea({ className, ...rest }: TextareaHTMLAttributes<HTMLText
   return <textarea className={cn(control, 'py-1.5', className)} {...rest} />;
 }
 
-export function Select({ className, children, ...rest }: SelectHTMLAttributes<HTMLSelectElement>) {
-  return (
-    <select className={cn(control, 'h-control pr-6', className)} {...rest}>
-      {children}
-    </select>
-  );
-}
+export { Select } from './Select.js';
 
 /** Text input that commits on blur or Enter, so typing doesn't spam undo history. */
 export function CommitInput({
@@ -138,14 +133,15 @@ export function Toggle({
   label: ReactNode;
 }) {
   return (
-    <label className="flex cursor-pointer items-center gap-2 text-ui text-fg-muted select-none">
-      <input
-        type="checkbox"
-        className="size-4 accent-accent"
-        checked={checked}
-        onChange={(e) => onChange(e.target.checked)}
-      />
+    <Checkbox
+      isSelected={checked}
+      onChange={onChange}
+      className="group flex cursor-default items-center gap-2 text-ui text-fg-muted outline-none select-none"
+    >
+      <span className="flex size-4 shrink-0 items-center justify-center rounded-control border border-line-control bg-control group-data-[focus-visible]:outline-2 group-data-[focus-visible]:outline-offset-2 group-data-[focus-visible]:outline-focus group-data-[selected]:border-fg group-data-[selected]:bg-fg">
+        <Check size={12} className="hidden text-app group-data-[selected]:block" />
+      </span>
       {label}
-    </label>
+    </Checkbox>
   );
 }

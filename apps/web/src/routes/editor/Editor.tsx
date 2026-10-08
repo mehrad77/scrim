@@ -1,4 +1,4 @@
-import { Download, History, Lock, Play, Redo2, Undo2 } from 'lucide-react';
+import { Download, History, Lock, PanelsTopLeft, Play, Redo2, Undo2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router';
 import { isTyping, overlayOpen } from '../../host/inputs.js';
@@ -7,7 +7,7 @@ import { exportShow, getShow } from '../../storage/shows.js';
 import { Button, IconButton } from '../../ui/Button.js';
 import { CommitInput } from '../../ui/Field.js';
 import { Tabs } from '../../ui/Tabs.js';
-import { errorToast } from '../../ui/toast.js';
+import { errorToast, toast } from '../../ui/toast.js';
 import { CuesTab } from './CuesTab.js';
 import { HistoryTab } from './HistoryTab.js';
 import { InputsTab } from './InputsTab.js';
@@ -15,6 +15,9 @@ import { InteractionTab } from './InteractionTab.js';
 import { OutputsTab } from './OutputsTab.js';
 import { StageTab } from './StageTab.js';
 import { readPrefs } from '../../lib/prefs.js';
+import { resetLayouts, toggleFocusCanvas } from '../../ui/Layout.js';
+import { MenuButton } from '../../ui/Menu.js';
+import { InfoStrip } from '../../ui/Tooltip.js';
 
 type Tab = 'stage' | 'cues' | 'interaction' | 'inputs' | 'outputs' | 'history';
 
@@ -58,6 +61,11 @@ export default function Editor() {
         else useEditor.getState().undo();
         return;
       }
+      if (e.key === '|' && e.shiftKey && !mod && !isTyping(e.target)) {
+        e.preventDefault();
+        toggleFocusCanvas();
+        return;
+      }
       if (mod && e.key.toLowerCase() === 's') {
         e.preventDefault();
         void flushSave();
@@ -93,7 +101,7 @@ export default function Editor() {
     <div className="flex h-full flex-col" data-density={readPrefs().editorDensity}>
       <EditorHeader tab={tab} setTab={setTab} />
       <LockBanner />
-      <main className="min-h-0 flex-1">
+      <main className="min-h-0 flex-1 border-t border-line-subtle">
         {tab === 'stage' && <StageTab />}
         {tab === 'cues' && <CuesTab />}
         {tab === 'interaction' && <InteractionTab />}
@@ -101,6 +109,7 @@ export default function Editor() {
         {tab === 'outputs' && <OutputsTab />}
         {tab === 'history' && <HistoryTab />}
       </main>
+      <InfoStrip />
     </div>
   );
 }
@@ -113,7 +122,7 @@ function EditorHeader({ tab, setTab }: { tab: Tab; setTab: (t: Tab) => void }) {
   const canRedo = useEditor((s) => s.future.length > 0);
   return (
     <header className="flex shrink-0 flex-wrap items-center gap-3 border-b border-line-subtle bg-panel px-3 py-2">
-      <Link to="/" title="All shows" className="shrink-0">
+      <Link to="/" data-info="All shows" aria-label="All shows" className="shrink-0">
         <img src="/favicon.svg" alt="Scrim" className="size-7" />
       </Link>
       <CommitInput
@@ -127,14 +136,35 @@ function EditorHeader({ tab, setTab }: { tab: Tab; setTab: (t: Tab) => void }) {
         <span className="mr-2 text-caption text-fg-subtle" aria-live="polite">
           {saving === 'pending' ? 'Saving…' : saving === 'error' ? 'Not saved!' : 'Saved'}
         </span>
+        <MenuButton
+          label="View"
+          icon={<PanelsTopLeft size={15} />}
+          items={[
+            {
+              id: 'focus',
+              label: 'Focus canvas',
+              shortcut: '⇧\\',
+              disabled: tab !== 'stage',
+              onAction: toggleFocusCanvas,
+            },
+            {
+              id: 'reset',
+              label: 'Reset layout',
+              onAction: () =>
+                toast('Panel layout reset', 'info', { label: 'Undo', run: resetLayouts() }),
+            },
+          ]}
+        />
         <IconButton
-          label="Undo (⌘Z)"
+          label="Undo"
+          shortcut="⌘Z"
           icon={<Undo2 size={15} />}
           disabled={!canUndo}
           onClick={() => useEditor.getState().undo()}
         />
         <IconButton
-          label="Redo (⇧⌘Z)"
+          label="Redo"
+          shortcut="⇧⌘Z"
           icon={<Redo2 size={15} />}
           disabled={!canRedo}
           onClick={() => useEditor.getState().redo()}
@@ -160,7 +190,7 @@ function EditorHeader({ tab, setTab }: { tab: Tab; setTab: (t: Tab) => void }) {
         </Button>
         <Button
           size="sm"
-          variant="go"
+          variant="accent"
           icon={<Play size={14} />}
           onClick={async () => {
             await flushSave();

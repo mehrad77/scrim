@@ -34,7 +34,7 @@ export function GoPanel() {
   return (
     <section
       className={cn(
-        'rounded-lg border bg-panel p-4',
+        'rounded-control border bg-panel p-4',
         blackedOut ? 'border-lamp-fault' : 'border-line-subtle',
       )}
     >

@@ -17,17 +17,26 @@ import { useEditor, useShow } from '../../state/editor.js';
 import { Button, IconButton } from '../../ui/Button.js';
 import { confirmDialog, promptDialog } from '../../ui/dialog.js';
 import { CommitInput, Field, NumberInput, TextArea, Toggle } from '../../ui/Field.js';
+import { Columns, Divider, Pane } from '../../ui/Layout.js';
 import { Empty, Panel } from '../../ui/Panel.js';
 import { ActionList } from './ActionEditor.js';
 import { previewState } from './preview.js';
 
 export function CuesTab() {
   return (
-    <div className="grid h-full grid-cols-[340px_minmax(0,1fr)_360px] gap-2 p-2">
-      <CueList />
-      <CueEditor />
-      <CuePreview />
-    </div>
+    <Columns id="editor.cues">
+      <Pane id="list" size={340} min={260} side>
+        <CueList />
+      </Pane>
+      <Divider />
+      <Pane id="editor" min={320}>
+        <CueEditor />
+      </Pane>
+      <Divider />
+      <Pane id="preview" size={360} min={260} max={560} side collapsible>
+        <CuePreview />
+      </Pane>
+    </Columns>
   );
 }
 
@@ -109,7 +118,7 @@ function CueList() {
         const cues = show.cues.filter((c) => c.sceneId === scene.id);
         return (
           <div key={scene.id} className="mb-2">
-            <div className="group flex items-center gap-1 rounded px-1 py-1">
+            <div className="group flex items-center gap-1 rounded-control px-1 py-1">
               <ChevronRight size={14} className="text-fg-subtle" />
               <CommitInput
                 aria-label="Scene name"
@@ -164,7 +173,7 @@ function CueList() {
                   key={cue.id}
                   onClick={() => select({ cueId: cue.id })}
                   className={cn(
-                    'group flex cursor-pointer items-center gap-2 rounded py-1.5 pr-1 pl-3',
+                    'group flex cursor-pointer items-center gap-2 rounded-control py-1.5 pr-1 pl-3',
                     cue.id === cueId ? 'bg-control-active' : 'hover:bg-control-hover',
                   )}
                 >
@@ -181,7 +190,8 @@ function CueList() {
                   {cue.follow.auto && (
                     <span
                       className="flex items-center gap-0.5 text-caption text-standby"
-                      title="Auto-follows into the next cue"
+                      data-info="Auto-follows into the next cue"
+                      aria-label="Auto-follows into the next cue"
                     >
                       <Timer size={11} />
                       {cue.follow.delay}s
@@ -278,7 +288,7 @@ function CueEditor() {
             onChange={(actions) => set((c) => void (c.actions = actions))}
           />
         </div>
-        <div className="flex flex-wrap items-center gap-3 rounded-md border border-line-subtle p-2">
+        <div className="flex flex-wrap items-center gap-3 rounded-control border border-line-subtle p-2">
           <Toggle
             checked={cue.follow.auto}
             onChange={(auto) => set((c) => void (c.follow.auto = auto))}
@@ -323,7 +333,7 @@ function CuePreview() {
       {show.outputs.map((o) => (
         <div key={o.id}>
           <div className="mb-1 text-caption text-fg-subtle">{o.name}</div>
-          <div className="aspect-video overflow-hidden rounded border border-line-subtle bg-black">
+          <div className="aspect-video overflow-hidden rounded-control border border-line-subtle bg-black">
             <Stage show={show} state={state} outputId={o.id} variant="editor" />
           </div>
         </div>

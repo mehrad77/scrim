@@ -63,7 +63,7 @@ function Qr({ text, size = 132 }: { text: string; size?: number }) {
     }).then(setSrc);
   }, [text, size]);
   return src ? (
-    <img src={src} alt="" width={size} height={size} className="rounded bg-white" />
+    <img src={src} alt="" width={size} height={size} className="rounded-control bg-white" />
   ) : (
     <div style={{ width: size, height: size }} />
   );
@@ -79,7 +79,7 @@ function RoomInfo() {
   if (!room) return <p className="p-2 text-ui text-fg-muted">{relay.error ?? 'Opening room…'}</p>;
   const url = who === 'audience' ? audienceUrl(room) : remoteUrl(room);
   return (
-    <div className="rounded-lg border border-line-subtle p-2">
+    <div className="rounded-control border border-line-subtle p-2">
       <div className="flex items-center gap-2">
         <span
           className={cn('size-2 rounded-full', relay.status === 'open' ? 'bg-fg-muted' : 'bg-warn')}
@@ -87,10 +87,18 @@ function RoomInfo() {
         <span className="text-ui">Room</span>
         <span className="font-mono text-lg font-bold tracking-widest">{room.code}</span>
         <span className="ml-auto flex items-center gap-2 text-caption text-fg-muted">
-          <span className="flex items-center gap-1" title="Audience phones">
+          <span
+            className="flex items-center gap-1"
+            data-info="Audience phones"
+            aria-label="Audience phones"
+          >
             <Users size={13} /> {relay.presence.audience}
           </span>
-          <span className="flex items-center gap-1" title="Performer remotes">
+          <span
+            className="flex items-center gap-1"
+            data-info="Performer remotes"
+            aria-label="Performer remotes"
+          >
             <Smartphone size={13} /> {relay.presence.remotes}
           </span>
         </span>
@@ -106,7 +114,7 @@ function RoomInfo() {
             key={w}
             onClick={() => setWho(w)}
             className={cn(
-              'rounded px-2 py-0.5 text-caption',
+              'rounded-control px-2 py-0.5 text-caption',
               who === w ? 'bg-control-active' : 'text-fg-subtle hover:bg-control-hover',
             )}
           >
@@ -181,7 +189,7 @@ function MomentCard({
   return (
     <div
       className={cn(
-        'rounded-lg border p-2',
+        'rounded-control border p-2',
         open ? 'border-go bg-lamp-go-tint' : 'border-line-subtle',
       )}
     >
@@ -211,7 +219,7 @@ function MomentCard({
           {pending.slice(0, 8).map((e) => (
             <div
               key={e.id}
-              className="flex items-center gap-2 rounded bg-control px-2 py-1 text-ui"
+              className="flex items-center gap-2 rounded-control bg-control px-2 py-1 text-ui"
             >
               <span className="min-w-0 flex-1 break-words">{e.text}</span>
               <button
@@ -303,7 +311,7 @@ function Results({ moment: m, ms }: { moment: Moment; ms: MomentState }) {
         {items.map((i) => (
           <div key={i.id} className="flex items-center gap-2 text-caption">
             <span className="w-24 truncate">{i.label}</span>
-            <div className="h-3 flex-1 overflow-hidden rounded bg-control-hover">
+            <div className="h-3 flex-1 overflow-hidden rounded-control bg-control-hover">
               <div
                 className="h-full bg-fg-muted transition-[width]"
                 style={{ width: `${((ms.tally[i.id] ?? 0) / total) * 100}%` }}

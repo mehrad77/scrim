@@ -115,7 +115,7 @@ export function MediaPanel() {
             return (
               <li
                 key={m.id}
-                className="group flex items-center gap-2 rounded px-2 py-1.5 hover:bg-control-hover"
+                className="group flex items-center gap-2 rounded-control px-2 py-1.5 hover:bg-control-hover"
                 draggable
                 onDragStart={(e) => e.dataTransfer.setData('application/x-scrim-media', m.id)}
               >

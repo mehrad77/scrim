@@ -1,16 +1,8 @@
 import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { Button } from './Button.js';
+import { isEscapePanic } from './escape.js';
 import { TextInput } from './Field.js';
-
-/**
- * In the operator view Esc is PANIC and nothing else, so dialogs there ignore it and close only
- * through their buttons. The operator route turns this on while it is mounted.
- */
-let escapeIsPanic = false;
-export function setEscapeIsPanic(on: boolean): void {
-  escapeIsPanic = on;
-}
 
 interface Choice<T> {
   label: string;
@@ -79,7 +71,7 @@ function Shell({
       aria-labelledby={titleId}
       onCancel={(e) => {
         e.preventDefault();
-        if (!escapeIsPanic) onCancel();
+        if (!isEscapePanic()) onCancel();
       }}
       className="m-auto w-[min(440px,calc(100vw-32px))] rounded-overlay border border-line-strong bg-overlay p-0 text-fg shadow-overlay backdrop:bg-black/60"
     >

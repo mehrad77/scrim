@@ -5,3 +5,10 @@ packages:
 allowBuilds:
   esbuild: true
   workerd: true
+minimumReleaseAgeExclude:
+  - '@internationalized/number@3.6.9'
+  - '@react-types/shared@3.37.0'
+  - react-aria-components@1.22.0
+  - react-aria@3.53.0
+  - react-resizable-panels@4.14.3
+  - react-stately@3.51.0

@@ -22,7 +22,7 @@ const PRESETS: [number, number, string][] = [
 
 export function OutputsTab() {
   return (
-    <div className="grid h-full grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)] gap-2 p-2">
+    <div className="grid h-full grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)] gap-px bg-line-subtle">
       <OutputsPanel />
       <AudioPanel />
     </div>
@@ -62,7 +62,7 @@ function OutputsPanel() {
       </p>
       <div className="flex flex-col gap-3">
         {show.outputs.map((o) => (
-          <div key={o.id} className="rounded-lg border border-line-subtle p-3">
+          <div key={o.id} className="rounded-control border border-line-subtle p-3">
             <div className="mb-3 flex items-center gap-2">
               <Monitor size={16} className="text-fg-subtle" />
               <CommitInput
@@ -130,7 +130,7 @@ function OutputsPanel() {
                 <input
                   type="color"
                   value={o.background}
-                  className="h-8 w-full rounded border border-line-subtle bg-panel"
+                  className="h-8 w-full rounded-control border border-line-subtle bg-panel"
                   onChange={(e) => set(o.id, { background: e.target.value }, 'bg')}
                 />
               </Field>

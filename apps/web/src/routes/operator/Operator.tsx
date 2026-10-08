@@ -7,8 +7,11 @@ import { ShowHost, type HostSnapshot } from '../../host/ShowHost.js';
 import { db, getSetting } from '../../storage/db.js';
 import { getShow, listRuns } from '../../storage/shows.js';
 import { Button } from '../../ui/Button.js';
-import { confirmDialog, setEscapeIsPanic } from '../../ui/dialog.js';
+import { confirmDialog } from '../../ui/dialog.js';
+import { setEscapeIsPanic } from '../../ui/escape.js';
+import { Columns, Divider, Pane } from '../../ui/Layout.js';
 import { Tabs } from '../../ui/Tabs.js';
+import { HelpMode, InfoStrip } from '../../ui/Tooltip.js';
 import { AudiencePanel } from './AudiencePanel.js';
 import { CueStack } from './CueStack.js';
 import { GoPanel } from './GoPanel.js';
@@ -98,7 +101,9 @@ export default function Operator() {
   }
   return (
     <HostContext.Provider value={phase.host}>
-      <OperatorView />
+      <HelpMode value="strip">
+        <OperatorView />
+      </HelpMode>
     </HostContext.Provider>
   );
 }
@@ -192,11 +197,11 @@ function OperatorView() {
   return (
     <div className="flex h-full flex-col" data-density="stage">
       <header className="flex shrink-0 flex-wrap items-center gap-3 border-b border-line-subtle bg-panel px-3 py-2">
-        <Link to="/" title="All shows">
+        <Link to="/" data-info="All shows" aria-label="All shows">
           <img src="/favicon.svg" alt="Scrim" className="size-7" />
         </Link>
         <h1 className="max-w-72 truncate text-base font-semibold">{snap.show.name}</h1>
-        <div className="flex overflow-hidden rounded-md border border-line-subtle">
+        <div className="flex overflow-hidden rounded-control border border-line-subtle">
           <button
             className={`flex items-center gap-1.5 px-3 py-1 text-ui ${!showMode ? 'bg-fg text-app' : 'text-fg-muted hover:bg-control-hover'}`}
             onClick={() => host.setMode('rehearsal')}
@@ -248,31 +253,44 @@ function OperatorView() {
         </div>
       </header>
       <MessageStrip typing={typing} />
-      <main className="grid min-h-0 flex-1 grid-cols-[minmax(260px,1fr)_minmax(0,2fr)_minmax(300px,1fr)] gap-2 p-2">
-        <CueStack />
-        <div className="flex min-h-0 flex-col gap-2">
-          <GoPanel />
-          <OutputsPanel />
-        </div>
-        <div className="flex min-h-0 flex-col gap-2">
-          <Tabs
-            value={side}
-            onChange={setSide}
-            tabs={[
-              { id: 'audience', label: 'Audience' },
-              { id: 'state', label: 'State' },
-              { id: 'media', label: 'Media' },
-              { id: 'log', label: 'Log' },
-            ]}
-          />
-          <div className="min-h-0 flex-1">
-            {side === 'audience' && <AudiencePanel />}
-            {side === 'state' && <StatePanel />}
-            {side === 'media' && <MediaPanel />}
-            {side === 'log' && <LogPanel />}
-          </div>
-        </div>
+      <main className="min-h-0 flex-1 border-t border-line-subtle">
+        <Columns id="operator" locked={showMode}>
+          <Pane id="cues" size="25%" min={280}>
+            <CueStack />
+          </Pane>
+          <Divider />
+          <Pane id="go" min={420}>
+            <div className="flex h-full min-h-0 flex-col gap-px bg-line-subtle">
+              <GoPanel />
+              <OutputsPanel />
+            </div>
+          </Pane>
+          <Divider />
+          <Pane id="side" size="28%" min={300} side>
+            <div className="flex h-full min-h-0 flex-col bg-panel">
+              <Tabs
+                value={side}
+                onChange={setSide}
+                label="Live panels"
+                className="border-b border-line-subtle p-1"
+                tabs={[
+                  { id: 'audience', label: 'Audience' },
+                  { id: 'state', label: 'State' },
+                  { id: 'media', label: 'Media' },
+                  { id: 'log', label: 'Log' },
+                ]}
+              />
+              <div className="min-h-0 flex-1">
+                {side === 'audience' && <AudiencePanel />}
+                {side === 'state' && <StatePanel />}
+                {side === 'media' && <MediaPanel />}
+                {side === 'log' && <LogPanel />}
+              </div>
+            </div>
+          </Pane>
+        </Columns>
       </main>
+      <InfoStrip fallback="Space fires GO · Esc is PANIC, always" />
       {checking && <PreshowCheck onClose={() => setChecking(false)} />}
     </div>
   );
@@ -290,7 +308,7 @@ function MessageStrip({ typing }: { typing: boolean }) {
     <div className="flex h-11 shrink-0 items-center gap-3 overflow-hidden border-b border-line-subtle px-4 text-ui">
       {resumed && <ResumeMessage onDone={() => setResumeHidden(true)} />}
       {typing && (
-        <span className="ml-auto rounded border border-line-subtle px-2 py-0.5 text-caption text-fg-muted">
+        <span className="ml-auto rounded-control border border-line-subtle px-2 py-0.5 text-caption text-fg-muted">
           Keys paused while typing · Esc still panics
         </span>
       )}

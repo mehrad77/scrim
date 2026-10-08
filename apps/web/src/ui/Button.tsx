@@ -1,5 +1,6 @@
 import type { ButtonHTMLAttributes, ReactNode } from 'react';
 import { cn } from '../lib/cn.js';
+import { Tip } from './Tooltip.js';
 
 type Variant = 'primary' | 'accent' | 'secondary' | 'ghost' | 'danger' | 'go';
 type Size = 'sm' | 'md' | 'lg';
@@ -24,6 +25,8 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: Variant;
   size?: Size;
   icon?: ReactNode;
+  /** Shortcut shown in the tooltip and Info strip. */
+  shortcut?: string | undefined;
 }
 
 export function Button({
@@ -33,9 +36,11 @@ export function Button({
   className,
   children,
   type = 'button',
+  title,
+  shortcut,
   ...rest
 }: ButtonProps) {
-  return (
+  const button = (
     <button
       type={type}
       className={cn(
@@ -49,6 +54,14 @@ export function Button({
       {icon}
       {children}
     </button>
+  );
+  // A title becomes a real tooltip (and an Info strip line), not a native one.
+  return title ? (
+    <Tip label={title} shortcut={shortcut} disabled={rest.disabled}>
+      {button}
+    </Tip>
+  ) : (
+    button
   );
 }
 

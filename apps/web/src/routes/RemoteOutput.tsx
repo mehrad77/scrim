@@ -170,7 +170,7 @@ export default function RemoteOutput() {
       {!document.fullscreenElement && (
         <div
           className={cn(
-            'absolute right-3 bottom-3 flex items-center gap-2 rounded bg-panel/90 px-3 py-2 text-caption',
+            'absolute right-3 bottom-3 flex items-center gap-2 rounded-control bg-panel/90 px-3 py-2 text-caption',
             (hostGone || status !== 'open') && 'text-warn',
           )}
         >
