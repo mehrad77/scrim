@@ -1,11 +1,12 @@
 # Research
 
-Background research for features that are not built yet. These notes record what the industry does and what the browser allows, so proposals and implementation plans can cite them. They describe options, not decisions.
+Background research for features that are not built yet. These notes record what the industry does and what the browser allows, so proposals and implementation plans can cite them. They describe options, not decisions. The UI/UX notes have already led to decisions, recorded in [UX_PRINCIPLES.md](../../UX_PRINCIPLES.md) and [DESIGN_SYSTEM.md](../../DESIGN_SYSTEM.md).
 
-| Document                                         | Topic                                                                                                   |
-| ------------------------------------------------ | ------------------------------------------------------------------------------------------------------- |
-| [show-control-output.md](show-control-output.md) | Driving lighting consoles, QLab and other gear from cues: MIDI Show Control, OSC, Art-Net/sACN, bridges |
-| [gpu-compositor.md](gpu-compositor.md)           | Replacing the DOM renderer with a GPU compositor: canvas/slice model, warping, edge blending, effects   |
+| Document                                         | Topic                                                                                                                                      |
+| ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| [show-control-output.md](show-control-output.md) | Driving lighting consoles, QLab and other gear from cues: MIDI Show Control, OSC, Art-Net/sACN, bridges                                    |
+| [gpu-compositor.md](gpu-compositor.md)           | Replacing the DOM renderer with a GPU compositor: canvas/slice model, warping, edge blending, effects                                      |
+| [ui-ux/](ui-ux/README.md)                        | UI/UX patterns from creative, show-control and authoring tools; design-system foundations; motion; visual identity; an audit of today's UI |
 
 Researched October 2026. Facts that change over time (browser support, Chrome's permission rules) were checked against live sources then. Items marked _(unverified)_ come from background knowledge and should be checked before they are relied on.
 

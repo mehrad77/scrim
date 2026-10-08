@@ -86,11 +86,13 @@ An output can also live on another device: copy its link from the operator view 
 | Document                                               | For                                                                                                                 |
 | ------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------- |
 | [docs/users-and-journey.md](docs/users-and-journey.md) | Who uses Scrim, what each needs, and the journey from a first idea to touring                                       |
+| [UX_PRINCIPLES.md](UX_PRINCIPLES.md)                   | How Scrim should behave: ten principles, patterns per surface, customization model, accessibility commitments       |
+| [DESIGN_SYSTEM.md](DESIGN_SYSTEM.md)                   | How Scrim looks and moves: identity, colour and type tokens, density, motion, components, layout, migration plan    |
 | [docs/architecture.md](docs/architecture.md)           | How the engine, operator tab, renderer, storage and relay fit together, and the reliability rules changes must keep |
 | [docs/show-format.md](docs/show-format.md)             | The open show document and the `.scrim` bundle: every field, action and moment type, and how versions migrate       |
 | [docs/protocol.md](docs/protocol.md)                   | BroadcastChannel and relay messages, roles and keys, limits, clock sync, close codes                                |
 | [docs/operator-guide.md](docs/operator-guide.md)       | Show-night runbook: before doors, during the show, when something goes wrong                                        |
-| [docs/research/](docs/research/README.md)              | Background research for planned features: show-control output, GPU compositor                                       |
+| [docs/research/](docs/research/README.md)              | Background research for planned features: show-control output, GPU compositor, UI/UX                                |
 
 ## Contributing
 
