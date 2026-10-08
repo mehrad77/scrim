@@ -17,6 +17,7 @@ import { StageTab } from './StageTab.js';
 import { readPrefs } from '../../lib/prefs.js';
 import { resetLayouts, toggleFocusCanvas } from '../../ui/Layout.js';
 import { MenuButton } from '../../ui/Menu.js';
+import { MotionRoot } from '../../ui/MotionRoot.js';
 import { InfoStrip } from '../../ui/Tooltip.js';
 
 type Tab = 'stage' | 'cues' | 'interaction' | 'inputs' | 'outputs' | 'history';
@@ -98,19 +99,21 @@ export default function Editor() {
     return <div className="p-6 text-ui text-fg-subtle">Loading show…</div>;
 
   return (
-    <div className="flex h-full flex-col" data-density={readPrefs().editorDensity}>
-      <EditorHeader tab={tab} setTab={setTab} />
-      <LockBanner />
-      <main className="min-h-0 flex-1 border-t border-line-subtle">
-        {tab === 'stage' && <StageTab />}
-        {tab === 'cues' && <CuesTab />}
-        {tab === 'interaction' && <InteractionTab />}
-        {tab === 'inputs' && <InputsTab />}
-        {tab === 'outputs' && <OutputsTab />}
-        {tab === 'history' && <HistoryTab />}
-      </main>
-      <InfoStrip />
-    </div>
+    <MotionRoot>
+      <div className="flex h-full flex-col" data-density={readPrefs().editorDensity}>
+        <EditorHeader tab={tab} setTab={setTab} />
+        <LockBanner />
+        <main className="min-h-0 flex-1 border-t border-line-subtle">
+          {tab === 'stage' && <StageTab />}
+          {tab === 'cues' && <CuesTab />}
+          {tab === 'interaction' && <InteractionTab />}
+          {tab === 'inputs' && <InputsTab />}
+          {tab === 'outputs' && <OutputsTab />}
+          {tab === 'history' && <HistoryTab />}
+        </main>
+        <InfoStrip />
+      </div>
+    </MotionRoot>
   );
 }
 

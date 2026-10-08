@@ -11,6 +11,7 @@ import {
 } from '@scrim/format';
 import { Plus, Trash2, Wand2 } from 'lucide-react';
 import { useState } from 'react';
+import { AnimatePresence, motion } from 'motion/react';
 import { cn } from '../../lib/cn.js';
 import { removeMoment, removeTrigger, removeVar } from '../../lib/refs.js';
 import { useEditor, useShow } from '../../state/editor.js';
@@ -758,60 +759,65 @@ function RulesPanel() {
         </Empty>
       )}
       <div className="flex flex-col gap-3">
-        {show.rules.map((r) => (
-          <div
-            key={r.id}
-            className={cn(
-              'rounded-control border border-line-subtle bg-control p-3',
-              !r.enabled && 'opacity-50',
-            )}
-          >
-            <div className="mb-2 flex items-center gap-2">
-              <CommitInput
-                className="font-medium"
-                value={r.name}
-                onCommit={(name) => setRule(r.id, (x) => void (x.name = name))}
-              />
-              <Toggle
-                checked={r.enabled}
-                onChange={(v) => setRule(r.id, (x) => void (x.enabled = v))}
-                label={<span className="text-caption">On</span>}
-              />
-              <IconButton
-                label="Delete rule"
-                icon={<Trash2 size={13} />}
-                onClick={() => update((d) => void (d.rules = d.rules.filter((x) => x.id !== r.id)))}
-              />
-            </div>
-            <div className="flex flex-col gap-2">
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="w-12 text-caption font-medium text-fg-muted">when</span>
-                <WhenPicker
-                  show={show}
-                  when={r.when}
-                  onChange={(when) => setRule(r.id, (x) => void (x.when = when))}
+        <AnimatePresence initial={false}>
+          {show.rules.map((r) => (
+            <motion.div
+              key={r.id}
+              layout="position"
+              initial={{ opacity: 0, y: 4 }}
+              animate={{ opacity: r.enabled ? 1 : 0.5, y: 0 }}
+              exit={{ opacity: 0, transition: { duration: 0.1 } }}
+              className="rounded-control border border-line-subtle bg-control p-3"
+            >
+              <div className="mb-2 flex items-center gap-2">
+                <CommitInput
+                  className="font-medium"
+                  value={r.name}
+                  onCommit={(name) => setRule(r.id, (x) => void (x.name = name))}
+                />
+                <Toggle
+                  checked={r.enabled}
+                  onChange={(v) => setRule(r.id, (x) => void (x.enabled = v))}
+                  label={<span className="text-caption">On</span>}
+                />
+                <IconButton
+                  label="Delete rule"
+                  icon={<Trash2 size={13} />}
+                  onClick={() =>
+                    update((d) => void (d.rules = d.rules.filter((x) => x.id !== r.id)))
+                  }
                 />
               </div>
-              <Conditions
-                show={show}
-                conditions={r.if}
-                onChange={(c) => setRule(r.id, (x) => void (x.if = c))}
-              />
-              <div className="flex gap-2">
-                <span className="mt-1.5 w-12 shrink-0 text-caption font-medium text-fg-muted">
-                  then
-                </span>
-                <div className="min-w-0 flex-1">
-                  <ActionList
+              <div className="flex flex-col gap-2">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="w-12 text-caption font-medium text-fg-muted">when</span>
+                  <WhenPicker
                     show={show}
-                    actions={r.then}
-                    onChange={(then) => setRule(r.id, (x) => void (x.then = then))}
+                    when={r.when}
+                    onChange={(when) => setRule(r.id, (x) => void (x.when = when))}
                   />
                 </div>
+                <Conditions
+                  show={show}
+                  conditions={r.if}
+                  onChange={(c) => setRule(r.id, (x) => void (x.if = c))}
+                />
+                <div className="flex gap-2">
+                  <span className="mt-1.5 w-12 shrink-0 text-caption font-medium text-fg-muted">
+                    then
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <ActionList
+                      show={show}
+                      actions={r.then}
+                      onChange={(then) => setRule(r.id, (x) => void (x.then = then))}
+                    />
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
-        ))}
+            </motion.div>
+          ))}
+        </AnimatePresence>
       </div>
     </Panel>
   );

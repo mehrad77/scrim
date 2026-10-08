@@ -5,6 +5,12 @@ import { Library } from './routes/Library.js';
 import './styles.css';
 import { Toaster } from './ui/toast.js';
 
+// Remember whether the last input was a key or a pointer: surfaces opened from the keyboard appear
+// at once, without animation (DESIGN_SYSTEM.md › Motion).
+const root = document.documentElement;
+window.addEventListener('keydown', () => (root.dataset.modality = 'keyboard'), true);
+window.addEventListener('pointerdown', () => (root.dataset.modality = 'pointer'), true);
+
 const Editor = lazy(() => import('./routes/editor/Editor.js'));
 const Operator = lazy(() => import('./routes/operator/Operator.js'));
 const OutputWindow = lazy(() => import('./routes/OutputWindow.js'));

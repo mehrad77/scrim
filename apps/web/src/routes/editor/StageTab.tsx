@@ -320,7 +320,7 @@ function Canvas() {
             overlay={() =>
               guides && (
                 <div
-                  className="pointer-events-none absolute border border-dashed border-cyan-400/40"
+                  className="pointer-events-none absolute border border-dashed border-info/50"
                   style={{
                     left: output.width * output.safeArea,
                     top: output.height * output.safeArea,

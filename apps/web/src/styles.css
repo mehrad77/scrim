@@ -365,6 +365,75 @@ body {
   scrollbar-color: var(--line-strong) transparent;
 }
 
+/* ── Motion (DESIGN_SYSTEM.md › Motion). CSS first; never on Stage or output windows. ── */
+
+/* Menus, popovers and selects opened with the pointer scale in from their trigger; exits fade. */
+[data-overlay-open][data-entering] {
+  animation: overlay-in var(--dur-fast) var(--ease-enter);
+}
+[data-overlay-open][data-exiting] {
+  animation: fade-out var(--dur-micro) var(--ease-exit) forwards;
+}
+.react-aria-Tooltip[data-entering],
+[role='tooltip'][data-entering] {
+  animation: fade-in var(--dur-micro) var(--ease-enter);
+}
+
+/* Native dialogs (editor and Library). */
+dialog[open] {
+  animation: overlay-in var(--dur-base) var(--ease-enter);
+}
+dialog::backdrop {
+  animation: fade-in var(--dur-base) var(--ease-enter);
+}
+
+/* Toasts rise in. */
+[role='region'][aria-label='Notifications'] > * {
+  animation: rise-in var(--dur-base) var(--ease-enter);
+}
+
+/* Anything opened from the keyboard appears at once. */
+[data-modality='keyboard'] [data-overlay-open][data-entering],
+[data-modality='keyboard'] dialog[open] {
+  animation: none;
+}
+
+/* Reduced profile (OS setting, preference or Show mode): no movement, fades of 100 ms at most. */
+[data-motion='reduced'] [data-overlay-open][data-entering],
+[data-motion='reduced'] dialog[open],
+[data-motion='reduced'] [role='region'][aria-label='Notifications'] > * {
+  animation: fade-in var(--dur-micro) linear;
+}
+[data-motion='reduced'] *,
+[data-motion='reduced'] *::before,
+[data-motion='reduced'] *::after {
+  animation-iteration-count: 1 !important;
+  scroll-behavior: auto !important;
+}
+
+@keyframes overlay-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+}
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes fade-out {
+  to {
+    opacity: 0;
+  }
+}
+
 /* Lucide icons keep a 1.75 px stroke at every size (DESIGN_SYSTEM.md › Icons). */
 svg.lucide {
   stroke-width: 1.75px;

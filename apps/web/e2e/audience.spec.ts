@@ -5,7 +5,7 @@ test('an audience vote branches the show', async ({ page, browser }) => {
   const { showId } = await seedShow(page);
   await page.goto(`/show/${showId}/run`);
   await page.getByRole('button', { name: 'Open audience room' }).click();
-  const code = (await page.locator('.tracking-widest').first().textContent())?.trim();
+  const code = (await page.getByTestId('room-code').first().textContent())?.trim();
   expect(code).toMatch(/^[A-Z2-9]{5}$/);
 
   // Fire "Red up", then "Vote".
@@ -21,7 +21,7 @@ test('an audience vote branches the show', async ({ page, browser }) => {
   await expect(phone.getByText(/Vote counted/)).toBeVisible();
 
   // The tally reaches the operator, then closing the vote branches.
-  await expect(page.locator('.font-mono.w-8').nth(1)).toHaveText('1');
+  await expect(page.getByTestId('tally').nth(1)).toHaveText('1');
   await page.getByRole('button', { name: 'Close now' }).click();
   await expect(page.getByText('Right scene').first()).toBeVisible();
   await expect(page.locator('[data-standby="true"]')).toContainText('Right scene');

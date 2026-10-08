@@ -85,6 +85,8 @@ export function Toaster() {
     return () => window.removeEventListener('keydown', onKey);
   }, []);
 
+  // Nothing from the interface reaches an output window (UX_PRINCIPLES.md › Safety invariants).
+  if (/^\/(output|remote-output)/.test(location.pathname)) return null;
   return (
     <div
       ref={region}

@@ -4,6 +4,7 @@ import { createContext, useContext, useEffect, useState, useSyncExternalStore } 
 import { Link, useParams } from 'react-router';
 import { isTyping, PANIC_KEY } from '../../host/inputs.js';
 import { ShowHost, type HostSnapshot } from '../../host/ShowHost.js';
+import { setShowModeMotion } from '../../lib/prefs.js';
 import { db, getSetting } from '../../storage/db.js';
 import { getShow, listRuns } from '../../storage/shows.js';
 import { Button } from '../../ui/Button.js';
@@ -151,6 +152,12 @@ function OperatorView() {
   useEffect(() => {
     document.title = `▶ ${snap.show.name} · Scrim`;
   }, [snap.show.name]);
+
+  // Show mode uses the reduced motion profile (DESIGN_SYSTEM.md › Motion).
+  useEffect(() => {
+    setShowModeMotion(showMode);
+    return () => setShowModeMotion(false);
+  }, [showMode]);
 
   const [typing, setTyping] = useState(false);
 

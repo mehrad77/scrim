@@ -85,7 +85,9 @@ function RoomInfo() {
           className={cn('size-2 rounded-full', relay.status === 'open' ? 'bg-fg-muted' : 'bg-warn')}
         />
         <span className="text-ui">Room</span>
-        <span className="font-mono text-lg font-bold tracking-widest">{room.code}</span>
+        <span className="font-mono text-lg font-bold tracking-widest" data-testid="room-code">
+          {room.code}
+        </span>
         <span className="ml-auto flex items-center gap-2 text-caption text-fg-muted">
           <span
             className="flex items-center gap-1"
@@ -312,12 +314,15 @@ function Results({ moment: m, ms }: { moment: Moment; ms: MomentState }) {
           <div key={i.id} className="flex items-center gap-2 text-caption">
             <span className="w-24 truncate">{i.label}</span>
             <div className="h-3 flex-1 overflow-hidden rounded-control bg-control-hover">
+              {/* scaleX, not width: compositor-only motion in the operator */}
               <div
-                className="h-full bg-fg-muted transition-[width]"
-                style={{ width: `${((ms.tally[i.id] ?? 0) / total) * 100}%` }}
+                className="h-full origin-left bg-fg-muted transition-transform duration-(--dur-base) ease-move"
+                style={{ transform: `scaleX(${(ms.tally[i.id] ?? 0) / total})` }}
               />
             </div>
-            <span className="w-8 text-right font-mono">{ms.tally[i.id] ?? 0}</span>
+            <span className="w-8 text-right font-mono tabular-nums" data-testid="tally">
+              {ms.tally[i.id] ?? 0}
+            </span>
           </div>
         ))}
       </div>
