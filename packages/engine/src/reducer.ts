@@ -45,7 +45,9 @@ export function step(show: Show, prev: EngineState, input: EngineInput, now: num
 
 /** Earliest epoch ms at which a `tick` would change something, or null. */
 export function nextWakeup(state: EngineState): number | null {
-  const times: number[] = state.timers.map((t) => t.at);
+  const times: number[] = state.timers
+    .filter((t) => !state.held || t.kind !== 'action')
+    .map((t) => t.at);
   if (!state.held) {
     if (state.follow) times.push(state.follow.at);
     for (const m of Object.values(state.moments)) {
@@ -87,6 +89,7 @@ function applyInput(ctx: Ctx, input: EngineInput): void {
       } else {
         const paused = now - (state.heldAt ?? now);
         if (state.follow) state.follow.at += paused;
+        for (const t of state.timers) if (t.kind === 'action') t.at += paused;
         for (const m of Object.values(state.moments)) {
           if (m.status === 'open' && m.closesAt !== null) m.closesAt += paused;
         }
@@ -99,6 +102,7 @@ function applyInput(ctx: Ctx, input: EngineInput): void {
     case 'panic':
       state.blackout = retarget(state.blackout, 1, now, input.fade ?? 0, 'linear');
       state.follow = null;
+      state.timers = state.timers.filter((t) => t.kind !== 'action');
       ctx.events.push({ type: 'panic' });
       return;
     case 'release':
@@ -190,7 +194,8 @@ function back(ctx: Ctx): void {
   const fade = cueFade(cue);
   for (const [id, layer] of Object.entries(target.layers)) {
     const current = state.layers[id];
-    if (current) layer.opacity = retarget(current.opacity, layer.opacity.to, now, fade, 'easeInOut');
+    if (current)
+      layer.opacity = retarget(current.opacity, layer.opacity.to, now, fade, 'easeInOut');
   }
   target.blackout = state.blackout;
   target.held = state.held;
@@ -213,11 +218,20 @@ function cueFade(cue: Cue | undefined): number {
 
 function tick(ctx: Ctx): void {
   const { state, now } = ctx;
-  const due = state.timers.filter((t) => t.at <= now);
-  state.timers = state.timers.filter((t) => t.at > now);
-  for (const t of due) {
+  const isDue = (t: (typeof state.timers)[number]) =>
+    t.at <= now && !(state.held && t.kind === 'action');
+  const due = state.timers.filter(isDue);
+  state.timers = state.timers.filter((t) => !isDue(t));
+  for (const t of due.sort((a, b) => a.at - b.at)) {
+    if (t.kind === 'action') {
+      // Start the delayed action at its scheduled time, so its fade is exact.
+      ctx.now = t.at;
+      applyAction(ctx, t.action);
+      ctx.now = now;
+      continue;
+    }
     const media = state.layers[t.layerId]?.media;
-    if (t.kind === 'pause' && media?.playing) {
+    if (media?.playing) {
       media.position = mediaPosition(media, t.at);
       media.playing = false;
       media.anchor = now;
@@ -250,7 +264,16 @@ function fireCue(ctx: Ctx, cueId: string, source: InputSource): void {
 }
 
 function applyActions(ctx: Ctx, actions: Action[]): void {
-  for (const action of actions) applyAction(ctx, action);
+  for (const action of actions) {
+    const delay = 'delay' in action ? (action.delay ?? 0) : 0;
+    if (delay > 0) {
+      ctx.state.timers.push({
+        at: ctx.now + delay * 1000,
+        kind: 'action',
+        action: { ...action, delay: 0 } as Action,
+      });
+    } else applyAction(ctx, action);
+  }
 }
 
 function applyAction(ctx: Ctx, action: Action): void {
@@ -272,7 +295,7 @@ function applyAction(ctx: Ctx, action: Action): void {
       if (!media) return warn(ctx, `Layer ${action.layerId} has no media to play`);
       const position = action.restart ? 0 : mediaPosition(media, now);
       Object.assign(media, { playing: true, position, anchor: now });
-      state.timers = state.timers.filter((t) => t.layerId !== action.layerId);
+      state.timers = state.timers.filter((t) => t.kind !== 'pause' || t.layerId !== action.layerId);
       return;
     }
     case 'pause': {
@@ -336,7 +359,7 @@ function applyAction(ctx: Ctx, action: Action): void {
       for (const [id, ls] of Object.entries(state.layers)) {
         ls.opacity = retarget(ls.opacity, 0, now, action.duration, 'linear');
         if (ls.media?.playing) {
-          state.timers = state.timers.filter((t) => t.layerId !== id);
+          state.timers = state.timers.filter((t) => t.kind !== 'pause' || t.layerId !== id);
           state.timers.push({ at: now + action.duration * 1000, kind: 'pause', layerId: id });
         }
       }

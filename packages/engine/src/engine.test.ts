@@ -477,3 +477,39 @@ describe('back', () => {
     expect(state.blackout.to).toBe(1);
   });
 });
+
+describe('action delays', () => {
+  function delayed(): Show {
+    const show = demo();
+    show.cues[0]!.actions = [
+      { type: 'show', layerId: 'title', duration: 0, easing: 'linear', delay: 2 },
+    ];
+    show.cues[0]!.follow = { auto: false, delay: 0 };
+    return show;
+  }
+
+  it('starts an action its delay after the cue fires', () => {
+    const show = delayed();
+    const fired = run(show, [[1000, { type: 'go' }]]);
+    expect(tweenValue(fired.layers.title!.opacity, 1500)).toBe(0);
+    expect(nextWakeup(fired)).toBe(3000);
+    const later = run(show, [[3000, { type: 'tick' }]], fired);
+    expect(tweenValue(later.layers.title!.opacity, 3000)).toBeCloseTo(0.8);
+    expect(later.timers).toHaveLength(0);
+  });
+
+  it('waits while held and is cancelled by PANIC', () => {
+    const show = delayed();
+    const held = run(show, [
+      [1000, { type: 'go' }],
+      [1500, { type: 'hold', on: true }],
+      [3500, { type: 'tick' }],
+    ]);
+    expect(tweenValue(held.layers.title!.opacity, 3500)).toBe(0);
+    // Resumed after 2.5 s held: due at 5.5 s instead of 3 s.
+    const resumed = run(show, [[4000, { type: 'hold', on: false }]], held);
+    expect(nextWakeup(resumed)).toBe(5500);
+    const panicked = run(show, [[4100, { type: 'panic' }]], resumed);
+    expect(panicked.timers).toHaveLength(0);
+  });
+});

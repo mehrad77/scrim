@@ -97,6 +97,8 @@ When `follow.auto` is true, the next cue fires `delay` seconds after this one. `
 
 ### Actions
 
+Layer and media actions (`show`, `hide`, `fade`, `play`, `pause`, `seek`, `setText`, `counter`) take an optional `delay` in seconds: they start that long after the cue fires. Hold postpones pending delayed actions; PANIC and Back cancel them.
+
 | `type`                       | Fields                                                        | Effect                                |
 | ---------------------------- | ------------------------------------------------------------- | ------------------------------------- |
 | `show` · `hide`              | `layerId, duration, easing`                                   | Fade to the layer's opacity, or to 0  |

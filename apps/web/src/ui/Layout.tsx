@@ -69,6 +69,7 @@ export function Columns(props: {
   id: string;
   locked?: boolean;
   preview?: boolean;
+  vertical?: boolean;
   children: ReactNode;
 }) {
   const e = useSyncExternalStore(
@@ -85,11 +86,13 @@ function ColumnsInner({
   id,
   locked,
   preview,
+  vertical,
   children,
 }: {
   id: string;
   locked?: boolean | undefined;
   preview?: boolean | undefined;
+  vertical?: boolean | undefined;
   children: ReactNode;
 }) {
   const { defaultLayout, onLayoutChanged } = useDefaultLayout({
@@ -100,7 +103,7 @@ function ColumnsInner({
   return (
     <Group
       id={id}
-      orientation="horizontal"
+      orientation={vertical ? 'vertical' : 'horizontal'}
       defaultLayout={defaultLayout}
       onLayoutChanged={onLayoutChanged}
       disabled={locked}
@@ -150,8 +153,10 @@ export function Pane({
 }
 
 /** The 1 px divider between panes; drag it, or focus it and use the arrow keys. */
-export function Divider() {
+export function Divider({ vertical }: { vertical?: boolean }) {
   return (
-    <Separator className="w-px bg-line-subtle outline-none hover:bg-line-control focus-visible:bg-fg data-[disabled]:hover:bg-line-subtle" />
+    <Separator
+      className={`${vertical ? 'h-px' : 'w-px'} bg-line-subtle outline-none hover:bg-line-control focus-visible:bg-fg data-[disabled]:hover:bg-line-subtle`}
+    />
   );
 }

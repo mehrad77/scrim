@@ -209,6 +209,21 @@ function ActionFields({
           ))}
       </Pick>
     );
+  // When the action starts after its cue fires (the cue dock's bar offset).
+  const delayField = 'layerId' in a && (
+    <>
+      <span className="text-caption text-fg-subtle">after</span>
+      <NumberInput
+        className="w-20"
+        aria-label="Delay in seconds"
+        value={'delay' in a ? (a.delay ?? 0) : 0}
+        min={0}
+        step={0.1}
+        suffix="s"
+        onCommit={(delay) => onChange({ ...a, delay: delay || undefined } as Action)}
+      />
+    </>
+  );
   const fadeFields = 'duration' in a && 'easing' in a && (
     <>
       <span className="text-caption text-fg-subtle">over</span>
@@ -230,6 +245,7 @@ function ActionFields({
         <option value="easeOut">Ease out</option>
         <option value="easeInOut">Smooth</option>
       </Select>
+      {delayField}
     </>
   );
 
@@ -267,10 +283,16 @@ function ActionFields({
             onChange={(restart) => onChange({ ...a, restart })}
             label={<span className="text-caption">from the start</span>}
           />
+          {delayField}
         </>
       );
     case 'pause':
-      return layerPick((k) => k === 'video' || k === 'audio');
+      return (
+        <>
+          {layerPick((k) => k === 'video' || k === 'audio')}
+          {delayField}
+        </>
+      );
     case 'seek':
       return (
         <>
@@ -284,6 +306,7 @@ function ActionFields({
             suffix="s"
             onCommit={(time) => onChange({ ...a, time })}
           />
+          {delayField}
         </>
       );
     case 'setText':
@@ -296,6 +319,7 @@ function ActionFields({
             placeholder="New text, may use {{name}}"
             onCommit={(text) => onChange({ ...a, text })}
           />
+          {delayField}
         </>
       );
     case 'counter':
@@ -319,6 +343,7 @@ function ActionFields({
               onCommit={(value) => onChange({ ...a, value })}
             />
           )}
+          {delayField}
         </>
       );
     case 'setVar': {

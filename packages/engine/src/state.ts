@@ -1,4 +1,4 @@
-import type { Show, VarValue } from '@scrim/format';
+import type { Action, Show, VarValue } from '@scrim/format';
 import { cueOrder } from '@scrim/format';
 import { still, type Tween } from './tween.js';
 
@@ -46,11 +46,11 @@ export interface MomentState extends MomentAggregate {
   usedDefault: boolean;
 }
 
-export interface Timer {
-  at: number;
-  kind: 'pause';
-  layerId: string;
-}
+export type Timer =
+  /** Stop a media layer at a position (seek and pause). */
+  | { at: number; kind: 'pause'; layerId: string }
+  /** A delayed cue action; Hold postpones it, PANIC and Back cancel it. */
+  | { at: number; kind: 'action'; action: Action };
 
 /** The state just before the operator's last GO, so Back can return to it (one step). */
 export interface BackPoint {
@@ -131,7 +131,11 @@ export function reconcile(show: Show, prev: EngineState): EngineState {
   const momentIds = new Set(show.moments.map((m) => m.id));
   for (const id of Object.keys(state.moments)) if (!momentIds.has(id)) delete state.moments[id];
   for (const m of show.moments) state.moments[m.id] ??= idleMoment();
-  state.timers = state.timers.filter((t) => layerIds.has(t.layerId));
+  state.timers = state.timers.filter((t) =>
+    t.kind === 'pause'
+      ? layerIds.has(t.layerId)
+      : !('layerId' in t.action) || layerIds.has(t.action.layerId),
+  );
   const cueIds = new Set(cueOrder(show).map((c) => c.id));
   if (state.standby && !cueIds.has(state.standby)) state.standby = cueOrder(show)[0]?.id ?? null;
   if (state.lastFired && !cueIds.has(state.lastFired)) state.lastFired = null;

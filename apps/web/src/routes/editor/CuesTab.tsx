@@ -1,14 +1,16 @@
-import { uid, type Cue, type Show } from '@scrim/format';
-import { Copy, Trash2 } from 'lucide-react';
-import { useMemo } from 'react';
+import { cueOrder, uid, type Cue, type Show } from '@scrim/format';
+import { Copy, Play, Trash2 } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import { step } from '@scrim/engine';
 import { removeCue } from '../../lib/refs.js';
 import { Stage } from '../../render/Stage.js';
 import { useEditor, useShow } from '../../state/editor.js';
-import { IconButton } from '../../ui/Button.js';
+import { Button, IconButton } from '../../ui/Button.js';
 import { CommitInput, Field, NumberInput, TextArea, Toggle } from '../../ui/Field.js';
 import { Columns, Divider, Pane } from '../../ui/Layout.js';
 import { Empty, Panel } from '../../ui/Panel.js';
 import { ActionList } from './ActionEditor.js';
+import { cueEnd } from './CueDock.js';
 import { CueList } from './CueList.js';
 import { previewState } from './preview.js';
 
@@ -138,17 +140,85 @@ function CueEditor() {
 function CuePreview() {
   const show = useShow();
   const cueId = useEditor((s) => s.selection.cueId);
-  const state = useMemo(() => previewState(show, cueId), [show, cueId]);
+  const cue = show.cues.find((c) => c.id === cueId);
+  const settled = useMemo(() => previewState(show, cueId), [show, cueId]);
+  // Play the cue with its real fades and delays: the state just before it, fired at T0, read at
+  // T0 + t. Editor only; outputs never animate from here.
+  const [t, setT] = useState<number | null>(null);
+  const length = cue ? Math.max(0.5, cueEnd(cue)) : 0;
+  const T0 = 1e9;
+  const playing = useMemo(() => {
+    if (!cue || t === null) return null;
+    const order = cueOrder(show);
+    const i = order.findIndex((c) => c.id === cue.id);
+    const before = previewState(show, i > 0 ? order[i - 1]!.id : null);
+    const fired = step(
+      show,
+      before,
+      { type: 'fireCue', cueId: cue.id, source: 'system' },
+      T0,
+    ).state;
+    return step(show, fired, { type: 'tick' }, T0 + t * 1000).state;
+  }, [show, cue, t]);
+  useEffect(() => {
+    if (t === null || t >= length) return;
+    const start = performance.now() - t * 1000;
+    let raf = 0;
+    const loop = () => {
+      const next = (performance.now() - start) / 1000;
+      if (next >= length) return setT(length);
+      setT(next);
+      raf = requestAnimationFrame(loop);
+    };
+    raf = requestAnimationFrame(loop);
+    return () => cancelAnimationFrame(raf);
+    // Restart the loop only when play starts, not on every frame.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [t === null, length]);
+  const state = playing ?? settled;
   return (
-    <Panel title="After this cue" bodyClassName="flex flex-col gap-2 p-2">
+    <Panel
+      title="After this cue"
+      bodyClassName="flex flex-col gap-2 p-2"
+      actions={
+        cue && (
+          <Button
+            size="sm"
+            icon={<Play size={13} />}
+            onClick={() => setT(0)}
+            title="Play this cue with its fades and delays"
+          >
+            Play
+          </Button>
+        )
+      }
+    >
       {show.outputs.map((o) => (
         <div key={o.id}>
           <div className="mb-1 text-caption text-fg-subtle">{o.name}</div>
           <div className="aspect-video overflow-hidden rounded-control border border-line-subtle bg-black">
-            <Stage show={show} state={state} outputId={o.id} variant="editor" />
+            <Stage
+              show={show}
+              state={state}
+              outputId={o.id}
+              variant="editor"
+              clock={() => (playing ? T0 + (t ?? 0) * 1000 : Date.now())}
+            />
           </div>
         </div>
       ))}
+      {cue && (
+        <input
+          type="range"
+          aria-label="Scrub through this cue"
+          min={0}
+          max={length}
+          step={0.05}
+          value={t ?? length}
+          onChange={(e) => setT(Number(e.target.value))}
+          className="w-full accent-accent"
+        />
+      )}
       <StatePreview show={show} state={state.vars} />
     </Panel>
   );

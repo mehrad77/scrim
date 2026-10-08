@@ -181,20 +181,24 @@ const Fade = {
   easing: EasingSchema.default('linear'),
 };
 
+/** Seconds after the cue fires before a layer action starts (the cue dock's bar offset). */
+const Timing = { delay: z.number().nonnegative().optional() };
+
+type Delay = { delay?: number | undefined };
 type ActionShape =
-  | { type: 'show'; layerId: string; duration: number; easing: Easing }
-  | { type: 'hide'; layerId: string; duration: number; easing: Easing }
-  | { type: 'fade'; layerId: string; opacity: number; duration: number; easing: Easing }
-  | { type: 'play'; layerId: string; restart: boolean }
-  | { type: 'pause'; layerId: string }
-  | { type: 'seek'; layerId: string; time: number }
-  | { type: 'setText'; layerId: string; text: string }
-  | {
+  | ({ type: 'show'; layerId: string; duration: number; easing: Easing } & Delay)
+  | ({ type: 'hide'; layerId: string; duration: number; easing: Easing } & Delay)
+  | ({ type: 'fade'; layerId: string; opacity: number; duration: number; easing: Easing } & Delay)
+  | ({ type: 'play'; layerId: string; restart: boolean } & Delay)
+  | ({ type: 'pause'; layerId: string } & Delay)
+  | ({ type: 'seek'; layerId: string; time: number } & Delay)
+  | ({ type: 'setText'; layerId: string; text: string } & Delay)
+  | ({
       type: 'counter';
       layerId: string;
       op: 'start' | 'pause' | 'reset' | 'add';
       value?: number | undefined;
-    }
+    } & Delay)
   | { type: 'setVar'; varId: string; value: VarValue }
   | { type: 'addVar'; varId: string; amount: number }
   | { type: 'jumpScene'; sceneId: string; fire: boolean }
@@ -206,18 +210,30 @@ type ActionShape =
 
 export const ActionSchema: z.ZodType<ActionShape, unknown> = z.lazy(() =>
   z.discriminatedUnion('type', [
-    z.object({ type: z.literal('show'), layerId: Ref, ...Fade }),
-    z.object({ type: z.literal('hide'), layerId: Ref, ...Fade }),
-    z.object({ type: z.literal('fade'), layerId: Ref, opacity: z.number().min(0).max(1), ...Fade }),
-    z.object({ type: z.literal('play'), layerId: Ref, restart: z.boolean().default(false) }),
-    z.object({ type: z.literal('pause'), layerId: Ref }),
-    z.object({ type: z.literal('seek'), layerId: Ref, time: z.number().nonnegative() }),
-    z.object({ type: z.literal('setText'), layerId: Ref, text: z.string() }),
+    z.object({ type: z.literal('show'), layerId: Ref, ...Fade, ...Timing }),
+    z.object({ type: z.literal('hide'), layerId: Ref, ...Fade, ...Timing }),
+    z.object({
+      type: z.literal('fade'),
+      layerId: Ref,
+      opacity: z.number().min(0).max(1),
+      ...Fade,
+      ...Timing,
+    }),
+    z.object({
+      type: z.literal('play'),
+      layerId: Ref,
+      restart: z.boolean().default(false),
+      ...Timing,
+    }),
+    z.object({ type: z.literal('pause'), layerId: Ref, ...Timing }),
+    z.object({ type: z.literal('seek'), layerId: Ref, time: z.number().nonnegative(), ...Timing }),
+    z.object({ type: z.literal('setText'), layerId: Ref, text: z.string(), ...Timing }),
     z.object({
       type: z.literal('counter'),
       layerId: Ref,
       op: z.enum(['start', 'pause', 'reset', 'add']),
       value: z.number().optional(),
+      ...Timing,
     }),
     z.object({ type: z.literal('setVar'), varId: Ref, value: VarValueSchema }),
     z.object({ type: z.literal('addVar'), varId: Ref, amount: z.number() }),

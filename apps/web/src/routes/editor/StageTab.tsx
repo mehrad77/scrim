@@ -29,6 +29,7 @@ import { Columns, Divider, FOCUS_CANVAS_EVENT, Pane } from '../../ui/Layout.js';
 import { MenuButton } from '../../ui/Menu.js';
 import { Empty, Panel } from '../../ui/Panel.js';
 import { Canvas } from './Canvas.js';
+import { CueDock } from './CueDock.js';
 import { LayerInspector } from './LayerInspector.js';
 import { MediaPanel } from './MediaPanel.js';
 
@@ -59,7 +60,15 @@ export function StageTab() {
       </Pane>
       <Divider />
       <Pane id="canvas" min={320}>
-        <Canvas />
+        <Columns id="editor.stage.dock" vertical>
+          <Pane id="view" min={200}>
+            <Canvas />
+          </Pane>
+          <Divider vertical />
+          <Pane id="dock" size="28%" min={120} max="60%" collapsible>
+            <CueDock />
+          </Pane>
+        </Columns>
       </Pane>
       <Divider />
       <Pane id="inspector" size={288} min={240} max={420} side collapsible paneRef={right}>
