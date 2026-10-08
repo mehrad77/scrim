@@ -89,6 +89,7 @@ An output can also live on another device: copy its link from the operator view 
 | [docs/show-format.md](docs/show-format.md)       | The open show document and the `.scrim` bundle: every field, action and moment type, and how versions migrate       |
 | [docs/protocol.md](docs/protocol.md)             | BroadcastChannel and relay messages, roles and keys, limits, clock sync, close codes                                |
 | [docs/operator-guide.md](docs/operator-guide.md) | Show-night runbook: before doors, during the show, when something goes wrong                                        |
+| [docs/research/](docs/research/README.md)        | Background research for planned features: show-control output, GPU compositor                                       |
 
 ## Contributing
 
