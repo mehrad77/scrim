@@ -1,23 +1,27 @@
 import { cueOrder } from '@scrim/format';
-import { Pause, Play, SkipBack, SkipForward, Square } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { Pause, Play, SkipBack, SkipForward, Square, Undo2 } from 'lucide-react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { keyLabel, PANIC_KEY } from '../../host/inputs.js';
 import { epochNow } from '../../lib/clock.js';
 import { cn } from '../../lib/cn.js';
 import { Button } from '../../ui/Button.js';
-import { Kbd } from '../../ui/Panel.js';
+import { Lamp } from '../../ui/Lamp.js';
 import { useHost } from './Operator.js';
 
+/**
+ * The GO panel, in fixed regions that never change size: standby (name and notes), GO with Hold
+ * and Back, what is running, and PANIC in its own corner (UX_PRINCIPLES.md › GO is mechanical).
+ */
 export function GoPanel() {
   const [host, snap] = useHost();
   const { show, state } = snap;
   const order = useMemo(() => cueOrder(show), [show]);
-  const standby = order.find((c) => c.id === state.standby);
+  const standbyIndex = order.findIndex((c) => c.id === state.standby);
+  const standby = order[standbyIndex];
   const last = order.find((c) => c.id === state.lastFired);
-  const [now, setNow] = useState(epochNow);
-  // Follow the blackout's target, not its tween: the clock below only ticks while a follow or
-  // hold is running, so a tween read here could stay stale after Release.
+  // Follow the blackout's target, not its tween, so Release clears it at once.
   const blackedOut = state.blackout.to === 1;
+  const [now, setNow] = useState(epochNow);
 
   useEffect(() => {
     if (!state.follow && !state.held) return;
@@ -32,90 +36,179 @@ export function GoPanel() {
     : null;
 
   return (
-    <section
-      className={cn(
-        'rounded-control border bg-panel p-4',
-        blackedOut ? 'border-lamp-fault' : 'border-line-subtle',
-      )}
-    >
+    <section className="flex shrink-0 flex-col gap-4 bg-panel p-4">
       <div className="flex gap-4">
         <div className="min-w-0 flex-1">
-          <div className="label-caps text-fg-subtle">Live</div>
-          <div className="truncate text-lg text-fg-muted">{last ? last.name : '—'}</div>
-          <div className="label-caps mt-3 text-standby">Standby</div>
-          <div className="truncate text-3xl font-semibold">
-            {standby ? standby.name : 'End of show'}
-          </div>
-          {standby?.notes && <div className="mt-1 text-ui text-fg-muted">{standby.notes}</div>}
-          {followIn !== null && (
-            <div className="mt-2 text-ui text-standby">
-              {state.held ? 'Held — auto-follow paused' : `Auto-follow in ${followIn.toFixed(1)}s`}
-            </div>
-          )}
-          {state.held && followIn === null && (
-            <div className="mt-2 text-ui text-standby">Held — timers paused</div>
-          )}
-        </div>
-        <div className="flex flex-col items-stretch gap-2">
-          <button
-            onClick={() => host.command({ type: 'go' }, 'operator')}
-            disabled={!standby}
-            className="flex h-28 w-48 flex-col items-center justify-center rounded-control bg-lamp-go text-on-lamp transition-transform active:scale-[.97] active:transition-none disabled:opacity-30"
-          >
-            <span className="text-5xl font-black tracking-tight">GO</span>
-            {goKey !== undefined && (
-              <span className="text-caption opacity-70">{keyLabel(goKey)}</span>
+          <div className="label-caps text-standby">Standby</div>
+          <div className="mt-1 flex items-baseline gap-3 text-cue font-semibold">
+            {standby ? (
+              <>
+                <span className="font-mono text-standby tabular-nums">{standbyIndex + 1}</span>
+                <span className="truncate">{standby.name}</span>
+              </>
+            ) : (
+              <span className="text-fg-subtle">End of show</span>
             )}
-          </button>
+          </div>
+          {/* Fixed height: long notes scroll here instead of pushing GO down. */}
+          <div className="mt-2 h-14 overflow-auto text-ui text-fg-muted">
+            {standby?.notes || <span className="text-fg-subtle">No notes for this cue.</span>}
+          </div>
+        </div>
+        <div className="flex w-48 shrink-0 flex-col gap-2">
+          <GoButton
+            ready={!!standby}
+            goKey={goKey}
+            fired={state.fired}
+            lockedUntil={snap.goLockedUntil}
+            droppedAt={snap.goDroppedAt}
+            onGo={() => host.command({ type: 'go' }, 'operator')}
+          />
           <div className="flex gap-1">
             <Button
-              size="sm"
-              className="flex-1"
-              title="Previous cue"
-              icon={<SkipBack size={14} />}
-              onClick={() => host.dispatch({ type: 'standbyPrev' })}
-            />
-            <Button
-              size="sm"
               className="flex-1"
               variant={state.held ? 'primary' : 'secondary'}
-              icon={state.held ? <Play size={14} /> : <Pause size={14} />}
+              icon={state.held ? <Play size={16} /> : <Pause size={16} />}
               onClick={() => host.dispatch({ type: 'hold' })}
             >
               {state.held ? 'Resume' : 'Hold'}
             </Button>
             <Button
-              size="sm"
               className="flex-1"
-              title="Next cue"
-              icon={<SkipForward size={14} />}
+              icon={<Undo2 size={16} />}
+              disabled={!state.back}
+              title="Back: undo the last GO"
+              onClick={() => host.command({ type: 'back' }, 'operator')}
+            >
+              Back
+            </Button>
+          </div>
+          <div className="flex gap-1">
+            <Button
+              className="flex-1"
+              title="Previous cue on standby"
+              icon={<SkipBack size={16} />}
+              onClick={() => host.dispatch({ type: 'standbyPrev' })}
+            />
+            <Button
+              className="flex-1"
+              title="Next cue on standby"
+              icon={<SkipForward size={16} />}
               onClick={() => host.dispatch({ type: 'standbyNext' })}
             />
           </div>
         </div>
       </div>
-      <div className="mt-4 flex items-center gap-2">
+
+      <div className="flex min-h-control items-center gap-3 border-t border-line-subtle pt-3 text-ui">
+        <Lamp tone={last ? 'go' : 'off'} icon={last ? <Play size={12} /> : undefined}>
+          Live
+        </Lamp>
+        <span className="min-w-0 flex-1 truncate">{last ? last.name : 'Nothing has run yet'}</span>
+        {state.held && (
+          <Lamp tone="off" icon={<Pause size={12} />}>
+            Held
+          </Lamp>
+        )}
+        {followIn !== null && !state.held && (
+          <span className="font-mono text-fg-muted tabular-nums">
+            Auto-follow in {followIn.toFixed(1)} s
+          </span>
+        )}
+      </div>
+
+      {/* PANIC lives in its own corner: unmistakable, but not where a slip from GO lands. */}
+      <div className="flex justify-end pt-2">
         {blackedOut ? (
-          <Button
-            variant="danger"
-            size="lg"
-            className="flex-1"
+          <button
+            type="button"
+            className="flex h-11 w-2/5 min-w-56 items-center justify-center gap-2 rounded-control bg-lamp-fault px-3 font-semibold text-on-fault"
             onClick={() => host.dispatch({ type: 'release', fade: 1 })}
           >
-            Blacked out — release (fade back in 1s)
-          </Button>
+            <span className="label-caps">Blacked out</span> · Release
+          </button>
         ) : (
-          <Button
-            variant="danger"
-            size="lg"
-            className="flex-1"
-            icon={<Square size={16} />}
+          <button
+            type="button"
+            className="flex h-11 w-2/5 min-w-56 items-center justify-center gap-2 rounded-control border border-line-control bg-control px-3 font-semibold text-fg hover:bg-control-hover"
             onClick={() => host.dispatch({ type: 'panic' })}
           >
-            PANIC — black & mute everything <Kbd>{keyLabel(PANIC_KEY)}</Kbd>
-          </Button>
+            <span aria-hidden className="size-2 rounded-[1px] border border-lamp-fault" />
+            <Square size={14} className="text-fault" />
+            PANIC
+            <kbd className="label-caps rounded-control border border-line-control px-1 text-fg-muted">
+              {keyLabel(PANIC_KEY)}
+            </kbd>
+          </button>
         )}
       </div>
     </section>
+  );
+}
+
+/**
+ * GO: tinted with a lit border when a cue is on standby, filled for the instant it fires, and
+ * ringed while the double-GO guard holds. A press during the guard flashes the ring, so a GO is
+ * never dropped silently. It is never disabled and never moves.
+ */
+function GoButton({
+  ready,
+  goKey,
+  fired,
+  lockedUntil,
+  droppedAt,
+  onGo,
+}: {
+  ready: boolean;
+  goKey: string | undefined;
+  fired: number;
+  lockedUntil: number;
+  droppedAt: number | null;
+  onGo: () => void;
+}) {
+  const [pressed, setPressed] = useState(false);
+  const [ring, setRing] = useState(false);
+  const lastFired = useRef(fired);
+
+  // A GO from any source (key, pedal, remote) echoes on the button for 100 ms.
+  useEffect(() => {
+    if (fired <= lastFired.current) {
+      lastFired.current = fired;
+      return;
+    }
+    lastFired.current = fired;
+    setPressed(true);
+    setRing(true);
+    const a = setTimeout(() => setPressed(false), 100);
+    const b = setTimeout(() => setRing(false), Math.max(0, lockedUntil - Date.now()));
+    return () => {
+      clearTimeout(a);
+      clearTimeout(b);
+    };
+  }, [fired, lockedUntil]);
+
+  useEffect(() => {
+    if (droppedAt === null) return;
+    setRing(true);
+    const t = setTimeout(() => setRing(false), 300);
+    return () => clearTimeout(t);
+  }, [droppedAt]);
+
+  return (
+    <button
+      type="button"
+      onClick={onGo}
+      data-pressed={pressed || undefined}
+      className={cn(
+        'flex h-28 w-full flex-col items-center justify-center rounded-control border-2 active:transition-none',
+        ready
+          ? 'border-go bg-lamp-go-tint text-go active:bg-lamp-go active:text-on-lamp data-pressed:bg-lamp-go data-pressed:text-on-lamp'
+          : 'border-line-control bg-control text-fg-subtle',
+        ring && 'outline-2 outline-offset-2 outline-fg',
+      )}
+    >
+      <span className="text-display font-mono font-semibold">GO</span>
+      {goKey !== undefined && <span className="label-caps opacity-80">{keyLabel(goKey)}</span>}
+    </button>
   );
 }

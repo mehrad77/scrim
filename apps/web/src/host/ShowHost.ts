@@ -33,6 +33,12 @@ const JOURNAL_MS = 250;
 const LOG_LIMIT = 500;
 const DOUBLE_GO_MS = 300;
 
+/** State for output windows and the relay: they never need the Back snapshot. */
+function publicState(state: EngineState): EngineState {
+  const { back: _back, ...rest } = state;
+  return rest;
+}
+
 export interface OutputLink {
   clientId: string;
   outputId: string;
@@ -64,6 +70,17 @@ export interface HostSnapshot {
   gamepads: string[];
   lastRunAt: number | null;
   resumedAt: string | null;
+  /** Date.now() until which a second GO is ignored (the double-GO guard). */
+  goLockedUntil: number;
+  /** When a GO was last ignored by the guard, so the GO button can say so. */
+  goDroppedAt: number | null;
+  /** Deliberate deviations from the script this run (forced results, edits, moved standby). */
+  offScript: OffScriptEntry[];
+}
+
+export interface OffScriptEntry {
+  at: number;
+  label: string;
 }
 
 /**
@@ -106,6 +123,8 @@ export class ShowHost {
   #lastRemoteView = '';
   #disposed = false;
   #lastGo = 0;
+  #goDroppedAt: number | null = null;
+  #offScript: OffScriptEntry[] = [];
 
   constructor(
     show: Show,
@@ -170,7 +189,42 @@ export class ShowHost {
 
   dispatch(input: EngineInput): void {
     if (this.#disposed) return;
+    const off = this.#offScriptLabel(input);
+    if (input.type === 'reset') this.#offScript = [];
+    else if (off) this.#offScript = [...this.#offScript, { at: Date.now(), label: off }].slice(-50);
     this.engine.dispatch(input);
+  }
+
+  /** Clear the deviations and put the next cue in script order on standby. */
+  backToScript(): void {
+    const order = cueOrder(this.engine.show);
+    const i = order.findIndex((c) => c.id === this.engine.state.lastFired);
+    const next = order[i + 1] ?? order[0];
+    this.#offScript = [];
+    if (next) this.engine.dispatch({ type: 'standby', cueId: next.id });
+    else this.#build();
+  }
+
+  #offScriptLabel(input: EngineInput): string | null {
+    const show = this.engine.show;
+    switch (input.type) {
+      case 'setVar':
+        return `Changed ${show.vars.find((v) => v.id === input.varId)?.name ?? 'a value'}`;
+      case 'closeMoment':
+        return input.result === undefined
+          ? null
+          : `Forced the result of ${show.moments.find((m) => m.id === input.momentId)?.name ?? 'a moment'}`;
+      case 'standby':
+      case 'standbyNext':
+      case 'standbyPrev':
+        return 'Moved standby';
+      case 'action':
+        return 'Ran an action by hand';
+      case 'seek':
+        return 'Scrubbed media';
+      default:
+        return null;
+    }
   }
 
   command(c: Command, source: InputSource): void {
@@ -178,7 +232,10 @@ export class ShowHost {
       case 'go': {
         // Double-GO protection: a bounced key or pedal must not skip a cue.
         const now = Date.now();
-        if (now - this.#lastGo < DOUBLE_GO_MS) return;
+        if (now - this.#lastGo < DOUBLE_GO_MS) {
+          // Never drop a GO silently: the GO button flashes its lockout ring.
+          return this.#set(() => (this.#goDroppedAt = now));
+        }
         this.#lastGo = now;
         return this.dispatch({ type: 'go', source });
       }
@@ -186,6 +243,8 @@ export class ShowHost {
         return this.dispatch({ type: 'panic' });
       case 'hold':
         return this.dispatch({ type: 'hold' });
+      case 'back':
+        return this.dispatch({ type: 'back' });
       case 'standbyNext':
         return this.dispatch({ type: 'standbyNext' });
       case 'standbyPrev':
@@ -493,17 +552,18 @@ export class ShowHost {
 
   #broadcastState(): void {
     this.#seq += 1;
+    const state = publicState(this.engine.state);
     this.#channel.post({
       t: 'state',
       seq: this.#seq,
-      state: this.engine.state,
+      state,
       mode: this.#mode,
       offset: 0,
     });
     if (this.#relay?.status === 'open') {
       this.#relay.send({
         t: 'state',
-        state: this.engine.state,
+        state,
         mode: this.#mode,
         offset: this.#serverOffset(),
       });
@@ -520,7 +580,13 @@ export class ShowHost {
     if (!relay || relay.status !== 'open') return;
     const show = this.engine.show;
     const state = this.engine.state;
-    if (force) relay.send({ t: 'state', state, mode: this.#mode, offset: this.#serverOffset() });
+    if (force)
+      relay.send({
+        t: 'state',
+        state: publicState(state),
+        mode: this.#mode,
+        offset: this.#serverOffset(),
+      });
     const offset = this.#serverOffset();
     const open: MomentSpec[] = show.moments
       .filter((m) => state.moments[m.id]?.status === 'open')
@@ -647,6 +713,8 @@ export class ShowHost {
         return this.#log('info', e.on ? 'Hold' : 'Resumed');
       case 'reset':
         return this.#log('info', 'Reset to top');
+      case 'back':
+        return this.#log('cue', `Back to before “${e.name}”`);
       case 'warning':
         return this.#log('warning', e.message);
       default:
@@ -720,6 +788,9 @@ export class ShowHost {
       gamepads: this.#gamepads,
       lastRunAt: this.#lastRunAt,
       resumedAt: this.#resumedAt,
+      goLockedUntil: this.#lastGo + DOUBLE_GO_MS,
+      goDroppedAt: this.#goDroppedAt,
+      offScript: this.#offScript,
     };
     for (const l of this.#listeners) l();
   }

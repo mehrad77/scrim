@@ -18,7 +18,7 @@ export function previewState(show: Show, cueId: string | null): EngineState {
 }
 
 /** Finish fades and freeze clocks, so the preview is a still picture. */
-function settle(state: EngineState): EngineState {
+export function settle(state: EngineState): EngineState {
   for (const ls of Object.values(state.layers)) {
     ls.opacity = { ...ls.opacity, from: ls.opacity.to, dur: 0 };
     if (ls.counter) ls.counter = { ...ls.counter, running: false };

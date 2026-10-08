@@ -314,6 +314,7 @@ export const CommandSchema = z.discriminatedUnion('type', [
   z.object({ type: z.literal('go') }),
   z.object({ type: z.literal('panic') }),
   z.object({ type: z.literal('hold') }),
+  z.object({ type: z.literal('back') }),
   z.object({ type: z.literal('standbyNext') }),
   z.object({ type: z.literal('standbyPrev') }),
   z.object({ type: z.literal('trigger'), triggerId: Ref }),

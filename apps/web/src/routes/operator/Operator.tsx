@@ -8,8 +8,9 @@ import { setShowModeMotion } from '../../lib/prefs.js';
 import { db, getSetting } from '../../storage/db.js';
 import { getShow, listRuns } from '../../storage/shows.js';
 import { Button } from '../../ui/Button.js';
-import { confirmDialog } from '../../ui/dialog.js';
 import { setEscapeIsPanic } from '../../ui/escape.js';
+import { HoldButton } from '../../ui/HoldButton.js';
+import { Lamp } from '../../ui/Lamp.js';
 import { Columns, Divider, Pane } from '../../ui/Layout.js';
 import { Tabs } from '../../ui/Tabs.js';
 import { HelpMode, InfoStrip } from '../../ui/Tooltip.js';
@@ -94,9 +95,13 @@ export default function Operator() {
           Only one operator view can drive the outputs. Switch to that tab, or take over here; the
           other tab stops.
         </p>
-        <Button variant="danger" onClick={() => setTakeover((n) => n + 1)}>
-          Take over here
-        </Button>
+        <HoldButton
+          danger
+          label="Hold to take over; the other tab stops"
+          onConfirm={() => setTakeover((n) => n + 1)}
+        >
+          Hold to take over here
+        </HoldButton>
       </div>
     );
   }
@@ -208,20 +213,31 @@ function OperatorView() {
           <img src="/favicon.svg" alt="Scrim" className="size-7" />
         </Link>
         <h1 className="max-w-72 truncate text-base font-semibold">{snap.show.name}</h1>
-        <div className="flex overflow-hidden rounded-control border border-line-subtle">
-          <button
-            className={`flex items-center gap-1.5 px-3 py-1 text-ui ${!showMode ? 'bg-fg text-app' : 'text-fg-muted hover:bg-control-hover'}`}
-            onClick={() => host.setMode('rehearsal')}
-          >
-            <LockOpen size={14} /> Rehearsal
-          </button>
-          <button
-            className={`flex items-center gap-1.5 px-3 py-1 text-ui ${showMode ? 'bg-control-active text-fg' : 'text-fg-muted hover:bg-control-hover'}`}
-            onClick={() => host.setMode('show')}
-          >
-            <Lock size={14} /> Show
-          </button>
-        </div>
+        {showMode ? (
+          // Show is the calm, locked state; leaving it takes a deliberate one-second hold.
+          <div className="flex items-center gap-2">
+            <Lamp tone="off" icon={<Lock size={12} />} className="text-fg-muted">
+              Show
+            </Lamp>
+            <HoldButton
+              label="Hold for a second to leave Show mode"
+              icon={<LockOpen size={13} />}
+              onConfirm={() => host.setMode('rehearsal')}
+            >
+              Hold to unlock
+            </HoldButton>
+          </div>
+        ) : (
+          // Rehearsal is the loud state, because it is the unsafe one.
+          <div className="flex items-center gap-2">
+            <span className="label-caps flex h-7 items-center gap-1.5 bg-fg px-2 text-app">
+              <LockOpen size={12} /> Rehearsal · editing unlocked · double-click fires
+            </span>
+            <Button size="sm" icon={<Lock size={13} />} onClick={() => host.setMode('show')}>
+              Show mode
+            </Button>
+          </div>
+        )}
         <StatusChips />
         <div className="ml-auto flex items-center gap-2">
           {!showMode && (
@@ -233,21 +249,13 @@ function OperatorView() {
               >
                 Pre-show check
               </Button>
-              <Button
-                size="sm"
-                icon={<RotateCcw size={14} />}
-                onClick={async () => {
-                  if (
-                    await confirmDialog(
-                      'Reset to the top?',
-                      'Every layer, timer and state value goes back to the start of the show.',
-                    )
-                  )
-                    host.dispatch({ type: 'reset' });
-                }}
+              <HoldButton
+                label="Hold to reset: every layer, timer and value goes back to the top"
+                icon={<RotateCcw size={13} />}
+                onConfirm={() => host.dispatch({ type: 'reset' })}
               >
                 Reset
-              </Button>
+              </HoldButton>
               <Button
                 size="sm"
                 icon={<Pencil size={14} />}

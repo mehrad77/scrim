@@ -439,3 +439,41 @@ describe('Engine', () => {
     expect(interpolate('Door: {{door}} {{nope}}', show, s.vars)).toBe('Door: left {{nope}}');
   });
 });
+
+describe('back', () => {
+  it('returns to the state before the last GO, fading over the cue’s fade', () => {
+    const show = demo();
+    const fired = run(show, [[1000, { type: 'go' }]]);
+    expect(tweenValue(fired.layers.title!.opacity, 4000)).toBeCloseTo(0.8);
+    expect(fired.standby).toBe('c2');
+
+    const { state, events } = step(show, fired, { type: 'back' }, 4000);
+    expect(events).toContainEqual({ type: 'back', cueId: 'c1', name: 'Title up' });
+    expect(state.standby).toBe('c1');
+    expect(state.lastFired).toBeNull();
+    expect(state.follow).toBeNull();
+    // Fades back down over the cue's 2 s fade, from where it is now.
+    expect(tweenValue(state.layers.title!.opacity, 4000)).toBeCloseTo(0.8);
+    expect(tweenValue(state.layers.title!.opacity, 5000)).toBeCloseTo(0.4);
+    expect(tweenValue(state.layers.title!.opacity, 6000)).toBe(0);
+    // One step only.
+    expect(step(show, state, { type: 'back' }, 7000).events[0]).toMatchObject({
+      type: 'warning',
+    });
+  });
+
+  it('keeps the blackout and does not record auto-follows', () => {
+    const show = demo();
+    // GO fires c1, whose 5 s auto-follow then fires c2 on a tick.
+    const followed = run(show, [
+      [1000, { type: 'go' }],
+      [6000, { type: 'tick' }],
+      [7000, { type: 'panic' }],
+    ]);
+    expect(followed.lastFired).toBe('c2');
+    expect(followed.back?.cueId).toBe('c1');
+    const { state } = step(show, followed, { type: 'back' }, 8000);
+    expect(state.standby).toBe('c1');
+    expect(state.blackout.to).toBe(1);
+  });
+});

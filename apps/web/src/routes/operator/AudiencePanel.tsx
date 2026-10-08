@@ -105,62 +105,71 @@ function RoomInfo() {
           </span>
         </span>
       </div>
+      {snap.mode === 'show' && (
+        <p className="mt-1 text-caption text-fg-subtle">
+          Room setup is hidden in Show mode. Unlock to show the QR codes again.
+        </p>
+      )}
       {relay.status !== 'open' && (
         <p className="mt-1 text-caption text-warn">
           {relay.error ?? 'Reconnecting… audience moments use their defaults if this lasts.'}
         </p>
       )}
-      <div className="mt-2 flex gap-1">
-        {(['audience', 'remote'] as const).map((w) => (
-          <button
-            key={w}
-            onClick={() => setWho(w)}
-            className={cn(
-              'rounded-control px-2 py-0.5 text-caption',
-              who === w ? 'bg-control-active' : 'text-fg-subtle hover:bg-control-hover',
-            )}
-          >
-            {w === 'audience' ? 'Audience QR' : 'Performer remote QR'}
-          </button>
-        ))}
-      </div>
-      <div className="mt-2 flex gap-3">
-        <Qr text={url} />
-        <div className="flex min-w-0 flex-col gap-2 text-caption">
-          <p className="text-fg-muted">
-            {who === 'audience'
-              ? 'Project this, print it, or put it on the tickets.'
-              : 'Only for performers: it can fire triggers.'}
-          </p>
-          <Button
-            size="sm"
-            icon={<Copy size={12} />}
-            onClick={() => {
-              void navigator.clipboard.writeText(url);
-              toast('Link copied', 'good');
-            }}
-          >
-            Copy link
-          </Button>
-          <Button size="sm" variant="ghost" onClick={() => host.disconnectRelay()}>
-            Close room
-          </Button>
-        </div>
-      </div>
-      {local && (
-        <div className="mt-2 rounded-control border border-line-control p-2 text-caption text-warn">
-          Phones can't open “localhost”. Enter the address phones should use, such as this machine's
-          network address:
-          <CommitInput
-            className="mt-1"
-            placeholder="http://192.168.1.20:5173"
-            value={localStorage.getItem('scrim.publicUrl') ?? ''}
-            onCommit={(v) => {
-              localStorage.setItem('scrim.publicUrl', v.trim());
-              setBase(appBase());
-            }}
-          />
-        </div>
+      {snap.mode !== 'show' && (
+        <>
+          <div className="mt-2 flex gap-1">
+            {(['audience', 'remote'] as const).map((w) => (
+              <button
+                key={w}
+                onClick={() => setWho(w)}
+                className={cn(
+                  'rounded-control px-2 py-0.5 text-caption',
+                  who === w ? 'bg-control-active' : 'text-fg-subtle hover:bg-control-hover',
+                )}
+              >
+                {w === 'audience' ? 'Audience QR' : 'Performer remote QR'}
+              </button>
+            ))}
+          </div>
+          <div className="mt-2 flex gap-3">
+            <Qr text={url} />
+            <div className="flex min-w-0 flex-col gap-2 text-caption">
+              <p className="text-fg-muted">
+                {who === 'audience'
+                  ? 'Project this, print it, or put it on the tickets.'
+                  : 'Only for performers: it can fire triggers.'}
+              </p>
+              <Button
+                size="sm"
+                icon={<Copy size={12} />}
+                onClick={() => {
+                  void navigator.clipboard.writeText(url);
+                  toast('Link copied', 'good');
+                }}
+              >
+                Copy link
+              </Button>
+              <Button size="sm" variant="ghost" onClick={() => host.disconnectRelay()}>
+                Close room
+              </Button>
+            </div>
+          </div>
+          {local && (
+            <div className="mt-2 rounded-control border border-line-control p-2 text-caption text-warn">
+              Phones can't open “localhost”. Enter the address phones should use, such as this
+              machine's network address:
+              <CommitInput
+                className="mt-1"
+                placeholder="http://192.168.1.20:5173"
+                value={localStorage.getItem('scrim.publicUrl') ?? ''}
+                onCommit={(v) => {
+                  localStorage.setItem('scrim.publicUrl', v.trim());
+                  setBase(appBase());
+                }}
+              />
+            </div>
+          )}
+        </>
       )}
     </div>
   );

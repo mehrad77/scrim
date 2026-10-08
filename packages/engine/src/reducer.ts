@@ -6,6 +6,7 @@ import {
   idleMoment,
   initialState,
   mediaPosition,
+  reconcile,
   type EngineState,
 } from './state.js';
 import { retarget } from './tween.js';
@@ -34,6 +35,11 @@ export function step(show: Show, prev: EngineState, input: EngineInput, now: num
   const ctx: Ctx = { show, state: structuredClone(prev), now, events: [], order: cueOrder(show) };
   applyInput(ctx, input);
   runRules(ctx);
+  // Remember where an operator GO started from, so Back can return there.
+  const fired = ctx.events.find((e) => e.type === 'cueFired');
+  if ((input.type === 'go' || input.type === 'fireCue') && fired?.type === 'cueFired') {
+    ctx.state.back = { cueId: fired.cueId, state: { ...structuredClone(prev), back: null } };
+  }
   return { state: ctx.state, events: ctx.events };
 }
 
@@ -164,7 +170,45 @@ function applyInput(ctx: Ctx, input: EngineInput): void {
       ctx.state = initialState(ctx.show);
       ctx.events.push({ type: 'reset' });
       return;
+    case 'back':
+      back(ctx);
+      return;
   }
+}
+
+/**
+ * Undo the operator's last GO: every layer fades from where it is now back to where it was
+ * going before that GO, over the cue's own fade; standby, values and moments return too.
+ * Blackout and Hold are left as they are, and nothing re-fires on its own.
+ */
+function back(ctx: Ctx): void {
+  const { state, now } = ctx;
+  const point = state.back;
+  if (!point) return warn(ctx, 'Nothing to go back to');
+  const target = reconcile(ctx.show, point.state);
+  const cue = ctx.order.find((c) => c.id === point.cueId);
+  const fade = cueFade(cue);
+  for (const [id, layer] of Object.entries(target.layers)) {
+    const current = state.layers[id];
+    if (current) layer.opacity = retarget(current.opacity, layer.opacity.to, now, fade, 'easeInOut');
+  }
+  target.blackout = state.blackout;
+  target.held = state.held;
+  target.heldAt = state.heldAt;
+  target.follow = null;
+  target.timers = [];
+  target.fired = state.fired;
+  target.back = null;
+  ctx.state = target;
+  ctx.events.push({ type: 'back', cueId: point.cueId, name: cue?.name ?? '' });
+}
+
+/** The longest fade among a cue's show, hide and fade actions; 1 s when it has none. */
+function cueFade(cue: Cue | undefined): number {
+  const fades = (cue?.actions ?? []).flatMap((a) =>
+    a.type === 'show' || a.type === 'hide' || a.type === 'fade' ? [a.duration] : [],
+  );
+  return fades.length ? Math.max(...fades) : 1;
 }
 
 function tick(ctx: Ctx): void {

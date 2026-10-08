@@ -33,7 +33,9 @@ export type EngineInput =
   | { type: 'seek'; layerId: string; time: number }
   /** Apply one action directly (operator overrides in rehearsal). */
   | { type: 'action'; action: Action }
-  | { type: 'reset' };
+  | { type: 'reset' }
+  /** Return to the state before the operator's last GO, fading over that cue's fade. */
+  | { type: 'back' };
 
 export type EngineEvent =
   | { type: 'cueFired'; cueId: string; name: string; source: InputSource }
@@ -46,4 +48,5 @@ export type EngineEvent =
   | { type: 'release' }
   | { type: 'hold'; on: boolean }
   | { type: 'reset' }
+  | { type: 'back'; cueId: string; name: string }
   | { type: 'warning'; message: string };

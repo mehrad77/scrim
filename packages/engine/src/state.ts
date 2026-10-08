@@ -52,6 +52,12 @@ export interface Timer {
   layerId: string;
 }
 
+/** The state just before the operator's last GO, so Back can return to it (one step). */
+export interface BackPoint {
+  cueId: string;
+  state: EngineState;
+}
+
 export interface EngineState {
   standby: string | null;
   lastFired: string | null;
@@ -64,6 +70,8 @@ export interface EngineState {
   follow: { cueId: string; at: number } | null;
   timers: Timer[];
   fired: number;
+  /** Optional so journals written before Back existed still load. */
+  back?: BackPoint | null;
 }
 
 export function emptyAggregate(): MomentAggregate {
@@ -106,6 +114,7 @@ export function initialState(show: Show): EngineState {
     follow: null,
     timers: [],
     fired: 0,
+    back: null,
   };
 }
 

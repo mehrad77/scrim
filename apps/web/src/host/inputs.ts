@@ -136,6 +136,8 @@ export function describeCommand(c: Command, triggers: { id: string; name: string
       return 'Panic (blackout)';
     case 'hold':
       return 'Hold / resume';
+    case 'back':
+      return 'Back (undo the last GO)';
     case 'standbyNext':
       return 'Standby next cue';
     case 'standbyPrev':

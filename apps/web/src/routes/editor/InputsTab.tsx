@@ -51,6 +51,7 @@ function CommandPicker({
       <option value="go">GO</option>
       <option value="panic">Panic (blackout)</option>
       <option value="hold">Hold / resume</option>
+      <option value="back">Back (undo the last GO)</option>
       <option value="standbyNext">Standby next cue</option>
       <option value="standbyPrev">Standby previous cue</option>
       {show.triggers.length > 0 && (

@@ -6,8 +6,8 @@ const standbyRow = (page: import('@playwright/test').Page) => page.locator('[dat
 test('Esc fires PANIC even with a dialog open, and the dialog stays', async ({ page }) => {
   const { showId } = await seedShow(page);
   await page.goto(`/show/${showId}/run`);
-  await page.getByRole('button', { name: 'Reset' }).click();
-  const dialog = page.getByRole('dialog', { name: /Reset to the top/ });
+  await page.getByRole('button', { name: 'Pre-show check' }).click();
+  const dialog = page.locator('dialog[open]');
   await expect(dialog).toBeVisible();
 
   await page.keyboard.press('Escape');

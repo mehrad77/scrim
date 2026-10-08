@@ -140,9 +140,12 @@ Easing is one of `linear`, `easeIn`, `easeOut` or `easeInOut`. Durations are in 
 Trigger { id, name, color }
 Rule    { id, name, enabled, when, if: Condition[], then: Action[] }
 when    = trigger(triggerId) | momentClosed(momentId) | varChanged(varId) | cueFired(cueId) | mediaEnded(layerId)
-Command = go | panic | hold | standbyNext | standbyPrev | trigger(triggerId)
+Command = go | panic | hold | back | standbyNext | standbyPrev | trigger(triggerId)
 inputs  = { keys: {key, command}[], midi: {kind: note|cc, channel|null, number, command}[], gamepad: {button, command}[] }
 ```
+
+- **Esc is always PANIC.** The app adds it at runtime whatever `keys` says; a show can map extra panic keys.
+- **`back`** returns to the state before the operator's last GO (one step). Older apps don't know this command, so they can't open shows that map a key to it.
 
 ## Versioning
 

@@ -24,6 +24,9 @@ export default function OutputWindow() {
   const [hostAlive, setHostAlive] = useState(false);
   const [hud, setHud] = useState(true);
   const [identify, setIdentify] = useState(false);
+  // In Show mode nothing but the stage appears here: no HUD, no Identify (safety invariant 6).
+  const [showMode, setShowMode] = useState(false);
+  const showModeRef = useRef(false);
   const channel = useRef<ShowChannel | null>(null);
   const errors = useRef<string[]>([]);
   const screenLabel = useRef<string | null>(null);
@@ -46,12 +49,14 @@ export default function OutputWindow() {
           if (m.seq < lastSeq && m.seq !== 1) break;
           lastSeq = m.seq;
           setState(m.state);
+          showModeRef.current = m.mode === 'show';
+          setShowMode(m.mode === 'show');
           break;
         case 'beat':
           lastBeat = Date.now();
           break;
         case 'identify':
-          if (m.outputId === null || m.outputId === outputId) {
+          if (!showModeRef.current && (m.outputId === null || m.outputId === outputId)) {
             setIdentify(true);
             setTimeout(() => setIdentify(false), 3000);
           }
@@ -163,7 +168,7 @@ export default function OutputWindow() {
 
   return (
     <div
-      className={cn('fixed inset-0 bg-black select-none', !hud && 'cursor-none')}
+      className={cn('fixed inset-0 bg-black select-none', (!hud || showMode) && 'cursor-none')}
       onClick={goFullscreen}
       onDoubleClick={() => document.fullscreenElement && void document.exitFullscreen()}
     >
@@ -177,7 +182,7 @@ export default function OutputWindow() {
           onAudioBlocked={onBlocked}
         />
       ) : null}
-      {identify && output && (
+      {identify && !showMode && output && (
         <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/70">
           <div className="rounded-2xl border-4 border-white px-16 py-10 text-center">
             <div className="text-7xl font-bold text-white">{output.name}</div>
@@ -189,8 +194,9 @@ export default function OutputWindow() {
       )}
       <div
         className={cn(
-          'absolute right-3 bottom-3 flex items-center gap-3 rounded-lg bg-panel/90 px-3 py-2 text-caption text-fg-muted shadow-lg transition-opacity',
-          hud ? 'opacity-100' : 'pointer-events-none opacity-0',
+          // The HUD appears and disappears instantly: no UI motion on outputs.
+          'absolute right-3 bottom-3 flex items-center gap-3 rounded-control bg-panel/90 px-3 py-2 text-caption text-fg-muted',
+          hud && !showMode ? 'opacity-100' : 'pointer-events-none opacity-0',
         )}
       >
         <span className={cn('size-2 rounded-full', hostAlive ? 'bg-fg-muted' : 'bg-warn')} />
@@ -203,7 +209,7 @@ export default function OutputWindow() {
         </span>
         {!document.fullscreenElement && (
           <button
-            className="flex items-center gap-1 rounded bg-control-active px-2 py-1 hover:bg-line-strong"
+            className="flex items-center gap-1 rounded-control bg-control-active px-2 py-1 hover:bg-line-strong"
             onClick={goFullscreen}
           >
             <Maximize size={12} /> Full screen
