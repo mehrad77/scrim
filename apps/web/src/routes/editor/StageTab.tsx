@@ -89,8 +89,8 @@ function LayersPanel() {
         }}
       />
       <div className="min-w-0 flex-1">
-        <div className="truncate text-sm">{l.name}</div>
-        <div className="text-[11px] text-fg-subtle">{layerKindLabel(l)}</div>
+        <div className="truncate text-ui">{l.name}</div>
+        <div className="text-caption text-fg-subtle">{layerKindLabel(l)}</div>
       </div>
       {l.kind !== 'audio' && (
         <div className="flex opacity-0 group-hover:opacity-100">
@@ -140,14 +140,14 @@ function LayersPanel() {
       )}
       {sounds.length > 0 && (
         <>
-          <div className="mt-2 flex items-center gap-1 px-2 text-[11px] font-semibold tracking-wide text-fg-subtle uppercase">
+          <div className="label-caps mt-2 flex items-center gap-1 px-2 text-fg-subtle">
             <Music size={12} /> Sound (plays from the show machine)
           </div>
           <ul>{sounds.map(row)}</ul>
         </>
       )}
       {layers.length > 0 && (
-        <p className="mt-2 flex items-center gap-1 px-2 pb-1 text-[11px] text-fg-subtle">
+        <p className="mt-2 flex items-center gap-1 px-2 pb-1 text-caption text-fg-subtle">
           <Plus size={11} /> Top of the list is in front.
         </p>
       )}
@@ -229,19 +229,19 @@ function Canvas() {
             ))}
           </Select>
         )}
-        <span className="text-xs text-fg-subtle">
+        <span className="text-caption text-fg-subtle">
           {output.name} · {output.width}×{output.height}
         </span>
         <div className="ml-auto flex items-center gap-3">
           <Toggle
             checked={guides}
             onChange={setGuides}
-            label={<span className="text-xs">Guides</span>}
+            label={<span className="text-caption">Guides</span>}
           />
           <Toggle
             checked={ghost}
             onChange={setGhost}
-            label={<span className="text-xs">Show hidden faintly</span>}
+            label={<span className="text-caption">Show hidden faintly</span>}
           />
           <Select
             value={previewCue}

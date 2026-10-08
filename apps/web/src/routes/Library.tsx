@@ -102,7 +102,7 @@ export function Library() {
           <img src="/favicon.svg" alt="" className="size-10" />
           <div>
             <h1 className="text-2xl font-semibold tracking-tight">Scrim</h1>
-            <p className="text-sm text-fg-muted">
+            <p className="text-ui text-fg-muted">
               Show control in your browser. Build a show, press GO.
             </p>
           </div>
@@ -132,14 +132,14 @@ export function Library() {
       </header>
 
       {!opfsSupported() && (
-        <div className="rounded-control border border-line-control bg-panel p-4 text-sm text-warn">
+        <div className="rounded-control border border-line-control bg-panel p-4 text-ui text-warn">
           This browser can't store media for offline shows. Use a current Chrome or Edge on the show
           machine.
         </div>
       )}
 
       {busy && (
-        <div className="rounded-lg border border-line-subtle bg-control p-3 text-sm text-fg-muted">
+        <div className="rounded-lg border border-line-subtle bg-control p-3 text-ui text-fg-muted">
           {busy}
         </div>
       )}
@@ -148,7 +148,7 @@ export function Library() {
         {shows === null ? null : shows.length === 0 ? (
           <div className="col-span-full rounded-xl border border-dashed border-line-subtle p-10 text-center">
             <p className="text-fg-muted">No shows on this machine yet.</p>
-            <p className="mt-1 text-sm text-fg-subtle">
+            <p className="mt-1 text-ui text-fg-subtle">
               Start a new one, import a .scrim file, or open the demo to see an interactive show.
             </p>
           </div>
@@ -160,7 +160,7 @@ export function Library() {
       </section>
 
       {storage && (
-        <footer className="mt-auto flex flex-wrap items-center gap-3 text-xs text-fg-subtle">
+        <footer className="mt-auto flex flex-wrap items-center gap-3 text-caption text-fg-subtle">
           <HardDrive size={14} />
           <span>
             {formatBytes(storage.usage)} used of {formatBytes(storage.quota)} available
@@ -196,11 +196,11 @@ function ShowCard({
     <article className="group flex flex-col rounded-xl border border-line-subtle bg-panel p-4 transition-colors hover:border-line-control">
       <Link to={`/show/${show.id}`} className="flex-1">
         <h2 className="truncate text-base font-semibold">{show.name}</h2>
-        <p className="mt-1 text-xs text-fg-subtle">
+        <p className="mt-1 text-caption text-fg-subtle">
           {show.cues.length} cues · {show.scenes.length} scenes · {show.outputs.length} output
           {show.outputs.length === 1 ? '' : 's'} · {formatBytes(size)} media
         </p>
-        <p className="mt-0.5 text-xs text-fg-subtle">Edited {timeAgo(show.updatedAt)}</p>
+        <p className="mt-0.5 text-caption text-fg-subtle">Edited {timeAgo(show.updatedAt)}</p>
       </Link>
       <div className="mt-4 flex items-center gap-1">
         <Button size="sm" variant="go" icon={<Play size={14} />} onClick={run}>

@@ -41,15 +41,15 @@ export function HistoryTab() {
           </Button>
         }
       >
-        <p className="mb-2 text-xs text-fg-subtle">
+        <p className="mb-2 text-caption text-fg-subtle">
           Scrim keeps a version every few minutes while you edit, and before every restore.
         </p>
         {versions.length === 0 && <Empty>No versions yet.</Empty>}
         {versions.map((v) => (
           <div key={v.id} className="flex items-center gap-2 border-b border-line-subtle px-1 py-2">
             <div className="flex-1">
-              <div className="text-sm">{v.label}</div>
-              <div className="text-xs text-fg-subtle">
+              <div className="text-ui">{v.label}</div>
+              <div className="text-caption text-fg-subtle">
                 {new Date(v.savedAt).toLocaleString()} · {v.show.cues.length} cues ·{' '}
                 {v.show.layers.length} layers
               </div>
@@ -78,7 +78,7 @@ export function HistoryTab() {
         ))}
       </Panel>
       <Panel title="Run logs" bodyClassName="p-2">
-        <p className="mb-2 text-xs text-fg-subtle">
+        <p className="mb-2 text-caption text-fg-subtle">
           Every rehearsal and performance is logged: cues fired, audience results and warnings.
         </p>
         {runs.length === 0 && <Empty>No runs yet.</Empty>}
@@ -102,15 +102,15 @@ function RunItem({ run }: { run: RunRecord }) {
       >
         <ChevronDown size={14} className={cn('transition-transform', !open && '-rotate-90')} />
         <div className="flex-1">
-          <div className="text-sm">{new Date(run.startedAt).toLocaleString()}</div>
-          <div className="text-xs text-fg-subtle">
+          <div className="text-ui">{new Date(run.startedAt).toLocaleString()}</div>
+          <div className="text-caption text-fg-subtle">
             {minutes} min · {run.cuesFired} cues{warnings ? ` · ${warnings} warnings` : ''} ·{' '}
             {timeAgo(run.startedAt)}
           </div>
         </div>
       </button>
       {open && (
-        <ol className="mb-2 max-h-80 overflow-auto px-6 font-mono text-[11px]">
+        <ol className="mb-2 max-h-80 overflow-auto px-6 font-mono text-caption">
           {run.entries.map((e, i) => (
             <li
               key={i}

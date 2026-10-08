@@ -9,7 +9,7 @@ import {
 import { cn } from '../lib/cn.js';
 
 const control =
-  'w-full min-w-0 rounded-control border border-line-control bg-control px-2 text-sm text-fg placeholder:text-fg-subtle focus:border-fg-muted focus:outline-none disabled:opacity-50';
+  'w-full min-w-0 rounded-control border border-line-control bg-control px-2 text-ui text-fg placeholder:text-fg-subtle focus:border-fg-muted focus:outline-none disabled:opacity-50';
 
 export function Field({
   label,
@@ -23,16 +23,16 @@ export function Field({
   className?: string;
 }) {
   return (
-    <label className={cn('flex flex-col gap-1 text-xs text-fg-muted', className)}>
+    <label className={cn('flex flex-col gap-1 text-caption text-fg-muted', className)}>
       <span>{label}</span>
       {children}
-      {hint && <span className="text-[11px] text-fg-subtle">{hint}</span>}
+      {hint && <span className="text-caption text-fg-subtle">{hint}</span>}
     </label>
   );
 }
 
 export function TextInput({ className, ...rest }: InputHTMLAttributes<HTMLInputElement>) {
-  return <input className={cn(control, 'h-8', className)} {...rest} />;
+  return <input className={cn(control, 'h-control', className)} {...rest} />;
 }
 
 export function TextArea({ className, ...rest }: TextareaHTMLAttributes<HTMLTextAreaElement>) {
@@ -41,7 +41,7 @@ export function TextArea({ className, ...rest }: TextareaHTMLAttributes<HTMLText
 
 export function Select({ className, children, ...rest }: SelectHTMLAttributes<HTMLSelectElement>) {
   return (
-    <select className={cn(control, 'h-8 pr-6', className)} {...rest}>
+    <select className={cn(control, 'h-control pr-6', className)} {...rest}>
       {children}
     </select>
   );
@@ -62,7 +62,7 @@ export function CommitInput({
   const commit = () => draft !== value && onCommit(draft);
   return (
     <input
-      className={cn(control, 'h-8', className)}
+      className={cn(control, 'h-control', className)}
       value={draft}
       onChange={(e) => setDraft(e.target.value)}
       onBlur={commit}
@@ -106,7 +106,7 @@ export function NumberInput({
     <div className={cn('relative', className)}>
       <input
         type="number"
-        className={cn(control, 'h-8', suffix && 'pr-7')}
+        className={cn(control, 'h-control', suffix && 'pr-7')}
         value={draft}
         min={min}
         max={max}
@@ -116,7 +116,7 @@ export function NumberInput({
         onKeyDown={(e) => e.key === 'Enter' && (e.target as HTMLInputElement).blur()}
       />
       {suffix && (
-        <span className="pointer-events-none absolute top-1/2 right-2 -translate-y-1/2 text-[11px] text-fg-subtle">
+        <span className="pointer-events-none absolute top-1/2 right-2 -translate-y-1/2 text-caption text-fg-subtle">
           {suffix}
         </span>
       )}
@@ -138,7 +138,7 @@ export function Toggle({
   label: ReactNode;
 }) {
   return (
-    <label className="flex cursor-pointer items-center gap-2 text-sm text-fg-muted select-none">
+    <label className="flex cursor-pointer items-center gap-2 text-ui text-fg-muted select-none">
       <input
         type="checkbox"
         className="size-4 accent-accent"

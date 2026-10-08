@@ -69,7 +69,7 @@ export default function Operator() {
   }, [id, takeover]);
 
   if (phase.kind === 'loading')
-    return <div className="p-6 text-sm text-fg-subtle">Loading show…</div>;
+    return <div className="p-6 text-ui text-fg-subtle">Loading show…</div>;
   if (phase.kind === 'missing') {
     return (
       <div className="p-8">
@@ -86,7 +86,7 @@ export default function Operator() {
         <h1 className="mb-2 text-lg font-semibold">
           “{phase.show.name}” is already running in another tab
         </h1>
-        <p className="mb-4 text-sm text-fg-muted">
+        <p className="mb-4 text-ui text-fg-muted">
           Only one operator view can drive the outputs. Switch to that tab, or take over here; the
           other tab stops.
         </p>
@@ -198,13 +198,13 @@ function OperatorView() {
         <h1 className="max-w-72 truncate text-base font-semibold">{snap.show.name}</h1>
         <div className="flex overflow-hidden rounded-md border border-line-subtle">
           <button
-            className={`flex items-center gap-1.5 px-3 py-1 text-sm ${!showMode ? 'bg-fg text-app' : 'text-fg-muted hover:bg-control-hover'}`}
+            className={`flex items-center gap-1.5 px-3 py-1 text-ui ${!showMode ? 'bg-fg text-app' : 'text-fg-muted hover:bg-control-hover'}`}
             onClick={() => host.setMode('rehearsal')}
           >
             <LockOpen size={14} /> Rehearsal
           </button>
           <button
-            className={`flex items-center gap-1.5 px-3 py-1 text-sm ${showMode ? 'bg-control-active text-fg' : 'text-fg-muted hover:bg-control-hover'}`}
+            className={`flex items-center gap-1.5 px-3 py-1 text-ui ${showMode ? 'bg-control-active text-fg' : 'text-fg-muted hover:bg-control-hover'}`}
             onClick={() => host.setMode('show')}
           >
             <Lock size={14} /> Show
@@ -287,10 +287,10 @@ function MessageStrip({ typing }: { typing: boolean }) {
   const [resumeHidden, setResumeHidden] = useState(false);
   const resumed = !resumeHidden && !!snap.resumedAt && !!snap.state.lastFired;
   return (
-    <div className="flex h-11 shrink-0 items-center gap-3 overflow-hidden border-b border-line-subtle px-4 text-sm">
+    <div className="flex h-11 shrink-0 items-center gap-3 overflow-hidden border-b border-line-subtle px-4 text-ui">
       {resumed && <ResumeMessage onDone={() => setResumeHidden(true)} />}
       {typing && (
-        <span className="ml-auto rounded border border-line-subtle px-2 py-0.5 text-xs text-fg-muted">
+        <span className="ml-auto rounded border border-line-subtle px-2 py-0.5 text-caption text-fg-muted">
           Keys paused while typing · Esc still panics
         </span>
       )}

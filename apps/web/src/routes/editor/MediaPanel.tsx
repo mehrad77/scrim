@@ -121,8 +121,8 @@ export function MediaPanel() {
               >
                 <Icon size={15} className="shrink-0 text-fg-subtle" />
                 <div className="min-w-0 flex-1">
-                  <div className="truncate text-sm">{m.name}</div>
-                  <div className="text-[11px] text-fg-subtle">
+                  <div className="truncate text-ui">{m.name}</div>
+                  <div className="text-caption text-fg-subtle">
                     {formatBytes(m.size)}
                     {m.duration ? ` · ${formatClock(m.duration)}` : ''}
                     {m.width ? ` · ${m.width}×${m.height}` : ''}
@@ -143,7 +143,7 @@ export function MediaPanel() {
             );
           })}
           {uploading.map((n) => (
-            <li key={n} className="px-2 py-1.5 text-sm text-fg-subtle">
+            <li key={n} className="px-2 py-1.5 text-ui text-fg-subtle">
               Adding {n}…
             </li>
           ))}

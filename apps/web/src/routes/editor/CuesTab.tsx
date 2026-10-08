@@ -120,7 +120,7 @@ function CueList() {
                     if (s && name.trim()) s.name = name.trim();
                   })
                 }
-                className="h-7 border-transparent bg-transparent text-xs font-semibold tracking-wide text-fg-muted uppercase hover:border-line-subtle"
+                className="label-caps h-7 border-transparent bg-transparent text-fg-muted hover:border-line-subtle"
               />
               <div className="flex opacity-0 group-hover:opacity-100">
                 <IconButton
@@ -168,19 +168,19 @@ function CueList() {
                     cue.id === cueId ? 'bg-control-active' : 'hover:bg-control-hover',
                   )}
                 >
-                  <span className="w-6 text-right font-mono text-xs text-fg-subtle">
+                  <span className="w-6 text-right font-mono text-caption text-fg-subtle">
                     {numbers.get(cue.id)}
                   </span>
                   <div className="min-w-0 flex-1">
-                    <div className="truncate text-sm">{cue.name}</div>
-                    <div className="truncate text-[11px] text-fg-subtle">
+                    <div className="truncate text-ui">{cue.name}</div>
+                    <div className="truncate text-caption text-fg-subtle">
                       {cue.actions.length} action{cue.actions.length === 1 ? '' : 's'}
                       {cue.notes && ` · ${cue.notes}`}
                     </div>
                   </div>
                   {cue.follow.auto && (
                     <span
-                      className="flex items-center gap-0.5 text-[11px] text-standby"
+                      className="flex items-center gap-0.5 text-caption text-standby"
                       title="Auto-follows into the next cue"
                     >
                       <Timer size={11} />
@@ -271,7 +271,7 @@ function CueEditor() {
           <CommitInput value={cue.name} onCommit={(name) => set((c) => void (c.name = name))} />
         </Field>
         <div>
-          <div className="mb-2 text-xs text-fg-muted">When this cue fires</div>
+          <div className="mb-2 text-caption text-fg-muted">When this cue fires</div>
           <ActionList
             show={show}
             actions={cue.actions}
@@ -285,7 +285,7 @@ function CueEditor() {
             label="Then fire the next cue automatically"
           />
           {cue.follow.auto && (
-            <div className="flex items-center gap-2 text-xs text-fg-muted">
+            <div className="flex items-center gap-2 text-caption text-fg-muted">
               after
               <NumberInput
                 className="w-20"
@@ -322,7 +322,7 @@ function CuePreview() {
     <Panel title="After this cue" bodyClassName="flex flex-col gap-2 p-2">
       {show.outputs.map((o) => (
         <div key={o.id}>
-          <div className="mb-1 text-[11px] text-fg-subtle">{o.name}</div>
+          <div className="mb-1 text-caption text-fg-subtle">{o.name}</div>
           <div className="aspect-video overflow-hidden rounded border border-line-subtle bg-black">
             <Stage show={show} state={state} outputId={o.id} variant="editor" />
           </div>
@@ -336,8 +336,8 @@ function CuePreview() {
 function StatePreview({ show, state }: { show: Show; state: Record<string, unknown> }) {
   if (!show.vars.length) return null;
   return (
-    <div className="mt-2 text-xs">
-      <div className="mb-1 text-[11px] text-fg-subtle">State (assuming no audience input)</div>
+    <div className="mt-2 text-caption">
+      <div className="mb-1 text-caption text-fg-subtle">State (assuming no audience input)</div>
       {show.vars.map((v) => (
         <div key={v.id} className="flex justify-between border-b border-line-subtle py-1">
           <span className="text-fg-muted">{v.name}</span>

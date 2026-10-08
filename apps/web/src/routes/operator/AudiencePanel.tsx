@@ -22,7 +22,7 @@ export function AudiencePanel() {
     <Panel title="Audience & remotes" className="h-full" bodyClassName="p-2">
       {relay.status === 'off' ? (
         <div className="flex flex-col items-start gap-2 p-2">
-          <p className="text-sm text-fg-muted">
+          <p className="text-ui text-fg-muted">
             {needsRoom
               ? 'Open the room so audience phones and performer remotes can join. The show keeps running if the network drops.'
               : 'This show has no audience moments or triggers, so it does not need a room.'}
@@ -76,7 +76,7 @@ function RoomInfo() {
   const [, setBase] = useState(appBase);
   const room = relay.room;
   const local = isLocalHost(new URL(appBase()).hostname);
-  if (!room) return <p className="p-2 text-sm text-fg-muted">{relay.error ?? 'Opening room…'}</p>;
+  if (!room) return <p className="p-2 text-ui text-fg-muted">{relay.error ?? 'Opening room…'}</p>;
   const url = who === 'audience' ? audienceUrl(room) : remoteUrl(room);
   return (
     <div className="rounded-lg border border-line-subtle p-2">
@@ -84,9 +84,9 @@ function RoomInfo() {
         <span
           className={cn('size-2 rounded-full', relay.status === 'open' ? 'bg-fg-muted' : 'bg-warn')}
         />
-        <span className="text-sm">Room</span>
+        <span className="text-ui">Room</span>
         <span className="font-mono text-lg font-bold tracking-widest">{room.code}</span>
-        <span className="ml-auto flex items-center gap-2 text-xs text-fg-muted">
+        <span className="ml-auto flex items-center gap-2 text-caption text-fg-muted">
           <span className="flex items-center gap-1" title="Audience phones">
             <Users size={13} /> {relay.presence.audience}
           </span>
@@ -96,7 +96,7 @@ function RoomInfo() {
         </span>
       </div>
       {relay.status !== 'open' && (
-        <p className="mt-1 text-xs text-warn">
+        <p className="mt-1 text-caption text-warn">
           {relay.error ?? 'Reconnecting… audience moments use their defaults if this lasts.'}
         </p>
       )}
@@ -106,7 +106,7 @@ function RoomInfo() {
             key={w}
             onClick={() => setWho(w)}
             className={cn(
-              'rounded px-2 py-0.5 text-xs',
+              'rounded px-2 py-0.5 text-caption',
               who === w ? 'bg-control-active' : 'text-fg-subtle hover:bg-control-hover',
             )}
           >
@@ -116,7 +116,7 @@ function RoomInfo() {
       </div>
       <div className="mt-2 flex gap-3">
         <Qr text={url} />
-        <div className="flex min-w-0 flex-col gap-2 text-xs">
+        <div className="flex min-w-0 flex-col gap-2 text-caption">
           <p className="text-fg-muted">
             {who === 'audience'
               ? 'Project this, print it, or put it on the tickets.'
@@ -138,7 +138,7 @@ function RoomInfo() {
         </div>
       </div>
       {local && (
-        <div className="mt-2 rounded-control border border-line-control p-2 text-xs text-warn">
+        <div className="mt-2 rounded-control border border-line-control p-2 text-caption text-warn">
           Phones can't open “localhost”. Enter the address phones should use, such as this machine's
           network address:
           <CommitInput
@@ -186,17 +186,17 @@ function MomentCard({
       )}
     >
       <div className="flex items-center gap-2">
-        <span className="text-sm font-medium">{m.name}</span>
+        <span className="text-ui font-medium">{m.name}</span>
         <Badge tone={open ? 'live' : ms.status === 'closed' ? 'neutral' : 'neutral'}>
           {open ? 'OPEN' : ms.status === 'closed' ? 'Closed' : 'Not opened'}
         </Badge>
         {left !== null && (
-          <span className="ml-auto font-mono text-sm text-standby">{left.toFixed(0)}s</span>
+          <span className="ml-auto font-mono text-ui text-standby">{left.toFixed(0)}s</span>
         )}
       </div>
       {(open || ms.status === 'closed') && <Results moment={m} ms={ms} />}
       {ms.status === 'closed' && (
-        <div className="mt-1 text-xs text-fg-muted">
+        <div className="mt-1 text-caption text-fg-muted">
           Result: <span className="font-mono text-fg">{formatValue(ms.result)}</span>
           {ms.usedDefault && (
             <Badge tone="warn" className="ml-2">
@@ -207,11 +207,11 @@ function MomentCard({
       )}
       {pending.length > 0 && (
         <div className="mt-2 flex flex-col gap-1">
-          <div className="text-[11px] text-fg-subtle">Waiting for approval ({pending.length})</div>
+          <div className="text-caption text-fg-subtle">Waiting for approval ({pending.length})</div>
           {pending.slice(0, 8).map((e) => (
             <div
               key={e.id}
-              className="flex items-center gap-2 rounded bg-control px-2 py-1 text-sm"
+              className="flex items-center gap-2 rounded bg-control px-2 py-1 text-ui"
             >
               <span className="min-w-0 flex-1 break-words">{e.text}</span>
               <button
@@ -255,7 +255,7 @@ function MomentCard({
             {m.type === 'vote' && (
               <div className="flex items-center gap-1">
                 <Select
-                  className="h-7 w-32 text-xs"
+                  className="h-7 w-32 text-caption"
                   value={override}
                   onChange={(e) => setOverride(e.target.value)}
                 >
@@ -301,7 +301,7 @@ function Results({ moment: m, ms }: { moment: Moment; ms: MomentState }) {
     return (
       <div className="mt-2 flex flex-col gap-1">
         {items.map((i) => (
-          <div key={i.id} className="flex items-center gap-2 text-xs">
+          <div key={i.id} className="flex items-center gap-2 text-caption">
             <span className="w-24 truncate">{i.label}</span>
             <div className="h-3 flex-1 overflow-hidden rounded bg-control-hover">
               <div
@@ -318,12 +318,12 @@ function Results({ moment: m, ms }: { moment: Moment; ms: MomentState }) {
   if (m.type === 'tap') return <div className="mt-1 font-mono text-2xl">{ms.count} taps</div>;
   if (m.type === 'slider')
     return (
-      <div className="mt-1 text-sm">
+      <div className="mt-1 text-ui">
         Average {ms.n ? (ms.sum / ms.n).toFixed(1) : '—'} from {ms.n} phone{ms.n === 1 ? '' : 's'}
       </div>
     );
   return (
-    <div className="mt-1 text-xs text-fg-subtle">
+    <div className="mt-1 text-caption text-fg-subtle">
       {ms.entries.filter((e) => e.status === 'approved').length} approved · {ms.entries.length}{' '}
       received
     </div>

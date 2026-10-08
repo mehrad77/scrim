@@ -56,7 +56,7 @@ function OutputsPanel() {
         </Button>
       }
     >
-      <p className="mb-3 text-xs text-fg-subtle">
+      <p className="mb-3 text-caption text-fg-subtle">
         Each output is a clean, full-screen picture: a projector, a TV, or a screen on another
         device. Its canvas size is the pixel space you lay layers out in.
       </p>
@@ -167,7 +167,7 @@ function CornerPin({
   ];
   const labels = ['Top left', 'Top right', 'Bottom right', 'Bottom left'];
   return (
-    <details className="mt-3 text-xs">
+    <details className="mt-3 text-caption">
       <summary className="cursor-pointer text-fg-muted">
         Corner pin (keystone correction){output.cornerPin ? ' — on' : ''}
       </summary>
@@ -233,7 +233,7 @@ function AudioPanel() {
         </Button>
       }
     >
-      <p className="mb-3 text-xs text-fg-subtle">
+      <p className="mb-3 text-caption text-fg-subtle">
         Sounds and video audio play through a bus. Choose which device each bus uses on{' '}
         <em>this machine</em>; the choice stays here, not in the show file.
       </p>

@@ -227,11 +227,11 @@ export function PreshowCheck({ onClose }: { onClose: () => void }) {
       <div className="flex items-center gap-3 border-b border-line-subtle p-4">
         <h2 className="text-lg font-semibold">Pre-show check</h2>
         {blocking === 0 ? (
-          <span className="rounded bg-go px-2 py-0.5 text-sm font-bold text-app">
+          <span className="rounded bg-go px-2 py-0.5 text-ui font-bold text-app">
             READY{warnings ? ` · ${warnings} warning${warnings > 1 ? 's' : ''}` : ''}
           </span>
         ) : (
-          <span className="text-sm text-fg-muted">
+          <span className="text-ui text-fg-muted">
             {blocking} item{blocking > 1 ? 's' : ''} to clear
           </span>
         )}
@@ -246,13 +246,13 @@ export function PreshowCheck({ onClose }: { onClose: () => void }) {
             <li key={i.id} className="flex items-start gap-3 px-4 py-3">
               <StatusIcon status={s} />
               <div className="min-w-0 flex-1">
-                <div className="text-sm font-medium">{i.title}</div>
-                {i.detail && <div className="mt-0.5 text-xs text-fg-subtle">{i.detail}</div>}
+                <div className="text-ui font-medium">{i.title}</div>
+                {i.detail && <div className="mt-0.5 text-caption text-fg-subtle">{i.detail}</div>}
               </div>
               <div className="flex shrink-0 items-center gap-2">
                 {i.action}
                 {i.confirm && (
-                  <label className="flex items-center gap-1.5 text-xs">
+                  <label className="flex items-center gap-1.5 text-caption">
                     <input
                       type="checkbox"
                       className="size-4 accent-fg"

@@ -128,7 +128,7 @@ function VarsPanel() {
                 onClick={() => update((d) => removeVar(d, v.id))}
               />
             </div>
-            <div className="mt-1.5 flex items-center gap-2 text-xs text-fg-subtle">
+            <div className="mt-1.5 flex items-center gap-2 text-caption text-fg-subtle">
               {v.type === 'number' && (
                 <>
                   starts at
@@ -415,7 +415,7 @@ function MomentsPanel() {
             key={m.id}
             onClick={() => setSelected(m.id)}
             className={cn(
-              'rounded-md border px-2 py-1 text-xs',
+              'rounded-md border px-2 py-1 text-caption',
               m.id === selected
                 ? 'border-accent bg-control-hover'
                 : 'border-line-subtle hover:bg-control-hover',
@@ -463,7 +463,7 @@ function MomentEditor({
   );
   return (
     <div className="flex flex-col gap-3">
-      <p className="text-xs text-fg-subtle">
+      <p className="text-caption text-fg-subtle">
         {info.label}: {info.hint}
         {!used && <span className="text-warn"> No cue opens this moment yet.</span>}
       </p>
@@ -766,7 +766,7 @@ function RulesPanel() {
               <Toggle
                 checked={r.enabled}
                 onChange={(v) => setRule(r.id, (x) => void (x.enabled = v))}
-                label={<span className="text-xs">On</span>}
+                label={<span className="text-caption">On</span>}
               />
               <IconButton
                 label="Delete rule"
@@ -776,7 +776,7 @@ function RulesPanel() {
             </div>
             <div className="flex flex-col gap-2">
               <div className="flex flex-wrap items-center gap-2">
-                <span className="w-12 text-xs font-medium text-fg-muted">when</span>
+                <span className="w-12 text-caption font-medium text-fg-muted">when</span>
                 <WhenPicker
                   show={show}
                   when={r.when}
@@ -789,7 +789,9 @@ function RulesPanel() {
                 onChange={(c) => setRule(r.id, (x) => void (x.if = c))}
               />
               <div className="flex gap-2">
-                <span className="mt-1.5 w-12 shrink-0 text-xs font-medium text-fg-muted">then</span>
+                <span className="mt-1.5 w-12 shrink-0 text-caption font-medium text-fg-muted">
+                  then
+                </span>
                 <div className="min-w-0 flex-1">
                   <ActionList
                     show={show}

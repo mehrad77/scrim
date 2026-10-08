@@ -73,10 +73,10 @@ export function Audience() {
   return (
     <div className="mx-auto flex min-h-full max-w-md flex-col px-5 pt-6 pb-[max(24px,env(safe-area-inset-bottom))]">
       <header className="mb-6 flex items-center justify-between">
-        <span className="text-sm font-semibold text-fg-muted">{title || 'Scrim'}</span>
+        <span className="text-ui font-semibold text-fg-muted">{title || 'Scrim'}</span>
         <span
           className={cn(
-            'flex items-center gap-1.5 text-xs',
+            'flex items-center gap-1.5 text-caption',
             status === 'open' ? 'text-fg-subtle' : 'text-warn',
           )}
         >
@@ -91,10 +91,10 @@ export function Audience() {
           <p className="text-lg">
             {closeCode === CLOSE.full ? 'This room is full.' : 'This room is not open.'}
           </p>
-          <p className="mt-2 text-sm text-fg-subtle">
+          <p className="mt-2 text-ui text-fg-subtle">
             Check the code with the front of house team.
           </p>
-          <button className="mt-6 text-sm text-accent-text underline" onClick={() => setCode('')}>
+          <button className="mt-6 text-ui text-accent-text underline" onClick={() => setCode('')}>
             Enter another code
           </button>
         </Center>
@@ -102,7 +102,7 @@ export function Audience() {
         <Center>
           <div className="mb-4 text-5xl">{thanks ? '✨' : '🎭'}</div>
           <p className="text-xl font-semibold">{thanks ? 'Thank you!' : 'Watch the stage'}</p>
-          <p className="mt-2 text-sm text-fg-subtle">
+          <p className="mt-2 text-ui text-fg-subtle">
             {thanks
               ? 'Your answer is on its way to the stage.'
               : 'Keep this page open. When it is your turn, it will light up here.'}
@@ -175,7 +175,7 @@ function Countdown({ closesAt, offset }: { closesAt: number | null; offset: () =
   if (closesAt === null) return null;
   const left = Math.max(0, Math.ceil((closesAt - (Date.now() + offset())) / 1000));
   return (
-    <span className={cn('font-mono text-sm', left <= 5 ? 'text-warn' : 'text-fg-muted')}>
+    <span className={cn('font-mono text-ui', left <= 5 ? 'text-warn' : 'text-fg-muted')}>
       {left}s
     </span>
   );
@@ -224,9 +224,9 @@ function MomentView({
       {m.type === 'text' && <TextEntry moment={m} send={send} />}
       {m.type === 'prop' && m.prop && (
         <div className="rounded-2xl border border-line-control bg-control p-6">
-          <div className="text-xs tracking-wide text-fg-subtle uppercase">{m.prop.label}</div>
+          <div className="label-caps text-fg-subtle">{m.prop.label}</div>
           <p className="mt-2 text-xl whitespace-pre-wrap">{m.prop.content}</p>
-          <p className="mt-4 text-xs text-fg-subtle">Only your phone shows this.</p>
+          <p className="mt-4 text-caption text-fg-subtle">Only your phone shows this.</p>
         </div>
       )}
     </section>
@@ -257,7 +257,7 @@ function Vote({ moment: m, send }: { moment: PublicMoment; send: Send }) {
         </button>
       ))}
       {choice && (
-        <p className="text-center text-sm text-fg-subtle">
+        <p className="text-center text-ui text-fg-subtle">
           Vote counted. You can change it until voting closes.
         </p>
       )}
@@ -317,7 +317,7 @@ function Tap({ moment: m, send }: { moment: PublicMoment; send: Send }) {
       <div className="font-mono text-3xl">{count}</div>
       {!shake && 'DeviceMotionEvent' in window && (
         <button
-          className="text-sm text-fg-muted underline"
+          className="text-ui text-fg-muted underline"
           onClick={async () => {
             const req = (
               DeviceMotionEvent as unknown as { requestPermission?: () => Promise<string> }
@@ -356,7 +356,7 @@ function Slider({ moment: m, send }: { moment: PublicMoment; send: Send }) {
         className="h-10 w-full accent-accent"
         aria-label={m.prompt}
       />
-      <div className="flex justify-between text-xs text-fg-subtle">
+      <div className="flex justify-between text-caption text-fg-subtle">
         <span>{m.min}</span>
         <span>{sent ? 'Sent' : ' '}</span>
         <span>{m.max}</span>
@@ -397,7 +397,7 @@ function TextEntry({ moment: m, send }: { moment: PublicMoment; send: Send }) {
         Send
       </button>
       {sent > 0 && (
-        <p className="text-center text-sm text-fg-subtle">
+        <p className="text-center text-ui text-fg-subtle">
           Sent. The team may pick it to appear on stage.
         </p>
       )}

@@ -45,7 +45,7 @@ export function Toaster() {
         <div
           key={t.id}
           className={cn(
-            'pointer-events-auto max-w-sm rounded-overlay border bg-raised px-3 py-2 text-sm text-fg shadow-overlay',
+            'pointer-events-auto max-w-sm rounded-overlay border bg-raised px-3 py-2 text-ui text-fg shadow-overlay',
             t.tone === 'error' && 'border-lamp-fault',
             t.tone === 'good' && 'border-line-control',
             t.tone === 'info' && 'border-line-control',

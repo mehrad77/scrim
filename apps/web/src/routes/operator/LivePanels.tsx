@@ -16,7 +16,7 @@ export function StatePanel() {
     <Panel title="Show state" className="h-full" bodyClassName="p-2">
       {show.triggers.length > 0 && (
         <div className="mb-3">
-          <div className="mb-1 text-[11px] text-fg-subtle">Fire a trigger</div>
+          <div className="mb-1 text-caption text-fg-subtle">Fire a trigger</div>
           <div className="flex flex-wrap gap-1">
             {show.triggers.map((t) => (
               <Button
@@ -36,7 +36,9 @@ export function StatePanel() {
       {show.vars.length === 0 && <Empty>No state values in this show.</Empty>}
       {show.vars.map((v) => (
         <div key={v.id} className="flex items-center gap-2 border-b border-line-subtle py-1.5">
-          <span className="w-32 shrink-0 truncate font-mono text-xs text-fg-muted">{v.name}</span>
+          <span className="w-32 shrink-0 truncate font-mono text-caption text-fg-muted">
+            {v.name}
+          </span>
           {rehearsal ? (
             <VarEditor
               def={v}
@@ -44,14 +46,14 @@ export function StatePanel() {
               onSet={(value) => host.dispatch({ type: 'setVar', varId: v.id, value })}
             />
           ) : (
-            <span className="min-w-0 flex-1 truncate font-mono text-sm">
+            <span className="min-w-0 flex-1 truncate font-mono text-ui">
               {formatValue(state.vars[v.id]) || '—'}
             </span>
           )}
         </div>
       ))}
       {!rehearsal && show.vars.length > 0 && (
-        <p className="mt-2 text-[11px] text-fg-subtle">Switch to Rehearsal to override values.</p>
+        <p className="mt-2 text-caption text-fg-subtle">Switch to Rehearsal to override values.</p>
       )}
     </Panel>
   );
@@ -85,7 +87,7 @@ function VarEditor({
   if (def.type === 'text' || def.type === 'choice')
     return <CommitInput className="flex-1" value={String(value ?? '')} onCommit={onSet} />;
   return (
-    <span className="min-w-0 flex-1 truncate font-mono text-sm">{formatValue(value) || '—'}</span>
+    <span className="min-w-0 flex-1 truncate font-mono text-ui">{formatValue(value) || '—'}</span>
   );
 }
 
@@ -124,8 +126,8 @@ export function MediaPanel() {
                   })
                 }
               />
-              <span className="min-w-0 flex-1 truncate text-sm">{l.name}</span>
-              <span className="font-mono text-xs text-fg-muted">
+              <span className="min-w-0 flex-1 truncate text-ui">{l.name}</span>
+              <span className="font-mono text-caption text-fg-muted">
                 {formatClock(shown)}
                 {duration ? ` / ${formatClock(duration)}` : ''}
               </span>

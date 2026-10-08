@@ -106,7 +106,7 @@ function Modal<T>({
 }) {
   return (
     <Shell title={title} onCancel={() => onDone(null)}>
-      <div className="text-sm text-fg-muted">{body}</div>
+      <div className="text-ui text-fg-muted">{body}</div>
       <div className="mt-5 flex flex-wrap justify-end gap-2">
         {choices.map((c, i) => (
           <Button
@@ -143,7 +143,7 @@ function PromptModal({
           if (value.trim()) onDone(value.trim());
         }}
       >
-        {label && <div className="mb-1 text-xs text-fg-muted">{label}</div>}
+        {label && <div className="mb-1 text-caption text-fg-muted">{label}</div>}
         <TextInput
           autoFocus
           value={value}

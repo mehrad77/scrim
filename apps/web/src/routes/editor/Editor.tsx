@@ -87,7 +87,7 @@ export default function Editor() {
     );
   }
   if (!show || show.id !== id)
-    return <div className="p-6 text-sm text-fg-subtle">Loading show…</div>;
+    return <div className="p-6 text-ui text-fg-subtle">Loading show…</div>;
 
   return (
     <div className="flex h-full flex-col" data-density={readPrefs().editorDensity}>
@@ -124,7 +124,7 @@ function EditorHeader({ tab, setTab }: { tab: Tab; setTab: (t: Tab) => void }) {
       />
       <Tabs value={tab} onChange={setTab} tabs={TABS} className="overflow-x-auto" />
       <div className="ml-auto flex items-center gap-1">
-        <span className="mr-2 text-xs text-fg-subtle" aria-live="polite">
+        <span className="mr-2 text-caption text-fg-subtle" aria-live="polite">
           {saving === 'pending' ? 'Saving…' : saving === 'error' ? 'Not saved!' : 'Saved'}
         </span>
         <IconButton
@@ -178,7 +178,7 @@ function LockBanner() {
   const locked = useEditor((s) => s.showModeLock && !s.unlocked);
   if (!locked) return null;
   return (
-    <div className="flex items-center gap-3 border-b border-line-strong bg-control px-4 py-2 text-sm text-fg">
+    <div className="flex items-center gap-3 border-b border-line-strong bg-control px-4 py-2 text-ui text-fg">
       <Lock size={16} />
       <span>
         This show is running in Show mode. Editing is locked so nothing changes mid-performance.

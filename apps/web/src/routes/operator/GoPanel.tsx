@@ -40,24 +40,20 @@ export function GoPanel() {
     >
       <div className="flex gap-4">
         <div className="min-w-0 flex-1">
-          <div className="text-[11px] font-semibold tracking-wide text-fg-subtle uppercase">
-            Live
-          </div>
+          <div className="label-caps text-fg-subtle">Live</div>
           <div className="truncate text-lg text-fg-muted">{last ? last.name : '—'}</div>
-          <div className="mt-3 text-[11px] font-semibold tracking-wide text-standby uppercase">
-            Standby
-          </div>
+          <div className="label-caps mt-3 text-standby">Standby</div>
           <div className="truncate text-3xl font-semibold">
             {standby ? standby.name : 'End of show'}
           </div>
-          {standby?.notes && <div className="mt-1 text-sm text-fg-muted">{standby.notes}</div>}
+          {standby?.notes && <div className="mt-1 text-ui text-fg-muted">{standby.notes}</div>}
           {followIn !== null && (
-            <div className="mt-2 text-sm text-standby">
+            <div className="mt-2 text-ui text-standby">
               {state.held ? 'Held — auto-follow paused' : `Auto-follow in ${followIn.toFixed(1)}s`}
             </div>
           )}
           {state.held && followIn === null && (
-            <div className="mt-2 text-sm text-standby">Held — timers paused</div>
+            <div className="mt-2 text-ui text-standby">Held — timers paused</div>
           )}
         </div>
         <div className="flex flex-col items-stretch gap-2">
@@ -67,7 +63,9 @@ export function GoPanel() {
             className="flex h-28 w-48 flex-col items-center justify-center rounded-control bg-lamp-go text-on-lamp transition-transform active:scale-[.97] active:transition-none disabled:opacity-30"
           >
             <span className="text-5xl font-black tracking-tight">GO</span>
-            {goKey !== undefined && <span className="text-xs opacity-70">{keyLabel(goKey)}</span>}
+            {goKey !== undefined && (
+              <span className="text-caption opacity-70">{keyLabel(goKey)}</span>
+            )}
           </button>
           <div className="flex gap-1">
             <Button

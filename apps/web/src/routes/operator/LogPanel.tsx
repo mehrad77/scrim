@@ -6,7 +6,7 @@ export function LogPanel() {
   const [, snap] = useHost();
   const entries = [...snap.log].reverse();
   return (
-    <Panel title="Run log" className="h-full" bodyClassName="p-2 font-mono text-[11px]">
+    <Panel title="Run log" className="h-full" bodyClassName="p-2 font-mono text-caption">
       {entries.map((e, i) => (
         <div
           key={i}

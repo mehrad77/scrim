@@ -120,7 +120,7 @@ export default function RemoteOutput() {
     return (
       <Message>
         <p className="mb-2 text-lg font-semibold">{show.name}</p>
-        <p className="mb-4 text-sm text-fg-muted">
+        <p className="mb-4 text-ui text-fg-muted">
           This screen needs the show's media ({missing} file{missing === 1 ? '' : 's'} missing).
           Export the show as a .scrim file on the operator machine and open it here once. It stays
           on this device for every performance.
@@ -170,7 +170,7 @@ export default function RemoteOutput() {
       {!document.fullscreenElement && (
         <div
           className={cn(
-            'absolute right-3 bottom-3 flex items-center gap-2 rounded bg-panel/90 px-3 py-2 text-xs',
+            'absolute right-3 bottom-3 flex items-center gap-2 rounded bg-panel/90 px-3 py-2 text-caption',
             (hostGone || status !== 'open') && 'text-warn',
           )}
         >

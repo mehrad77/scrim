@@ -67,7 +67,7 @@ export function OutputsPanel() {
               setLive(v);
               writeLocal('scrim.liveThumbs', v);
             }}
-            label={<span className="text-xs">Live previews</span>}
+            label={<span className="text-caption">Live previews</span>}
           />
           <Button size="sm" icon={<ScanEye size={13} />} onClick={() => host.identify(null)}>
             Identify
@@ -106,12 +106,12 @@ export function OutputsPanel() {
                 {live ? (
                   <Stage show={snap.show} state={snap.state} outputId={o.id} variant="thumb" />
                 ) : (
-                  <div className="flex size-full items-center justify-center text-xs text-fg-subtle">
+                  <div className="flex size-full items-center justify-center text-caption text-fg-subtle">
                     Previews off
                   </div>
                 )}
                 {health === 'lost' && (
-                  <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-app/85 text-sm font-semibold text-fault">
+                  <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-app/85 text-ui font-semibold text-fault">
                     Output window lost
                     <div className="flex gap-2">
                       <Button size="sm" variant="danger" onClick={() => void open(o)}>
@@ -126,7 +126,7 @@ export function OutputsPanel() {
               </div>
               <div className="mt-2 flex flex-wrap items-center gap-1.5">
                 <Monitor size={14} className="text-fg-subtle" />
-                <span className="text-sm font-medium">{o.name}</span>
+                <span className="text-ui font-medium">{o.name}</span>
                 {health === 'ok' && (
                   <Badge tone="good">Open{links.length > 1 ? ` ×${links.length}` : ''}</Badge>
                 )}
@@ -159,10 +159,10 @@ export function OutputsPanel() {
               </div>
               {windowManagementSupported() && (
                 <div className="mt-1.5 flex items-center gap-2">
-                  <span className="text-[11px] text-fg-subtle">Display</span>
+                  <span className="text-caption text-fg-subtle">Display</span>
                   {screens ? (
                     <Select
-                      className="h-7 text-xs"
+                      className="h-7 text-caption"
                       value={assigned[o.id] ?? ''}
                       onChange={(e) => {
                         const next = { ...assigned, [o.id]: e.target.value };
@@ -189,7 +189,7 @@ export function OutputsPanel() {
         })}
       </div>
       {snap.relay.room && (
-        <p className="mt-2 text-[11px] text-fg-subtle">
+        <p className="mt-2 text-caption text-fg-subtle">
           Audience page: {audienceUrl(snap.relay.room)}
         </p>
       )}

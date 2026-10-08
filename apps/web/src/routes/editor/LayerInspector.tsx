@@ -45,7 +45,7 @@ function Inspector({ show, layer }: { show: Show; layer: Layer }) {
       <Field label="Name">
         <CommitInput value={layer.name} onCommit={(name) => set({ name })} />
       </Field>
-      <p className="-mt-2 text-[11px] text-fg-subtle">
+      <p className="-mt-2 text-caption text-fg-subtle">
         Used by {usage} cue or rule action{usage === 1 ? '' : 's'}.
       </p>
 
@@ -276,7 +276,7 @@ function Inspector({ show, layer }: { show: Show; layer: Layer }) {
               e.target.value !== layer.text && set({ text: e.target.value } as Partial<Layer>)
             }
           />
-          <p className="text-[11px] text-fg-subtle">
+          <p className="text-caption text-fg-subtle">
             Insert live state with <code className="text-fg-muted">{'{{name}}'}</code>
             {show.vars.length ? `, e.g. {{${show.vars[0]!.name}}}` : ''}.
           </p>
@@ -424,9 +424,7 @@ function Inspector({ show, layer }: { show: Show; layer: Layer }) {
 function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
     <fieldset className="flex flex-col gap-2">
-      <legend className="mb-1 text-[11px] font-semibold tracking-wide text-fg-subtle uppercase">
-        {title}
-      </legend>
+      <legend className="label-caps mb-1 text-fg-subtle">{title}</legend>
       {children}
     </fieldset>
   );

@@ -109,15 +109,15 @@ function KeysPanel() {
         />
       }
     >
-      <p className="mb-2 text-xs text-fg-subtle">
+      <p className="mb-2 text-caption text-fg-subtle">
         Keys work in the operator view and in output windows. Panic also works from the editor.
       </p>
       <div className="mb-1 flex items-center gap-2" title="Esc always fires Panic, in every window">
         <span className="w-24 py-1 text-center">
           <Kbd>Esc</Kbd>
         </span>
-        <span className="text-sm text-fg-muted">Panic (blackout)</span>
-        <span className="ml-auto text-xs text-fg-subtle">Always on</span>
+        <span className="text-ui text-fg-muted">Panic (blackout)</span>
+        <span className="ml-auto text-caption text-fg-subtle">Always on</span>
       </div>
       {show.inputs.keys.map((k, i) =>
         k.key === PANIC_KEY ? null : (
@@ -128,11 +128,11 @@ function KeysPanel() {
               title="Click, then press a key"
             >
               {recording === i ? (
-                <span className="text-xs text-accent-text">Press a key…</span>
+                <span className="text-caption text-accent-text">Press a key…</span>
               ) : k.key ? (
                 <Kbd>{keyLabel(k.key)}</Kbd>
               ) : (
-                <span className="text-xs text-fg-subtle">none</span>
+                <span className="text-caption text-fg-subtle">none</span>
               )}
             </button>
             <CommandPicker
@@ -214,7 +214,7 @@ function MidiPanel() {
       }
     >
       {devices !== null && (
-        <p className="mb-2 text-xs text-fg-subtle">
+        <p className="mb-2 text-caption text-fg-subtle">
           {devices.length
             ? `Connected: ${devices.join(', ')}`
             : 'No MIDI devices found. Plug one in; it is picked up automatically.'}
@@ -229,7 +229,7 @@ function MidiPanel() {
       )}
       {show.inputs.midi.map((m, i) => (
         <div key={i} className="mb-1 flex items-center gap-2">
-          <span className="w-32 font-mono text-xs text-fg-muted">
+          <span className="w-32 font-mono text-caption text-fg-muted">
             {m.kind === 'note' ? 'Note' : 'CC'} {m.number} ·{' '}
             {m.channel === null ? 'any ch' : `ch ${m.channel}`}
           </span>
@@ -286,14 +286,14 @@ function GamepadPanel() {
         </Button>
       }
     >
-      <p className="mb-2 text-xs text-fg-subtle">
+      <p className="mb-2 text-caption text-fg-subtle">
         {pads.length
           ? `Connected: ${pads.join(', ')}`
           : 'Press any button on a controller to connect it.'}
       </p>
       {show.inputs.gamepad.map((g, i) => (
         <div key={i} className="mb-1 flex items-center gap-2">
-          <span className="w-32 font-mono text-xs text-fg-muted">Button {g.button}</span>
+          <span className="w-32 font-mono text-caption text-fg-muted">Button {g.button}</span>
           <CommandPicker
             show={show}
             value={g.command}

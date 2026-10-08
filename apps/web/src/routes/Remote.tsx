@@ -67,10 +67,13 @@ export default function Remote() {
       className="flex min-h-full flex-col gap-3 p-3 pb-[max(12px,env(safe-area-inset-bottom))]"
       data-density="stage"
     >
-      <header className="flex items-center justify-between text-sm">
+      <header className="flex items-center justify-between text-ui">
         <span className="font-semibold">{view?.showName || 'Scrim remote'}</span>
         <span
-          className={cn('flex items-center gap-1.5 text-xs', live ? 'text-fg-muted' : 'text-warn')}
+          className={cn(
+            'flex items-center gap-1.5 text-caption',
+            live ? 'text-fg-muted' : 'text-warn',
+          )}
         >
           <span className={cn('size-2 rounded-full', live ? 'bg-fg-muted' : 'bg-warn')} />
           {status === 'failed'
@@ -84,16 +87,16 @@ export default function Remote() {
                 : 'Connecting…'}
         </span>
       </header>
-      {view?.standby && <div className="text-xs text-fg-subtle">Next cue: {view.standby}</div>}
+      {view?.standby && <div className="text-caption text-fg-subtle">Next cue: {view.standby}</div>}
       {status === 'failed' && (
-        <div className="rounded-control border border-lamp-fault bg-panel px-3 py-2 text-sm text-fg">
+        <div className="rounded-control border border-lamp-fault bg-panel px-3 py-2 text-ui text-fg">
           {relay.current?.lastClose?.code === CLOSE.unauthorized
             ? 'This remote link is out of date. Scan the performer QR code in the operator view again.'
             : 'The show’s room is closed. Ask the operator to open it.'}
         </div>
       )}
       {error && (
-        <div className="rounded-control border border-lamp-fault bg-panel px-3 py-2 text-sm text-fg">
+        <div className="rounded-control border border-lamp-fault bg-panel px-3 py-2 text-ui text-fg">
           {error}
         </div>
       )}
@@ -121,7 +124,7 @@ export default function Remote() {
           </button>
         ))}
         {view && view.triggers.length === 0 && (
-          <p className="text-center text-sm text-fg-subtle">This show has no triggers yet.</p>
+          <p className="text-center text-ui text-fg-subtle">This show has no triggers yet.</p>
         )}
       </div>
     </div>

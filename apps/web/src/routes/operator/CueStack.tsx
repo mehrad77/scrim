@@ -29,7 +29,7 @@ export function CueStack() {
           return (
             <div key={scene.id} className="mb-1">
               <button
-                className="w-full px-2 pt-2 pb-1 text-left text-[11px] font-semibold tracking-wide text-fg-subtle uppercase hover:text-fg-muted"
+                className="label-caps w-full px-2 pt-2 pb-1 text-left text-fg-subtle hover:text-fg-muted"
                 onClick={() => host.dispatch({ type: 'standby', cueId: cues[0]!.id })}
                 title="Put the first cue of this scene on standby"
               >
@@ -58,11 +58,11 @@ export function CueStack() {
                           : 'border-transparent hover:bg-control-hover',
                     )}
                   >
-                    <span className="w-6 text-right font-mono text-xs text-fg-subtle">
+                    <span className="w-6 text-right font-mono text-caption text-fg-subtle">
                       {numbers.get(cue.id)}
                     </span>
                     <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-1.5 truncate text-sm">
+                      <div className="flex items-center gap-1.5 truncate text-ui">
                         {changed(cue.updatedAt) && (
                           <span
                             className="size-1.5 shrink-0 rounded-full bg-info"
@@ -72,22 +72,22 @@ export function CueStack() {
                         {cue.name}
                       </div>
                       {cue.notes && (
-                        <div className="truncate text-[11px] text-fg-subtle">{cue.notes}</div>
+                        <div className="truncate text-caption text-fg-subtle">{cue.notes}</div>
                       )}
                     </div>
                     {cue.follow.auto && (
-                      <span className="flex items-center gap-0.5 text-[11px] text-standby">
+                      <span className="flex items-center gap-0.5 text-caption text-standby">
                         <Timer size={11} />
                         {cue.follow.delay}s
                       </span>
                     )}
                     {isStandby && (
-                      <span className="rounded bg-standby px-1 text-[10px] font-bold text-app">
+                      <span className="rounded bg-standby px-1 text-caption font-bold text-app">
                         NEXT
                       </span>
                     )}
                     {isLast && (
-                      <span className="rounded bg-go px-1 text-[10px] font-bold text-app">
+                      <span className="rounded bg-go px-1 text-caption font-bold text-app">
                         LIVE
                       </span>
                     )}
@@ -98,7 +98,7 @@ export function CueStack() {
           );
         })}
         {show.cues.some((c) => changed(c.updatedAt)) && (
-          <p className="flex items-center gap-1.5 px-2 py-2 text-[11px] text-fg-subtle">
+          <p className="flex items-center gap-1.5 px-2 py-2 text-caption text-fg-subtle">
             <span className="size-1.5 rounded-full bg-info" /> changed since the last run
           </p>
         )}

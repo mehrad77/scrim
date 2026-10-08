@@ -144,7 +144,7 @@ export function ActionList({
           )}
         >
           <div className="flex items-start gap-2">
-            <span className="mt-1.5 w-32 shrink-0 text-xs font-medium text-fg-muted">
+            <span className="mt-1.5 w-32 shrink-0 text-caption font-medium text-fg-muted">
               {ACTION_LABELS[a.type]}
             </span>
             <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2">
@@ -211,7 +211,7 @@ function ActionFields({
     );
   const fadeFields = 'duration' in a && 'easing' in a && (
     <>
-      <span className="text-xs text-fg-subtle">over</span>
+      <span className="text-caption text-fg-subtle">over</span>
       <NumberInput
         className="w-20"
         value={a.duration}
@@ -246,7 +246,7 @@ function ActionFields({
       return (
         <>
           {layerPick()}
-          <span className="text-xs text-fg-subtle">to</span>
+          <span className="text-caption text-fg-subtle">to</span>
           <NumberInput
             className="w-20"
             value={Math.round(a.opacity * 100)}
@@ -265,7 +265,7 @@ function ActionFields({
           <Toggle
             checked={a.restart}
             onChange={(restart) => onChange({ ...a, restart })}
-            label={<span className="text-xs">from the start</span>}
+            label={<span className="text-caption">from the start</span>}
           />
         </>
       );
@@ -275,7 +275,7 @@ function ActionFields({
       return (
         <>
           {layerPick((k) => k === 'video' || k === 'audio')}
-          <span className="text-xs text-fg-subtle">to</span>
+          <span className="text-caption text-fg-subtle">to</span>
           <NumberInput
             className="w-24"
             value={a.time}
@@ -326,7 +326,7 @@ function ActionFields({
       return (
         <>
           <VarPick show={show} value={a.varId} onChange={(varId) => onChange({ ...a, varId })} />
-          <span className="text-xs text-fg-subtle">to</span>
+          <span className="text-caption text-fg-subtle">to</span>
           {def?.options?.length ? (
             <Select
               className="w-36"
@@ -381,7 +381,7 @@ function ActionFields({
           <Toggle
             checked={a.fire}
             onChange={(fire) => onChange({ ...a, fire })}
-            label={<span className="text-xs">fire it now (otherwise standby)</span>}
+            label={<span className="text-caption">fire it now (otherwise standby)</span>}
           />
         </>
       );
@@ -398,7 +398,7 @@ function ActionFields({
           <Toggle
             checked={a.fire}
             onChange={(fire) => onChange({ ...a, fire })}
-            label={<span className="text-xs">fire it now</span>}
+            label={<span className="text-caption">fire it now</span>}
           />
         </>
       );
@@ -420,7 +420,7 @@ function ActionFields({
     case 'stopAll':
       return (
         <>
-          <span className="text-xs text-fg-subtle">fade every layer and sound out over</span>
+          <span className="text-caption text-fg-subtle">fade every layer and sound out over</span>
           <NumberInput
             className="w-20"
             value={a.duration}
@@ -474,7 +474,7 @@ function counterStart(show: Show, layerId: string): number {
 function Labeled({ label, children }: { label: ReactNode; children: ReactNode }) {
   return (
     <div className="flex gap-2">
-      <span className="mt-1.5 flex w-12 shrink-0 items-center gap-1 text-xs font-medium text-fg-muted">
+      <span className="mt-1.5 flex w-12 shrink-0 items-center gap-1 text-caption font-medium text-fg-muted">
         {label}
       </span>
       <div className="min-w-0 flex-1">{children}</div>
@@ -551,7 +551,9 @@ export function Conditions({
         const def = show.vars.find((v) => v.id === c.varId);
         return (
           <div key={i} className="flex flex-wrap items-center gap-2">
-            <span className="w-12 text-xs font-medium text-fg-muted">{i === 0 ? 'if' : 'and'}</span>
+            <span className="w-12 text-caption font-medium text-fg-muted">
+              {i === 0 ? 'if' : 'and'}
+            </span>
             <VarPick show={show} value={c.varId} onChange={(varId) => set(i, { ...c, varId })} />
             <Select
               className="w-24"
@@ -597,7 +599,7 @@ export function Conditions({
         );
       })}
       <button
-        className="flex w-fit items-center gap-1 text-xs text-fg-muted hover:text-fg"
+        className="flex w-fit items-center gap-1 text-caption text-fg-muted hover:text-fg"
         onClick={() =>
           onChange([...conditions, { varId: show.vars[0]?.id ?? '', op: 'eq', value: '' }])
         }

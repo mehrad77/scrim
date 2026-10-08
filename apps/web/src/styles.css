@@ -365,6 +365,14 @@ body {
   scrollbar-color: var(--line-strong) transparent;
 }
 
+/* Lucide icons keep a 1.75 px stroke at every size (DESIGN_SYSTEM.md › Icons). */
+svg.lucide {
+  stroke-width: 1.75px;
+}
+svg.lucide * {
+  vector-effect: non-scaling-stroke;
+}
+
 input[type='number']::-webkit-inner-spin-button {
   opacity: 0.4;
 }

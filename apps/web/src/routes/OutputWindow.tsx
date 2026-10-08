@@ -189,7 +189,7 @@ export default function OutputWindow() {
       )}
       <div
         className={cn(
-          'absolute right-3 bottom-3 flex items-center gap-3 rounded-lg bg-panel/90 px-3 py-2 text-xs text-fg-muted shadow-lg transition-opacity',
+          'absolute right-3 bottom-3 flex items-center gap-3 rounded-lg bg-panel/90 px-3 py-2 text-caption text-fg-muted shadow-lg transition-opacity',
           hud ? 'opacity-100' : 'pointer-events-none opacity-0',
         )}
       >

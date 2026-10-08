@@ -22,10 +22,8 @@ export function Panel({
       )}
     >
       {(title || actions) && (
-        <header className="flex h-10 shrink-0 items-center justify-between gap-2 border-b border-line-subtle px-3">
-          <h2 className="truncate text-xs font-semibold tracking-wide text-fg-muted uppercase">
-            {title}
-          </h2>
+        <header className="flex h-panel-head shrink-0 items-center justify-between gap-2 border-b border-line-subtle px-3">
+          <h2 className="label-caps truncate text-fg-muted">{title}</h2>
           <div className="flex items-center gap-1">{actions}</div>
         </header>
       )}
@@ -53,7 +51,7 @@ export function Badge({
   return (
     <span
       className={cn(
-        'inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[11px] font-medium',
+        'inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-caption font-medium',
         tones[tone],
         className,
       )}
@@ -64,12 +62,12 @@ export function Badge({
 }
 
 export function Empty({ children }: { children: ReactNode }) {
-  return <div className="p-6 text-center text-sm text-fg-subtle">{children}</div>;
+  return <div className="p-6 text-center text-ui text-fg-subtle">{children}</div>;
 }
 
 export function Kbd({ children }: { children: ReactNode }) {
   return (
-    <kbd className="rounded-control border border-line-control bg-control-hover px-1.5 py-0.5 font-mono text-[11px] text-fg-muted">
+    <kbd className="rounded-control border border-line-control bg-control-hover px-1.5 py-0.5 label-caps text-fg-muted">
       {children}
     </kbd>
   );
