@@ -1,0 +1,198 @@
+import type { Output } from '@scrim/format';
+import { Copy, ExternalLink, Eye, Monitor, MonitorPlay, ScanEye } from 'lucide-react';
+import { useState } from 'react';
+import { audienceUrl, remoteOutputUrl } from '../../host/room.js';
+import {
+  listScreens,
+  openOutputWindow,
+  windowManagementSupported,
+  type ScreenChoice,
+} from '../../host/windows.js';
+import { cn } from '../../lib/cn.js';
+import { readLocal, writeLocal } from '../../lib/local.js';
+import { Stage } from '../../render/Stage.js';
+import { Button, IconButton } from '../../ui/Button.js';
+import { Select, Toggle } from '../../ui/Field.js';
+import { Badge, Panel } from '../../ui/Panel.js';
+import { errorToast, toast } from '../../ui/toast.js';
+import { useHost } from './Operator.js';
+
+const SCREENS_KEY = 'scrim.outputScreens';
+
+export function OutputsPanel() {
+  const [host, snap] = useHost();
+  const [screens, setScreens] = useState<ScreenChoice[] | null>(null);
+  const [assigned, setAssigned] = useState(() =>
+    readLocal<Record<string, string>>(SCREENS_KEY, {}),
+  );
+  const [live, setLive] = useState(() => readLocal('scrim.liveThumbs', true));
+
+  const loadScreens = async () => {
+    try {
+      const list = await listScreens();
+      setScreens(list);
+      return list;
+    } catch (e) {
+      errorToast(e);
+      return [];
+    }
+  };
+
+  const screenFor = (o: Output, list: ScreenChoice[] | null) =>
+    list?.find((s) => s.label === assigned[o.id]);
+
+  const open = async (o: Output, list = screens) => {
+    const url = `/output/${snap.show.id}/${o.id}`;
+    const w = openOutputWindow(url, o.id, screenFor(o, list));
+    if (!w)
+      toast('The browser blocked the window. Allow pop-ups for Scrim and try again.', 'error');
+  };
+
+  // "Go live": the single click that opens every output on its display.
+  const openAll = async () => {
+    const list = windowManagementSupported() ? (screens ?? (await loadScreens())) : null;
+    for (const o of snap.show.outputs) await open(o, list);
+  };
+
+  return (
+    <Panel
+      title="Outputs"
+      className="flex-1"
+      bodyClassName="p-2"
+      actions={
+        <>
+          <Toggle
+            checked={live}
+            onChange={(v) => {
+              setLive(v);
+              writeLocal('scrim.liveThumbs', v);
+            }}
+            label={<span className="text-xs">Live previews</span>}
+          />
+          <Button size="sm" icon={<ScanEye size={13} />} onClick={() => host.identify(null)}>
+            Identify
+          </Button>
+          <Button
+            size="sm"
+            variant="primary"
+            icon={<MonitorPlay size={13} />}
+            onClick={() => void openAll()}
+          >
+            Go live: open all
+          </Button>
+        </>
+      }
+    >
+      <div
+        className="grid gap-2"
+        style={{
+          gridTemplateColumns: `repeat(${Math.min(snap.show.outputs.length, 2)}, minmax(0,1fr))`,
+        }}
+      >
+        {snap.show.outputs.map((o) => {
+          const health = snap.health[o.id] ?? 'none';
+          const links = snap.links.filter((l) => l.outputId === o.id);
+          const fullscreen = links.some((l) => l.status?.fullscreen);
+          const blocked = snap.audioBlocked.includes(o.id);
+          return (
+            <div
+              key={o.id}
+              className={cn(
+                'rounded-lg border p-2',
+                health === 'lost' ? 'border-live bg-rose-950/30' : 'border-ink-800',
+              )}
+            >
+              <div className="relative aspect-video overflow-hidden rounded bg-black">
+                {live ? (
+                  <Stage show={snap.show} state={snap.state} outputId={o.id} variant="thumb" />
+                ) : (
+                  <div className="flex size-full items-center justify-center text-xs text-ink-500">
+                    Previews off
+                  </div>
+                )}
+                {health === 'lost' && (
+                  <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-rose-950/80 text-sm font-semibold text-rose-100">
+                    Output window lost
+                    <div className="flex gap-2">
+                      <Button size="sm" variant="danger" onClick={() => void open(o)}>
+                        Reopen
+                      </Button>
+                      <Button size="sm" onClick={() => host.dismissOutput(o.id)}>
+                        Dismiss
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </div>
+              <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                <Monitor size={14} className="text-ink-400" />
+                <span className="text-sm font-medium">{o.name}</span>
+                {health === 'ok' && (
+                  <Badge tone="good">Open{links.length > 1 ? ` ×${links.length}` : ''}</Badge>
+                )}
+                {health === 'ok' && !fullscreen && <Badge tone="warn">Not full screen</Badge>}
+                {health === 'none' && <Badge>Closed</Badge>}
+                {links.some((l) => l.remote) && <Badge tone="neutral">Remote</Badge>}
+                {blocked && <Badge tone="warn">Click output once for sound</Badge>}
+                <div className="ml-auto flex items-center gap-0.5">
+                  <IconButton
+                    label="Identify this output"
+                    icon={<Eye size={13} />}
+                    onClick={() => host.identify(o.id)}
+                  />
+                  <IconButton
+                    label="Open output window"
+                    icon={<ExternalLink size={13} />}
+                    onClick={() => void open(o)}
+                  />
+                  {snap.relay.room && (
+                    <IconButton
+                      label="Copy link for a screen on another device"
+                      icon={<Copy size={13} />}
+                      onClick={() => {
+                        void navigator.clipboard.writeText(remoteOutputUrl(snap.relay.room!, o.id));
+                        toast('Remote output link copied. Open it on the other device.', 'good');
+                      }}
+                    />
+                  )}
+                </div>
+              </div>
+              {windowManagementSupported() && (
+                <div className="mt-1.5 flex items-center gap-2">
+                  <span className="text-[11px] text-ink-400">Display</span>
+                  {screens ? (
+                    <Select
+                      className="h-7 text-xs"
+                      value={assigned[o.id] ?? ''}
+                      onChange={(e) => {
+                        const next = { ...assigned, [o.id]: e.target.value };
+                        setAssigned(next);
+                        writeLocal(SCREENS_KEY, next);
+                      }}
+                    >
+                      <option value="">Choose when opening</option>
+                      {screens.map((s) => (
+                        <option key={s.index} value={s.label}>
+                          {s.label} {s.primary ? '(this screen)' : ''} · {s.width}×{s.height}
+                        </option>
+                      ))}
+                    </Select>
+                  ) : (
+                    <Button size="sm" onClick={() => void loadScreens()}>
+                      Detect displays
+                    </Button>
+                  )}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+      {snap.relay.room && (
+        <p className="mt-2 text-[11px] text-ink-500">
+          Audience page: {audienceUrl(snap.relay.room)}
+        </p>
+      )}
+    </Panel>
+  );
+}
