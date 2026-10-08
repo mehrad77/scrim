@@ -1,36 +1,6 @@
 @import 'tailwindcss';
 
-/* Self-hosted OFL fonts (licences in public/fonts), precached for offline shows. */
-@font-face {
-  font-family: 'IBM Plex Sans Variable';
-  src: url('/fonts/IBMPlexSansVar-Latin.woff2') format('woff2');
-  font-weight: 100 700;
-  font-display: swap;
-}
-@font-face {
-  font-family: 'IBM Plex Mono';
-  src: url('/fonts/IBMPlexMono-400-Latin.woff2') format('woff2');
-  font-weight: 400;
-  font-display: swap;
-}
-@font-face {
-  font-family: 'IBM Plex Mono';
-  src: url('/fonts/IBMPlexMono-500-Latin.woff2') format('woff2');
-  font-weight: 500;
-  font-display: swap;
-}
-@font-face {
-  font-family: 'IBM Plex Mono';
-  src: url('/fonts/IBMPlexMono-600-Latin.woff2') format('woff2');
-  font-weight: 600;
-  font-display: swap;
-}
-@font-face {
-  font-family: 'Fraunces Variable';
-  src: url('/fonts/FrauncesVar-Latin.woff2') format('woff2');
-  font-weight: 100 900;
-  font-display: swap;
-}
+/* Fonts are declared in fonts.css (the app) and audience/audience.css (phones). */
 
 /* ── Tier 1: primitives. Plain variables; no utilities are generated from them. ── */
 :root {

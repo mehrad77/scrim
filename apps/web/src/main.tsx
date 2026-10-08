@@ -2,6 +2,7 @@ import { StrictMode, lazy, Suspense } from 'react';
 import { createRoot } from 'react-dom/client';
 import { createBrowserRouter, RouterProvider } from 'react-router';
 import { Library } from './routes/Library.js';
+import './fonts.css';
 import './styles.css';
 import { Toaster } from './ui/toast.js';
 

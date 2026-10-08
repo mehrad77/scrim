@@ -1,6 +1,7 @@
 import { parseShow, readBundle, uid, writeBundle, type Show } from '@scrim/format';
 import { db, type RunRecord, type VersionRecord } from './db.js';
 import { deleteMediaFile, mediaFile, mediaWriter } from './media.js';
+import { listTemplates } from './templates.js';
 
 const MAX_VERSIONS = 50;
 const AUTO_VERSION_EVERY_MS = 5 * 60 * 1000;
@@ -53,7 +54,7 @@ export async function deleteShow(id: string): Promise<void> {
   for (const key of await database.getAllKeysFromIndex('runs', 'showId', id))
     await database.delete('runs', key);
   if (!show) return;
-  const others = await database.getAll('shows');
+  const others = [...(await database.getAll('shows')), ...(await listTemplates())];
   const used = new Set(others.flatMap((s) => s.media.map((m) => m.id)));
   for (const m of show.media) if (!used.has(m.id)) await deleteMediaFile(m.id);
 }

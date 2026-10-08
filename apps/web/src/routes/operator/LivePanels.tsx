@@ -61,7 +61,11 @@ export function StatePanel() {
           </div>
         </div>
       )}
-      {show.vars.length === 0 && <Empty>No state values in this show.</Empty>}
+      {show.vars.length === 0 && (
+        <Empty title="No state values">
+          Values the show remembers, like votes and scores, appear here.
+        </Empty>
+      )}
       {show.vars.length > 0 && (
         <ul aria-label="State values">
           {vars.map((v) => {
@@ -162,7 +166,11 @@ export function MediaPanel() {
   );
   return (
     <Panel title="Media" className="h-full" bodyClassName="p-2">
-      {media.length === 0 && <Empty>No video or sound layers.</Empty>}
+      {media.length === 0 && (
+        <Empty title="No video or sound">
+          Video and sound layers can be paused and scrubbed here.
+        </Empty>
+      )}
       {media.map((l) => {
         const clock = state.layers[l.id]?.media;
         const duration = show.media.find((m) => m.id === l.mediaId)?.duration;

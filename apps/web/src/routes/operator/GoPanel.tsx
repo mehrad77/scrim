@@ -1,5 +1,5 @@
 import { cueOrder } from '@scrim/format';
-import { Pause, Play, SkipBack, SkipForward, Square, Undo2 } from 'lucide-react';
+import { Check, Pause, Play, SkipBack, SkipForward, Square, Undo2 } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { keyLabel, PANIC_KEY } from '../../host/inputs.js';
 import { epochNow } from '../../lib/clock.js';
@@ -40,7 +40,15 @@ export function GoPanel() {
     <section className="flex shrink-0 flex-col gap-4 bg-panel p-4">
       <div className="flex gap-4">
         <div className="min-w-0 flex-1">
-          <div className="label-caps text-standby">Standby</div>
+          <div className="flex items-center gap-2">
+            <span className="label-caps text-standby">Standby</span>
+            {standby?.waitFor && (
+              <PerformerLamp
+                name={show.triggers.find((t) => t.id === standby.waitFor)?.name ?? 'Performer'}
+                ready={snap.performerReady}
+              />
+            )}
+          </div>
           <div className="mt-1 flex items-baseline gap-3 text-cue font-semibold">
             {standby ? (
               <>
@@ -156,6 +164,19 @@ export function GoPanel() {
         </Mappable>
       </div>
     </section>
+  );
+}
+
+/** "Bell ready ✓" once the performer taps Ready; until then, who the cue is waiting for. */
+function PerformerLamp({ name, ready }: { name: string; ready: boolean }) {
+  return ready ? (
+    <Lamp tone="go" icon={<Check size={12} />}>
+      {name} ready
+    </Lamp>
+  ) : (
+    <Lamp tone="off" className="text-fg-muted">
+      Waiting for {name}
+    </Lamp>
   );
 }
 

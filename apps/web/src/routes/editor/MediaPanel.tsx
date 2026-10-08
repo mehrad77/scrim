@@ -124,10 +124,9 @@ export function MediaPanel() {
           onChange={(e) => e.target.files && void upload(e.target.files)}
         />
         {show.media.length === 0 && uploading.length === 0 && (
-          <Empty>
-            Drop images, video, audio or fonts here.
-            <br />
-            Files stay on this machine.
+          <Empty title="No media yet">
+            Drop images, video, audio or fonts here. Files stay on this machine and travel inside
+            the exported show.
           </Empty>
         )}
         <ul className="grid grid-cols-2 gap-1">

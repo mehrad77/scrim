@@ -53,6 +53,7 @@ export function removeMoment(show: Show, momentId: string): void {
 
 export function removeTrigger(show: Show, triggerId: string): void {
   show.triggers = show.triggers.filter((t) => t.id !== triggerId);
+  for (const c of show.cues) if (c.waitFor === triggerId) delete c.waitFor;
   show.rules = show.rules.filter(
     (r) => !(r.when.type === 'trigger' && r.when.triggerId === triggerId),
   );

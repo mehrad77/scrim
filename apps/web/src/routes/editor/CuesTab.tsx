@@ -1,9 +1,9 @@
-import { uid, type Cue } from '@scrim/format';
-import { Copy, Trash2 } from 'lucide-react';
+import { createCue, uid, type Cue } from '@scrim/format';
+import { Copy, Plus, Trash2 } from 'lucide-react';
 import { removeCue } from '../../lib/refs.js';
 import { useEditor, useShow } from '../../state/editor.js';
-import { IconButton } from '../../ui/Button.js';
-import { CommitInput, Field, NumberInput, TextArea, Toggle } from '../../ui/Field.js';
+import { Button, IconButton } from '../../ui/Button.js';
+import { CommitInput, Field, NumberInput, Select, TextArea, Toggle } from '../../ui/Field.js';
 import { Columns, Divider, Pane } from '../../ui/Layout.js';
 import { Empty, Panel } from '../../ui/Panel.js';
 import { ActionList } from './ActionEditor.js';
@@ -37,9 +37,26 @@ function CueEditor() {
   if (!cue) {
     return (
       <Panel title="Cue">
-        <Empty>
-          Select a cue to edit what it does. A cue is a set of actions fired together when the
-          operator presses GO.
+        <Empty
+          title={show.cues.length ? 'No cue selected' : 'No cues yet'}
+          action={
+            !show.cues.length &&
+            show.scenes[0] && (
+              <Button
+                icon={<Plus size={14} />}
+                onClick={() => {
+                  const c = createCue(show.scenes[0]!.id, 'New cue');
+                  update((d) => void d.cues.push(c));
+                  select({ cueId: c.id });
+                }}
+              >
+                Add a cue
+              </Button>
+            )
+          }
+        >
+          A cue is a set of actions fired together when the operator presses GO.
+          {show.cues.length ? ' Pick one in the list to edit it.' : ''}
         </Empty>
       </Panel>
     );
@@ -117,6 +134,30 @@ function CueEditor() {
             </div>
           )}
         </div>
+        {show.triggers.length > 0 && (
+          <Field
+            label="Wait for a performer"
+            hint="While this cue is on standby, their remote says “Your cue” and you see when they're ready."
+          >
+            <Select
+              aria-label="Wait for a performer"
+              value={cue.waitFor ?? ''}
+              onChange={(e) =>
+                set((c) => {
+                  if (e.target.value) c.waitFor = e.target.value;
+                  else delete c.waitFor;
+                })
+              }
+            >
+              <option value="">Nobody</option>
+              {show.triggers.map((t) => (
+                <option key={t.id} value={t.id}>
+                  {t.name}
+                </option>
+              ))}
+            </Select>
+          </Field>
+        )}
         <Field label="Notes for the operator">
           <TextArea
             rows={3}

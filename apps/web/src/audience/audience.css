@@ -1,0 +1,82 @@
+/*
+ * The audience page (DESIGN_SYSTEM.md › Fonts): `font-display: optional`, so text never swaps
+ * after first paint and answer buttons never move under a thumb, plus fallbacks sized to the
+ * web fonts' metrics for a first visit that paints before they arrive.
+ */
+@font-face {
+  font-family: 'IBM Plex Sans Variable';
+  src: url('/fonts/IBMPlexSansVar-Latin.woff2') format('woff2');
+  font-weight: 100 700;
+  font-display: optional;
+}
+@font-face {
+  font-family: 'IBM Plex Mono';
+  src: url('/fonts/IBMPlexMono-400-Latin.woff2') format('woff2');
+  font-weight: 400;
+  font-display: optional;
+}
+@font-face {
+  font-family: 'Fraunces Variable';
+  src: url('/fonts/FrauncesVar-Latin.woff2') format('woff2');
+  font-weight: 100 900;
+  font-display: optional;
+}
+/* Plex Sans: ascent 1025, descent 275 per 1000; a touch wider than Arial. */
+@font-face {
+  font-family: 'Plex Fallback';
+  src: local('Arial'), local('Helvetica Neue'), local('Roboto');
+  size-adjust: 102%;
+  ascent-override: 100.5%;
+  descent-override: 27%;
+  line-gap-override: 0%;
+}
+/* Fraunces: ascent 1956, descent 510 per 2000. */
+@font-face {
+  font-family: 'Fraunces Fallback';
+  src: local('Georgia'), local('Times New Roman'), local('Noto Serif');
+  size-adjust: 103%;
+  ascent-override: 95%;
+  descent-override: 24.8%;
+  line-gap-override: 0%;
+}
+
+:root {
+  --font-sans: 'IBM Plex Sans Variable', 'Plex Fallback', ui-sans-serif, system-ui, sans-serif;
+  --font-display: 'Fraunces Variable', 'Fraunces Fallback', Georgia, serif;
+}
+
+/*
+ * The one place for expressive motion (DESIGN_SYSTEM.md › Motion): a moment rises in over
+ * `slow` with the `soft` curve, the vote check pops. Reduced motion keeps fades only.
+ */
+@keyframes aud-rise {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+}
+@keyframes aud-pop {
+  0% {
+    transform: scale(0.6);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.12);
+    opacity: 1;
+  }
+}
+@keyframes aud-fade {
+  from {
+    opacity: 0;
+  }
+}
+.aud-enter {
+  animation: aud-rise var(--dur-slow) var(--ease-soft) both;
+}
+.aud-pop {
+  animation: aud-pop 350ms var(--ease-soft) both;
+}
+[data-motion='reduced'] .aud-enter,
+[data-motion='reduced'] .aud-pop {
+  animation: aud-fade var(--dur-micro) linear both;
+}

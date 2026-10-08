@@ -54,6 +54,16 @@ export interface RemoteView {
   standby: string | null;
   lastFired: string | null;
   connected: boolean;
+  /** The cue on standby, so a performer can say they're ready for it. */
+  standbyId?: string | null;
+  /** The trigger the standby cue waits for: its remotes show "Your cue". */
+  waitFor?: string | null;
+  /** The operator has the performer's Ready for the standby cue. */
+  ready?: boolean;
+  /** The trigger the last fired cue waited for: its remotes show it fired. */
+  firedFor?: string | null;
+  /** Triggers some cue waits for; they do nothing until it's their cue. */
+  cueTriggers?: string[];
 }
 
 export interface MomentTotals {
@@ -87,6 +97,7 @@ export type RelayToHost =
   | { t: 'totals'; totals: MomentTotals[] }
   | { t: 'presence'; presence: Presence }
   | { t: 'trigger'; triggerId: string; from: string }
+  | { t: 'ready'; cueId: string; from: string }
   | { t: 'outputBeat'; clientId: string; outputId: string; status: OutputStatus }
   | { t: 'outputGone'; clientId: string }
   | { t: 'pong'; c: number; s: number }
@@ -112,6 +123,7 @@ export type AudienceToRelay = z.infer<typeof AudienceToRelaySchema>;
 
 export const RemoteToRelaySchema = z.discriminatedUnion('t', [
   z.object({ t: z.literal('trigger'), triggerId: z.string().max(64) }),
+  z.object({ t: z.literal('ready'), cueId: z.string().max(64) }),
   z.object({ t: z.literal('ping'), c: z.number() }),
 ]);
 export type RemoteToRelay = z.infer<typeof RemoteToRelaySchema>;

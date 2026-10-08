@@ -1,6 +1,7 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import '../styles.css';
+import './audience.css';
 import { Audience } from './Audience.js';
 
 // Phones get the large-target density.

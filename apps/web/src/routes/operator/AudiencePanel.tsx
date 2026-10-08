@@ -48,7 +48,11 @@ export function AudiencePanel() {
             rehearsal={mode === 'rehearsal'}
           />
         ))}
-        {show.moments.length === 0 && <Empty>No audience moments in this show.</Empty>}
+        {show.moments.length === 0 && (
+          <Empty title="No audience moments">
+            Add a vote, a tap race or a question in the editor’s Interaction tab.
+          </Empty>
+        )}
       </div>
     </Panel>
   );

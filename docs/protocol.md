@@ -55,13 +55,13 @@ Two transports carry the same ideas: the operator tab is authoritative and broad
 
 ### Host → relay
 
-| `t`          | Fields                                                    |
-| ------------ | --------------------------------------------------------- |
-| `show`       | `show` (forwarded to remote outputs)                      |
-| `state`      | `state, mode, offset` (forwarded to remote outputs)       |
-| `moments`    | `title, open: MomentSpec[]`: the full set of open moments |
-| `remoteView` | `view: { showName, triggers, standby, lastFired }`        |
-| `ping`       | `c` (client time)                                         |
+| `t`          | Fields                                                                                                    |
+| ------------ | --------------------------------------------------------------------------------------------------------- |
+| `show`       | `show` (forwarded to remote outputs)                                                                      |
+| `state`      | `state, mode, offset` (forwarded to remote outputs)                                                       |
+| `moments`    | `title, open: MomentSpec[]`: the full set of open moments                                                 |
+| `remoteView` | `view: { showName, triggers, standby, lastFired, standbyId?, waitFor?, ready?, firedFor?, cueTriggers? }` |
+| `ping`       | `c` (client time)                                                                                         |
 
 ### Relay → host
 
@@ -71,6 +71,7 @@ Two transports carry the same ideas: the operator tab is authoritative and broad
 | `totals`                    | `totals: MomentTotals[]`: changed moments, at most every 200 ms; all of them on connect |
 | `presence`                  | `{ audience, remotes, outputs }`                                                        |
 | `trigger`                   | `triggerId, from`                                                                       |
+| `ready`                     | `cueId, from`: a performer is ready for the cue on standby                              |
 | `outputBeat` · `outputGone` | Remote output status                                                                    |
 | `pong`                      | `c, s` (server time)                                                                    |
 | `error`                     | `message`                                                                               |
@@ -88,6 +89,7 @@ These messages are untrusted and validated with zod.
 | audience | `slider`     | `momentId, value`              | Clamped to the moment's range                           |
 | audience | `text`       | `momentId, text` (1–280 chars) | 3 entries per phone per moment                          |
 | remote   | `trigger`    | `triggerId`                    | Answered with `ack`, or `error` if no host is connected |
+| remote   | `ready`      | `cueId`                        | Acknowledged by the host's next `remoteView` (`ready`)  |
 | output   | `outputBeat` | `outputId, status`             | —                                                       |
 | all      | `ping`       | `c`                            | —                                                       |
 
@@ -95,13 +97,13 @@ Every non-host socket is limited to 30 messages per second and 4 KB per message.
 
 ### Relay → audience, remote, output
 
-| Role     | `t`             | Fields                                                                      |
-| -------- | --------------- | --------------------------------------------------------------------------- |
-| audience | `view`          | `title, moments: PublicMoment[]`; each phone sees only its own prop variant |
-| remote   | `remoteView`    | `view` plus `connected`                                                     |
-| remote   | `ack`           | `triggerId`                                                                 |
-| output   | `show`, `state` | As sent by the host                                                         |
-| output   | `hostGone`      | The host disconnected; keep the last picture                                |
+| Role     | `t`             | Fields                                                                                                                                                            |
+| -------- | --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| audience | `view`          | `title, moments: PublicMoment[]`; each phone sees only its own prop variant                                                                                       |
+| remote   | `remoteView`    | `view` plus `connected`. A trigger in `cueTriggers` waits for its cue: it reads "Your cue" when it is `waitFor`, lit when `ready`, and done when it is `firedFor` |
+| remote   | `ack`           | `triggerId`                                                                                                                                                       |
+| output   | `show`, `state` | As sent by the host                                                                                                                                               |
+| output   | `hostGone`      | The host disconnected; keep the last picture                                                                                                                      |
 
 ### Clocks
 

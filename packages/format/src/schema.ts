@@ -271,6 +271,11 @@ export const CueSchema = z.object({
   notes: z.string().default(''),
   /** Overrides the scene's tape colour. */
   tape: TapeSchema.optional(),
+  /**
+   * A performer trigger this cue waits for. While the cue is on standby, that trigger's remotes
+   * show "Your cue · tap Ready" and the operator sees when the performer is ready.
+   */
+  waitFor: Ref.optional(),
   /** Epoch ms of the last edit; rehearsal mode highlights cues changed since the last run. */
   updatedAt: z.number().default(0),
 });
@@ -380,8 +385,6 @@ export const ShowSchema = z.object({
   inputs: InputsSchema,
   audioBuses: z.array(AudioBusSchema),
   /** The fade new show/hide actions start with (the editor's default; 1 s ease in-out if unset). */
-  defaultFade: z
-    .object({ duration: z.number().nonnegative(), easing: EasingSchema })
-    .optional(),
+  defaultFade: z.object({ duration: z.number().nonnegative(), easing: EasingSchema }).optional(),
 });
 export type Show = z.infer<typeof ShowSchema>;

@@ -61,6 +61,19 @@ describe('parseShow', () => {
     expect(parseShow(raw).outputs[0]!.safeArea).toBe(0.05);
   });
 
+  it('keeps the optional cue fields: tape and the performer a cue waits for', () => {
+    const show = createShow('x');
+    show.triggers.push({ id: 'trg_bell', name: 'Bell', color: '#d97706' });
+    show.cues.push({
+      ...createCue(show.scenes[0]!.id, 'Bell rings'),
+      tape: 3,
+      waitFor: 'trg_bell',
+    });
+    const cue = parseShow(JSON.parse(JSON.stringify(show))).cues.at(-1)!;
+    expect(cue.waitFor).toBe('trg_bell');
+    expect(cue.tape).toBe(3);
+  });
+
   it('rejects other documents and newer versions', () => {
     expect(() => parseShow({ format: 'nope' })).toThrow(ShowFormatError);
     expect(() => parseShow({ ...createShow('x'), version: 99 })).toThrow(/newer Scrim/);

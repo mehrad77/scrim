@@ -352,7 +352,9 @@ function SceneCues({
         }}
         dragAndDropHooks={dragAndDropHooks}
         renderEmptyState={() => (
-          <div className="px-3 py-2 text-caption text-fg-subtle">Drop a cue here</div>
+          <div className="px-3 py-2 text-caption text-fg-subtle">
+            No cues in this scene. Add one with +, or drag a cue here.
+          </div>
         )}
         className="outline-none"
       >

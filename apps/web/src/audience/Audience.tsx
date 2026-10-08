@@ -6,9 +6,11 @@ import {
   type PublicMoment,
   type RelayToAudience,
 } from '@scrim/protocol';
+import { Check } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { clientId, defaultRelayUrl } from '../lib/config.js';
 import { cn } from '../lib/cn.js';
+import { SpikeMark } from '../ui/BrandMark.js';
 import { RelayClient, type RelayStatus } from '../transport/relay.js';
 
 type Send = (msg: AudienceToRelay) => boolean;
@@ -73,7 +75,10 @@ export function Audience() {
   return (
     <div className="mx-auto flex min-h-full max-w-md flex-col px-5 pt-6 pb-[max(24px,env(safe-area-inset-bottom))]">
       <header className="mb-6 flex items-center justify-between">
-        <span className="text-ui font-semibold text-fg-muted">{title || 'Scrim'}</span>
+        <span className="flex min-w-0 items-center gap-2 text-ui font-semibold text-fg-muted">
+          <SpikeMark className="size-4 shrink-0 text-accent" />
+          <span className="truncate">{title || 'Scrim'}</span>
+        </span>
         <span
           className={cn(
             'flex items-center gap-1.5 text-caption',
@@ -100,8 +105,16 @@ export function Audience() {
         </Center>
       ) : moments.length === 0 ? (
         <Center>
-          <div className="mb-4 text-5xl">{thanks ? '✨' : '🎭'}</div>
-          <p className="text-xl font-semibold">{thanks ? 'Thank you!' : 'Watch the stage'}</p>
+          {thanks ? (
+            <span className="aud-pop mb-5 flex size-14 items-center justify-center rounded-full bg-accent text-accent-fg">
+              <Check size={28} strokeWidth={2.5} aria-hidden />
+            </span>
+          ) : (
+            <SpikeMark className="mb-5 size-14 text-accent" />
+          )}
+          <p className="font-display text-2xl font-semibold">
+            {thanks ? 'Thank you!' : 'Watch the stage'}
+          </p>
           <p className="mt-2 text-ui text-fg-subtle">
             {thanks
               ? 'Your answer is on its way to the stage.'
@@ -141,8 +154,9 @@ function CodeEntry({ onCode }: { onCode: (c: string) => void }) {
         if (clean.length === ROOM_CODE_LENGTH) onCode(clean);
       }}
     >
-      <div className="text-4xl">🎭</div>
-      <h1 className="text-xl font-semibold">Join the show</h1>
+      <SpikeMark className="size-12 text-accent" />
+      <h1 className="font-display text-2xl font-semibold">Join the show</h1>
+      <p className="-mt-2 text-ui text-fg-muted">Type the code on your ticket or the screen.</p>
       <input
         autoFocus
         inputMode="text"
@@ -157,7 +171,8 @@ function CodeEntry({ onCode }: { onCode: (c: string) => void }) {
       <button
         type="submit"
         disabled={clean.length !== ROOM_CODE_LENGTH}
-        className="w-48 rounded-control bg-accent py-3 font-semibold text-accent-fg disabled:opacity-40"
+        // Disabled reads as "not yet", never as an error.
+        className="w-48 rounded-control border border-transparent bg-accent py-3 font-semibold text-accent-fg disabled:border-line-control disabled:bg-control disabled:text-fg-subtle"
       >
         Join
       </button>
@@ -213,9 +228,9 @@ function MomentView({
   offset: () => number;
 }) {
   return (
-    <section className="flex flex-col gap-4">
+    <section className="aud-enter flex flex-col gap-4">
       <div className="flex items-start justify-between gap-3">
-        <h2 className="text-2xl leading-tight font-semibold">{m.prompt}</h2>
+        <h2 className="font-display text-2xl leading-tight font-semibold">{m.prompt}</h2>
         <Countdown closesAt={m.closesAt} offset={offset} />
       </div>
       {m.type === 'vote' && <Vote moment={m} send={send} />}
@@ -246,14 +261,21 @@ function Vote({ moment: m, send }: { moment: PublicMoment; send: Send }) {
               navigator.vibrate?.(30);
             }
           }}
+          aria-pressed={choice === o.id}
           className={cn(
-            'rounded-control border-2 px-5 py-5 text-left text-xl font-semibold transition-colors',
+            'flex items-center justify-between gap-3 rounded-control border-2 px-5 py-5 text-left text-xl font-semibold',
             choice === o.id
               ? 'border-accent bg-accent text-accent-fg'
               : 'border-line-control bg-control active:bg-control-active',
           )}
         >
           {o.label}
+          {/* Same box either way, so the label never shifts when the check appears. */}
+          <span className="flex size-6 shrink-0 items-center justify-center">
+            {choice === o.id && (
+              <Check size={24} strokeWidth={2.5} className="aud-pop" aria-hidden />
+            )}
+          </span>
         </button>
       ))}
       {choice && (

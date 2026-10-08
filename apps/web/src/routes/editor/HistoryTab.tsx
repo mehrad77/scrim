@@ -44,7 +44,11 @@ export function HistoryTab() {
         <p className="mb-2 text-caption text-fg-subtle">
           Scrim keeps a version every few minutes while you edit, and before every restore.
         </p>
-        {versions.length === 0 && <Empty>No versions yet.</Empty>}
+        {versions.length === 0 && (
+          <Empty title="No versions yet">
+            A version is saved every few minutes while you edit, so you can always go back.
+          </Empty>
+        )}
         {versions.map((v) => (
           <div key={v.id} className="flex items-center gap-2 border-b border-line-subtle px-1 py-2">
             <div className="flex-1">
@@ -81,7 +85,9 @@ export function HistoryTab() {
         <p className="mb-2 text-caption text-fg-subtle">
           Every rehearsal and performance is logged: cues fired, audience results and warnings.
         </p>
-        {runs.length === 0 && <Empty>No runs yet.</Empty>}
+        {runs.length === 0 && (
+          <Empty title="No runs yet">Press Run show, then GO. Every run is logged here.</Empty>
+        )}
         {runs.map((r) => (
           <RunItem key={r.id} run={r} />
         ))}

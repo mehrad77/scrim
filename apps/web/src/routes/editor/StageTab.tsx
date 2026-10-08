@@ -203,9 +203,9 @@ function LayersPanel() {
       }
     >
       {layers.length === 0 && sounds.length === 0 ? (
-        <Empty>
-          Place media from the library, or add text, a countdown or a live state value with the
-          buttons above.
+        <Empty title="Nothing on stage yet">
+          Drop images or video from the media library onto the canvas, or use Add for text, a
+          countdown or a live value.
         </Empty>
       ) : (
         <div

@@ -90,10 +90,10 @@ Text style: `fontSize, color, fontFamily, fontWeight, align, background`.
 
 ```ts
 Scene { id, name, tape? }
-Cue   { id, sceneId, name, actions: Action[], follow: { auto, delay }, notes, tape?, updatedAt }
+Cue   { id, sceneId, name, actions: Action[], follow: { auto, delay }, notes, tape?, waitFor?, updatedAt }
 ```
 
-When `follow.auto` is true, the next cue fires `delay` seconds after this one. `updatedAt` drives "changed since the last run" in rehearsal. `tape` (1–8) is an optional spike-tape colour that tags a scene, or overrides it for one cue, in the editor and on printed sheets; the operator view never shows it.
+When `follow.auto` is true, the next cue fires `delay` seconds after this one. `updatedAt` drives "changed since the last run" in rehearsal. `tape` (1–8) is an optional spike-tape colour that tags a scene, or overrides it for one cue, in the editor and on printed sheets; the operator view never shows it. `waitFor` names a trigger whose performer the cue waits for: while the cue is on standby, that trigger's remotes read "Your cue · tap Ready", and the operator sees when they are ready. It never fires anything by itself.
 
 ### Actions
 

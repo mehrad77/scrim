@@ -56,8 +56,37 @@ export function Badge({
   );
 }
 
-export function Empty({ children }: { children: ReactNode }) {
-  return <div className="p-6 text-center text-ui text-fg-subtle">{children}</div>;
+/**
+ * An empty state does three jobs: says what's here, teaches, and offers the first action
+ * (UX principle 8). The headline is in Fraunces on brand surfaces (Library, audience).
+ */
+export function Empty({
+  title,
+  action,
+  brand = false,
+  children,
+}: {
+  title?: string;
+  action?: ReactNode;
+  brand?: boolean;
+  children?: ReactNode;
+}) {
+  return (
+    <div className="flex flex-col items-center gap-2 p-6 text-center">
+      {title && (
+        <p
+          className={cn(
+            'text-fg',
+            brand ? 'font-display text-heading font-semibold' : 'text-ui font-medium',
+          )}
+        >
+          {title}
+        </p>
+      )}
+      {children && <div className="max-w-sm text-ui text-fg-subtle">{children}</div>}
+      {action && <div className="mt-2">{action}</div>}
+    </div>
+  );
 }
 
 export function Kbd({ children }: { children: ReactNode }) {

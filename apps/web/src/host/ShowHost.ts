@@ -73,6 +73,8 @@ export interface HostSnapshot {
   resumedAt: string | null;
   /** The cue "Rehearse from here" started at, in the editor. */
   rehearsingFrom: string | null;
+  /** The standby cue's performer has tapped Ready on their remote. */
+  performerReady: boolean;
   /** Date.now() until which a second GO is ignored (the double-GO guard). */
   goLockedUntil: number;
   /** When a GO was last ignored by the guard, so the GO button can say so. */
@@ -115,6 +117,8 @@ export class ShowHost {
   #lastRunAt: number | null;
   #resumedAt: string | null;
   #rehearsingFrom: string | null;
+  /** The cue a performer said they're ready for; only counts while it's on standby. */
+  #readyFor: string | null = null;
   #wakeLock: WakeLockSentinel | null = null;
   #midi: string[] | null = null;
   #gamepads: string[] = [];
@@ -516,6 +520,17 @@ export class ShowHost {
       case 'trigger':
         this.dispatch({ type: 'trigger', triggerId: msg.triggerId, source: 'remote' });
         return;
+      case 'ready': {
+        const show = this.engine.show;
+        const cue = show.cues.find((c) => c.id === msg.cueId);
+        if (!cue || cue.id !== this.engine.state.standby || this.#readyFor === cue.id) return;
+        this.#readyFor = cue.id;
+        const who = show.triggers.find((t) => t.id === cue.waitFor)?.name ?? 'Performer';
+        this.#log('trigger', `${who} is ready for “${cue.name}”`);
+        this.#syncRelay(true);
+        this.#build();
+        return;
+      }
       case 'outputBeat':
         this.#touchLink(msg.clientId, msg.outputId, true, msg.status);
         return;
@@ -640,11 +655,18 @@ export class ShowHost {
       relay.send({ t: 'moments', title: show.name, open });
     }
     const order = cueOrder(show);
+    const standby = order.find((c) => c.id === state.standby);
+    const fired = order.find((c) => c.id === state.lastFired);
     const view: Omit<RemoteView, 'connected'> = {
       showName: show.name,
       triggers: show.triggers.map((t) => ({ id: t.id, name: t.name, color: t.color })),
-      standby: order.find((c) => c.id === state.standby)?.name ?? null,
-      lastFired: order.find((c) => c.id === state.lastFired)?.name ?? null,
+      standby: standby?.name ?? null,
+      lastFired: fired?.name ?? null,
+      standbyId: standby?.id ?? null,
+      waitFor: standby?.waitFor ?? null,
+      ready: !!standby && this.#readyFor === standby.id,
+      firedFor: fired?.waitFor ?? null,
+      cueTriggers: [...new Set(show.cues.flatMap((c) => (c.waitFor ? [c.waitFor] : [])))],
     };
     const viewJson = JSON.stringify(view);
     if (force || viewJson !== this.#lastRemoteView) {
@@ -857,6 +879,7 @@ export class ShowHost {
       lastRunAt: this.#lastRunAt,
       resumedAt: this.#resumedAt,
       rehearsingFrom: this.#rehearsingFrom,
+      performerReady: this.#readyFor !== null && this.#readyFor === this.engine.state.standby,
       goLockedUntil: this.#lastGo + DOUBLE_GO_MS,
       goDroppedAt: this.#goDroppedAt,
       offScript: this.#offScript,

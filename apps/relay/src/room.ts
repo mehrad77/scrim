@@ -198,6 +198,13 @@ export class Room extends DurableObject<Env> {
         const host = this.ctx.getWebSockets('host')[0];
         if (!host)
           return send<RelayToRemote>(ws, { t: 'error', message: 'The show is not connected' });
+        // Ready is acknowledged by the host's next remote view, once the operator has it.
+        if (parsed.data.t === 'ready')
+          return send<RelayToHost>(host, {
+            t: 'ready',
+            cueId: parsed.data.cueId,
+            from: att.client,
+          });
         send<RelayToHost>(host, {
           t: 'trigger',
           triggerId: parsed.data.triggerId,
