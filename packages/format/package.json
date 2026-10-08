@@ -1,0 +1,19 @@
+{
+  "name": "@scrim/format",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc -p .",
+    "test": "vitest run --passWithNoTests"
+  },
+  "dependencies": {
+    "fflate": "^0.8.3",
+    "zod": "^4.6.5"
+  }
+}
