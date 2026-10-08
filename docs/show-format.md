@@ -47,6 +47,7 @@ Readers must:
   rules: Rule[],
   inputs: { keys, midi, gamepad },
   audioBuses: { id, name }[],
+  defaultFade?: { duration, easing },  // the fade new show/hide actions start with
 }
 ```
 
@@ -54,15 +55,18 @@ Ids are opaque, non-empty strings, for example `cue_k3f9x2ab`. **References** to
 
 ### Output
 
-`{ id, name, width, height, background, safeArea, cornerPin? }`
+`{ id, name, width, height, background, safeArea, cornerPin?, guides? }`
 
 - `width` and `height` are the canvas in pixels; every layer on the output is placed in this space.
 - `safeArea` is a fraction from 0 to 0.25, used only as an editor guide.
 - `cornerPin` lists four pixel offsets — top-left, top-right, bottom-right, bottom-left — for keystone correction.
+- `guides` (`{ x: number[], y: number[] }`) are editor ruler guides in output pixels; they are never drawn on the output.
 
 ### Media
 
-`{ id, kind: 'image' | 'video' | 'audio', name, mime, size, duration?, width?, height? }`
+`{ id, kind: 'image' | 'video' | 'audio' | 'font', name, mime, size, duration?, width?, height? }`
+
+A `font` file (WOFF2, WOFF, TTF or OTF) is registered under its file name without the extension, so text layers can use it on any machine, offline. Older apps can't open shows that contain fonts.
 
 ### Layer
 

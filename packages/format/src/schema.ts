@@ -21,10 +21,13 @@ export const OutputSchema = z.object({
   safeArea: z.number().min(0).max(0.25).default(0.05),
   /** Corner offsets in output pixels: top-left, top-right, bottom-right, bottom-left. */
   cornerPin: z.tuple([PointSchema, PointSchema, PointSchema, PointSchema]).optional(),
+  /** Editor ruler guides in output pixels (design aid only; never drawn on the output). */
+  guides: z.object({ x: z.array(z.number()), y: z.array(z.number()) }).optional(),
 });
 export type Output = z.infer<typeof OutputSchema>;
 
-export const MediaKindSchema = z.enum(['image', 'video', 'audio']);
+/** `font` files style text layers; they travel in the .scrim bundle so offline shows keep them. */
+export const MediaKindSchema = z.enum(['image', 'video', 'audio', 'font']);
 export type MediaKind = z.infer<typeof MediaKindSchema>;
 
 export const MediaSchema = z.object({
@@ -360,5 +363,9 @@ export const ShowSchema = z.object({
   rules: z.array(RuleSchema),
   inputs: InputsSchema,
   audioBuses: z.array(AudioBusSchema),
+  /** The fade new show/hide actions start with (the editor's default; 1 s ease in-out if unset). */
+  defaultFade: z
+    .object({ duration: z.number().nonnegative(), easing: EasingSchema })
+    .optional(),
 });
 export type Show = z.infer<typeof ShowSchema>;

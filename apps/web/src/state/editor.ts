@@ -10,7 +10,10 @@ const SAVE_DEBOUNCE_MS = 400;
 
 export interface Selection {
   outputId: string | null;
+  /** The primary selected layer (the inspector edits it). */
   layerId: string | null;
+  /** More layers selected with Shift-click, for moving and aligning together. */
+  extra: string[];
   cueId: string | null;
 }
 
@@ -43,7 +46,7 @@ export const useEditor = create<EditorState>((set, get) => ({
   future: [],
   saving: 'idle',
   savedAt: null,
-  selection: { outputId: null, layerId: null, cueId: null },
+  selection: { outputId: null, layerId: null, extra: [], cueId: null },
   showModeLock: false,
   unlocked: false,
 
@@ -61,7 +64,7 @@ export const useEditor = create<EditorState>((set, get) => ({
       future: [],
       saving: 'saved',
       savedAt: show.updatedAt,
-      selection: { outputId: show.outputs[0]?.id ?? null, layerId: null, cueId: null },
+      selection: { outputId: show.outputs[0]?.id ?? null, layerId: null, extra: [], cueId: null },
       showModeLock: false,
       unlocked: false,
     });
@@ -123,7 +126,9 @@ export const useEditor = create<EditorState>((set, get) => ({
   },
 
   select(sel) {
-    set({ selection: { ...get().selection, ...sel } });
+    // Picking one layer clears any extra selection unless the caller sets it.
+    const extra = sel.extra ?? ('layerId' in sel ? [] : get().selection.extra);
+    set({ selection: { ...get().selection, ...sel, extra } });
   },
 
   replace(show) {

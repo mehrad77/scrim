@@ -34,7 +34,7 @@ const GROUPS: { label: string; types: ActionType[] }[] = [
 export function defaultAction(type: ActionType, show: Show): Action {
   const layer = show.layers[0]?.id ?? '';
   const media = show.layers.find((l) => l.kind === 'video' || l.kind === 'audio')?.id ?? layer;
-  const fade = { duration: 1, easing: 'easeInOut' as const };
+  const fade = show.defaultFade ?? { duration: 1, easing: 'easeInOut' as const };
   switch (type) {
     case 'show':
     case 'hide':

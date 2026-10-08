@@ -3,10 +3,11 @@ import { AlignCenter, Copy, Maximize, Trash2, Zap } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { createCue, uid } from '@scrim/format';
 import { layerUsage, removeLayer } from '../../lib/refs.js';
+import { fontFamilyOf } from '../../render/useShowFonts.js';
 import { useEditor, useShow } from '../../state/editor.js';
 import { Button } from '../../ui/Button.js';
 import { CommitInput, Field, NumberInput, Select, TextArea, Toggle } from '../../ui/Field.js';
-import { Empty } from '../../ui/Panel.js';
+import { ColorInput } from '../../ui/ColorInput.js';
 import { toast } from '../../ui/toast.js';
 
 const FONTS = [
@@ -21,7 +22,7 @@ export function LayerInspector() {
   const show = useShow();
   const layerId = useEditor((s) => s.selection.layerId);
   const layer = show.layers.find((l) => l.id === layerId);
-  if (!layer) return <Empty>Select a layer to edit it.</Empty>;
+  if (!layer) return <NothingSelected />;
   return <Inspector key={layer.id} show={show} layer={layer} />;
 }
 
@@ -38,6 +39,8 @@ function Inspector({ show, layer }: { show: Show; layer: Layer }) {
       coalesce ? { coalesce: `${layer.id}:${coalesce}` } : undefined,
     );
   const usage = layerUsage(show, layer.id);
+  // Fonts added to the show travel in its bundle; others may be missing on the show machine.
+  const showFonts = show.media.filter((m) => m.kind === 'font').map(fontFamilyOf);
   const visual = layer.kind !== 'audio';
 
   return (
@@ -75,18 +78,34 @@ function Inspector({ show, layer }: { show: Show; layer: Layer }) {
       {visual && (
         <Section title="Position">
           <div className="grid grid-cols-2 gap-2">
-            <Field label="X">
-              <NumberInput value={layer.x} onCommit={(x) => set({ x })} suffix="px" />
-            </Field>
-            <Field label="Y">
-              <NumberInput value={layer.y} onCommit={(y) => set({ y })} suffix="px" />
-            </Field>
-            <Field label="Width">
-              <NumberInput value={layer.w} min={1} onCommit={(w) => set({ w })} suffix="px" />
-            </Field>
-            <Field label="Height">
-              <NumberInput value={layer.h} min={1} onCommit={(h) => set({ h })} suffix="px" />
-            </Field>
+            <NumberInput
+              label="X"
+              value={layer.x}
+              onCommit={(x, live) => set({ x }, live ? 'x' : undefined)}
+              suffix="px"
+            />
+            <NumberInput
+              label="Y"
+              value={layer.y}
+              onCommit={(y, live) => set({ y }, live ? 'y' : undefined)}
+              suffix="px"
+            />
+            <NumberInput
+              label="W"
+              aria-label="Width"
+              value={layer.w}
+              min={1}
+              onCommit={(w, live) => set({ w }, live ? 'w' : undefined)}
+              suffix="px"
+            />
+            <NumberInput
+              label="H"
+              aria-label="Height"
+              value={layer.h}
+              min={1}
+              onCommit={(h, live) => set({ h }, live ? 'h' : undefined)}
+              suffix="px"
+            />
           </div>
           {output && (
             <div className="flex gap-2">
@@ -307,11 +326,10 @@ function Inspector({ show, layer }: { show: Show; layer: Layer }) {
               </Select>
             </Field>
             <Field label="Color">
-              <input
-                type="color"
+              <ColorInput
+                aria-label="Text colour"
                 value={layer.color}
-                className="h-8 w-full rounded-control border border-line-subtle bg-panel"
-                onChange={(e) => set({ color: e.target.value } as Partial<Layer>, 'color')}
+                onChange={(color) => set({ color } as Partial<Layer>, 'color')}
               />
             </Field>
             <Field label="Align">
@@ -330,23 +348,34 @@ function Inspector({ show, layer }: { show: Show; layer: Layer }) {
               value={layer.fontFamily}
               onChange={(e) => set({ fontFamily: e.target.value } as Partial<Layer>)}
             >
-              {FONTS.map(([v, l]) => (
-                <option key={v} value={v}>
-                  {l}
-                </option>
-              ))}
-              {!FONTS.some(([v]) => v === layer.fontFamily) && (
-                <option value={layer.fontFamily}>{layer.fontFamily}</option>
+              <optgroup label="On every machine">
+                {FONTS.map(([v, l]) => (
+                  <option key={v} value={v}>
+                    {l}
+                  </option>
+                ))}
+              </optgroup>
+              {showFonts.length > 0 && (
+                <optgroup label="In this show">
+                  {showFonts.map((f) => (
+                    <option key={f} value={`"${f}"`}>
+                      {f}
+                    </option>
+                  ))}
+                </optgroup>
               )}
+              {![...FONTS.map(([v]) => v), ...showFonts.map((f) => `"${f}"`)].includes(
+                layer.fontFamily,
+              ) && <option value={layer.fontFamily}>{layer.fontFamily} (not in the show)</option>}
             </Select>
           </Field>
           <Field label="Background">
             <div className="flex gap-2">
-              <input
-                type="color"
+              <ColorInput
+                aria-label="Background colour"
+                className="flex-1"
                 value={layer.background.startsWith('#') ? layer.background : '#000000'}
-                className="h-8 w-12 rounded-control border border-line-subtle bg-panel"
-                onChange={(e) => set({ background: e.target.value } as Partial<Layer>, 'bg')}
+                onChange={(background) => set({ background } as Partial<Layer>, 'bg')}
               />
               <Button
                 size="sm"
@@ -427,5 +456,100 @@ function Section({ title, children }: { title: string; children: ReactNode }) {
       <legend className="label-caps mb-1 text-fg-subtle">{title}</legend>
       {children}
     </fieldset>
+  );
+}
+
+/**
+ * With nothing selected the inspector edits the output and the show's defaults, never an empty
+ * column (UX principle 6).
+ */
+function NothingSelected() {
+  const show = useShow();
+  const update = useEditor((s) => s.update);
+  const outputId = useEditor((s) => s.selection.outputId);
+  const output = show.outputs.find((o) => o.id === outputId) ?? show.outputs[0];
+  const fade = show.defaultFade ?? { duration: 1, easing: 'easeInOut' as const };
+  const setOutput = (fn: (o: Show['outputs'][number]) => void) =>
+    update((d) => {
+      const o = d.outputs.find((x) => x.id === output?.id);
+      if (o) fn(o);
+    });
+  return (
+    <div className="flex flex-col gap-4 p-3">
+      <p className="text-caption text-fg-subtle">
+        Select a layer to edit it. Shift-click to select more than one.
+      </p>
+      {output && (
+        <Section title={`Output · ${output.name}`}>
+          <p className="font-mono text-caption text-fg-muted tabular-nums">
+            {output.width} × {output.height} px
+          </p>
+          <Field label="Background">
+            <ColorInput
+              aria-label="Output background"
+              value={output.background}
+              onChange={(c) => setOutput((o) => void (o.background = c))}
+            />
+          </Field>
+          <Field label="Safe area">
+            <NumberInput
+              aria-label="Safe area"
+              value={Math.round(output.safeArea * 100)}
+              min={0}
+              max={25}
+              suffix="%"
+              onCommit={(v) => setOutput((o) => void (o.safeArea = v / 100))}
+            />
+          </Field>
+          <div className="flex items-center justify-between text-caption text-fg-muted">
+            <span>
+              {(output.guides?.x.length ?? 0) + (output.guides?.y.length ?? 0)} guides · click a
+              ruler to add one
+            </span>
+            {!!((output.guides?.x.length ?? 0) + (output.guides?.y.length ?? 0)) && (
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => setOutput((o) => void delete o.guides)}
+              >
+                Clear
+              </Button>
+            )}
+          </div>
+        </Section>
+      )}
+      <Section title="Show defaults">
+        <Field label="Fade for new show and hide actions">
+          <div className="grid grid-cols-2 gap-2">
+            <NumberInput
+              label="s"
+              aria-label="Default fade in seconds"
+              value={fade.duration}
+              min={0}
+              step={0.1}
+              onCommit={(duration) => update((d) => void (d.defaultFade = { ...fade, duration }))}
+            />
+            <Select
+              aria-label="Default easing"
+              value={fade.easing}
+              onChange={(e) =>
+                update(
+                  (d) =>
+                    void (d.defaultFade = {
+                      ...fade,
+                      easing: e.target.value as typeof fade.easing,
+                    }),
+                )
+              }
+            >
+              <option value="linear">Linear</option>
+              <option value="easeIn">Ease in</option>
+              <option value="easeOut">Ease out</option>
+              <option value="easeInOut">Smooth</option>
+            </Select>
+          </div>
+        </Field>
+      </Section>
+    </div>
   );
 }

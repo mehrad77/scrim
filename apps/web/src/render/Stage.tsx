@@ -1,4 +1,5 @@
 import { tweenValue, type EngineState } from '@scrim/engine';
+import { useShowFonts } from './useShowFonts.js';
 import type { Layer, Show } from '@scrim/format';
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { epochNow } from '../lib/clock.js';
@@ -35,6 +36,7 @@ export function Stage(props: StageProps) {
   const box = useRef<HTMLDivElement>(null);
   const [size, setSize] = useState({ w: 0, h: 0 });
   const layerEls = useRef(new Map<string, HTMLDivElement>());
+  useShowFonts(show);
   const blackoutEl = useRef<HTMLDivElement>(null);
 
   useLayoutEffect(() => {

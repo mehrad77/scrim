@@ -70,6 +70,28 @@ export function CommitInput({
   );
 }
 
+/**
+ * Evaluate what was typed in a number field: plain numbers, arithmetic, or a change relative to
+ * the current value when it starts with +, * or / ("+10", "*2"). Null when it isn't a number.
+ */
+export function evaluateNumber(text: string, current: number): number | null {
+  let t = text.trim();
+  if (!t) return null;
+  if (/^[+*/]/.test(t)) t = `${current}${t}`;
+  if (!/^[\d+\-*/().\s]+$/.test(t)) return null;
+  try {
+    const n = Function(`"use strict"; return (${t});`)() as unknown;
+    return typeof n === 'number' && Number.isFinite(n) ? n : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * A number field in the precision kit (DESIGN_SYSTEM.md › Scrub field): drag its label to scrub
+ * (Shift ×10, Alt ×0.1), use ↑/↓ the same way, or type math ("+10", "*2", "(x/2)+6").
+ * `onCommit(value, scrubbing)` is called live while scrubbing so callers can coalesce undo.
+ */
 export function NumberInput({
   value,
   onCommit,
@@ -78,37 +100,98 @@ export function NumberInput({
   step = 1,
   className,
   suffix,
+  label,
+  'aria-label': ariaLabel,
 }: {
   value: number;
-  onCommit: (v: number) => void;
+  onCommit: (v: number, scrubbing?: boolean) => void;
   min?: number;
   max?: number;
   step?: number;
   className?: string;
   suffix?: string;
+  /** A short scrub label inside the field ("X", "W"). */
+  label?: string;
+  'aria-label'?: string;
 }) {
   const [draft, setDraft] = useState(String(value));
   useEffect(() => setDraft(String(round(value))), [value]);
+  const clamp = (n: number) => {
+    let x = round(n);
+    if (min !== undefined) x = Math.max(min, x);
+    if (max !== undefined) x = Math.min(max, x);
+    return x;
+  };
   const commit = () => {
-    let n = Number(draft);
-    if (!Number.isFinite(n)) return setDraft(String(value));
-    if (min !== undefined) n = Math.max(min, n);
-    if (max !== undefined) n = Math.min(max, n);
-    if (n !== value) onCommit(n);
+    const n = evaluateNumber(draft, value);
+    if (n === null) return setDraft(String(round(value)));
+    const c = clamp(n);
+    if (c !== value) onCommit(c);
     else setDraft(String(round(value)));
   };
+  const factor = (e: { shiftKey: boolean; altKey: boolean }) =>
+    e.shiftKey ? 10 : e.altKey ? 0.1 : 1;
+
+  const scrub = (e: React.PointerEvent<HTMLSpanElement>) => {
+    if (e.button !== 0) return;
+    e.preventDefault();
+    const el = e.currentTarget;
+    const start = value;
+    let moved = 0;
+    el.setPointerCapture(e.pointerId);
+    try {
+      void el.requestPointerLock?.()?.catch?.(() => undefined);
+    } catch {
+      // pointer lock is optional
+    }
+    const move = (ev: PointerEvent) => {
+      moved += ev.movementX;
+      onCommit(clamp(start + Math.round(moved / 2) * step * factor(ev)), true);
+    };
+    const up = () => {
+      el.removeEventListener('pointermove', move);
+      el.removeEventListener('pointerup', up);
+      el.removeEventListener('pointercancel', up);
+      if (document.pointerLockElement) document.exitPointerLock();
+    };
+    el.addEventListener('pointermove', move);
+    el.addEventListener('pointerup', up);
+    el.addEventListener('pointercancel', up);
+  };
+
   return (
     <div className={cn('relative', className)}>
+      {label && (
+        <span
+          aria-hidden
+          onPointerDown={scrub}
+          data-info={`Drag to change ${label} (Shift ×10, Alt ×0.1)`}
+          className="absolute top-1/2 left-0 flex h-full w-6 -translate-y-1/2 cursor-ew-resize items-center justify-center text-caption text-fg-subtle select-none hover:text-fg"
+        >
+          {label}
+        </span>
+      )}
       <input
-        type="number"
-        className={cn(control, 'h-control', suffix && 'pr-7')}
+        inputMode="decimal"
+        aria-label={ariaLabel ?? label}
+        className={cn(
+          control,
+          'h-control font-mono tabular-nums',
+          label && 'pl-6',
+          suffix && 'pr-7',
+        )}
         value={draft}
-        min={min}
-        max={max}
-        step={step}
         onChange={(e) => setDraft(e.target.value)}
         onBlur={commit}
-        onKeyDown={(e) => e.key === 'Enter' && (e.target as HTMLInputElement).blur()}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') (e.target as HTMLInputElement).blur();
+          else if (e.key === 'Escape') setDraft(String(round(value)));
+          else if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+            e.preventDefault();
+            const dir = e.key === 'ArrowUp' ? 1 : -1;
+            onCommit(clamp(value + dir * step * factor(e)));
+          }
+        }}
       />
       {suffix && (
         <span className="pointer-events-none absolute top-1/2 right-2 -translate-y-1/2 text-caption text-fg-subtle">

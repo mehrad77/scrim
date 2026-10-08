@@ -16,10 +16,11 @@ export function opfsSupported(): boolean {
   return typeof navigator !== 'undefined' && !!navigator.storage?.getDirectory;
 }
 
-export function kindOf(mime: string): MediaKind | null {
+export function kindOf(mime: string, name = ''): MediaKind | null {
   if (mime.startsWith('image/')) return 'image';
   if (mime.startsWith('video/')) return 'video';
   if (mime.startsWith('audio/')) return 'audio';
+  if (mime.startsWith('font/') || /\.(woff2?|ttf|otf)$/i.test(name)) return 'font';
   return null;
 }
 
@@ -47,7 +48,7 @@ export async function mediaWriter(
 
 /** Store an uploaded file and describe it. */
 export async function addMediaFile(file: File): Promise<Media> {
-  const kind = kindOf(file.type);
+  const kind = kindOf(file.type, file.name);
   if (!kind) throw new Error(`${file.name}: unsupported file type ${file.type || '(unknown)'}`);
   const id = uid('med');
   const handle = await (await mediaDir()).getFileHandle(id, { create: true });
@@ -105,6 +106,7 @@ export function revokeMediaUrl(id: string): void {
 }
 
 async function probe(file: Blob, kind: MediaKind): Promise<Partial<Media>> {
+  if (kind === 'font') return {};
   if (kind === 'image') {
     const bitmap = await createImageBitmap(file);
     const out = { width: bitmap.width, height: bitmap.height };
