@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "web",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["--filter", "@scrim/web", "dev"],
+      "port": 5173
+    },
+    {
+      "name": "relay",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["--filter", "@scrim/relay", "dev"],
+      "port": 8790
+    }
+  ]
+}
