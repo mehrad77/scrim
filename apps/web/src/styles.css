@@ -46,7 +46,9 @@ input[type='number']::-webkit-inner-spin-button {
   opacity: 0.4;
 }
 
+/* Two-tone and neutral, so focus is never mistaken for PANIC or a fault. */
 :focus-visible {
-  outline: 2px solid var(--color-live);
-  outline-offset: 1px;
+  outline: 2px solid var(--color-ink-100);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 2px var(--color-ink-950);
 }

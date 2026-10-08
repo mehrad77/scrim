@@ -2,12 +2,12 @@ import { cueOrder, type Show } from '@scrim/format';
 import { ClipboardCheck, Lock, LockOpen, Pencil, RotateCcw } from 'lucide-react';
 import { createContext, useContext, useEffect, useState, useSyncExternalStore } from 'react';
 import { Link, useParams } from 'react-router';
-import { isTyping } from '../../host/inputs.js';
+import { isTyping, PANIC_KEY } from '../../host/inputs.js';
 import { ShowHost, type HostSnapshot } from '../../host/ShowHost.js';
 import { db, getSetting } from '../../storage/db.js';
 import { getShow, listRuns } from '../../storage/shows.js';
 import { Button } from '../../ui/Button.js';
-import { confirmDialog } from '../../ui/dialog.js';
+import { confirmDialog, setEscapeIsPanic } from '../../ui/dialog.js';
 import { Tabs } from '../../ui/Tabs.js';
 import { AudiencePanel } from './AudiencePanel.js';
 import { CueStack } from './CueStack.js';
@@ -147,14 +147,37 @@ function OperatorView() {
     document.title = `▶ ${snap.show.name} · Scrim`;
   }, [snap.show.name]);
 
+  const [typing, setTyping] = useState(false);
+
   useEffect(() => {
+    // Capture phase, so no menu, field or dialog can swallow PANIC or GO first.
     const onKey = (e: KeyboardEvent) => {
-      if (e.repeat || e.metaKey || e.ctrlKey || e.altKey) return;
-      if (isTyping(e.target) && e.key !== 'Escape') return;
+      if (e.repeat) return;
+      if (e.key === PANIC_KEY) {
+        e.preventDefault();
+        host.key(e.key);
+        return;
+      }
+      if (e.metaKey || e.ctrlKey || e.altKey || isTyping(e.target)) return;
       if (host.key(e.key)) e.preventDefault();
     };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
+    // A picked value is committed; give the keys back to GO straight away.
+    const onChange = (e: Event) => {
+      if ((e.target as HTMLElement | null)?.tagName === 'SELECT') (e.target as HTMLElement).blur();
+    };
+    const onFocus = () => setTyping(isTyping(document.activeElement));
+    setEscapeIsPanic(true);
+    window.addEventListener('keydown', onKey, { capture: true });
+    window.addEventListener('change', onChange, { capture: true });
+    window.addEventListener('focusin', onFocus);
+    window.addEventListener('focusout', onFocus);
+    return () => {
+      setEscapeIsPanic(false);
+      window.removeEventListener('keydown', onKey, { capture: true });
+      window.removeEventListener('change', onChange, { capture: true });
+      window.removeEventListener('focusin', onFocus);
+      window.removeEventListener('focusout', onFocus);
+    };
   }, [host]);
 
   useEffect(() => {
@@ -189,11 +212,15 @@ function OperatorView() {
         </div>
         <StatusChips />
         <div className="ml-auto flex items-center gap-2">
-          <Button size="sm" icon={<ClipboardCheck size={14} />} onClick={() => setChecking(true)}>
-            Pre-show check
-          </Button>
           {!showMode && (
             <>
+              <Button
+                size="sm"
+                icon={<ClipboardCheck size={14} />}
+                onClick={() => setChecking(true)}
+              >
+                Pre-show check
+              </Button>
               <Button
                 size="sm"
                 icon={<RotateCcw size={14} />}
@@ -220,7 +247,7 @@ function OperatorView() {
           )}
         </div>
       </header>
-      {snap.resumedAt && snap.state.lastFired && <ResumeBanner />}
+      <MessageStrip typing={typing} />
       <main className="grid min-h-0 flex-1 grid-cols-[minmax(260px,1fr)_minmax(0,2fr)_minmax(300px,1fr)] gap-2 p-2">
         <CueStack />
         <div className="flex min-h-0 flex-col gap-2">
@@ -251,23 +278,43 @@ function OperatorView() {
   );
 }
 
-function ResumeBanner() {
+/**
+ * A fixed-height strip for operator messages. It is always there, so a message appearing or
+ * going away never moves GO or PANIC.
+ */
+function MessageStrip({ typing }: { typing: boolean }) {
+  const [, snap] = useHost();
+  const [resumeHidden, setResumeHidden] = useState(false);
+  const resumed = !resumeHidden && !!snap.resumedAt && !!snap.state.lastFired;
+  return (
+    <div className="flex h-11 shrink-0 items-center gap-3 overflow-hidden border-b border-ink-800 px-4 text-sm">
+      {resumed && <ResumeMessage onDone={() => setResumeHidden(true)} />}
+      {typing && (
+        <span className="ml-auto rounded border border-ink-700 px-2 py-0.5 text-xs text-ink-300">
+          Keys paused while typing · Esc still panics
+        </span>
+      )}
+    </div>
+  );
+}
+
+function ResumeMessage({ onDone }: { onDone: () => void }) {
   const [host, snap] = useHost();
-  const [hidden, setHidden] = useState(false);
-  if (hidden) return null;
   const cue = cueOrder(snap.show).find((c) => c.id === snap.state.lastFired);
   return (
-    <div className="flex items-center gap-3 border-b border-amber-500/30 bg-amber-950/50 px-4 py-2 text-sm text-amber-100">
-      Resumed where the show left off — last cue “{cue?.name}”. Outputs show the same picture as
-      before the reload.
-      <Button size="sm" className="ml-auto" onClick={() => setHidden(true)}>
+    <div className="flex min-w-0 flex-1 items-center gap-3 text-amber-100">
+      <span className="truncate">
+        Resumed where the show left off — last cue “{cue?.name}”. Outputs show the same picture as
+        before the reload.
+      </span>
+      <Button size="sm" className="ml-auto" onClick={onDone}>
         OK
       </Button>
       <Button
         size="sm"
         onClick={() => {
           host.dispatch({ type: 'reset' });
-          setHidden(true);
+          onDone();
         }}
       >
         Start from the top

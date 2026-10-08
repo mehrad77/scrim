@@ -1,7 +1,16 @@
-import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { Button } from './Button.js';
 import { TextInput } from './Field.js';
+
+/**
+ * In the operator view Esc is PANIC and nothing else, so dialogs there ignore it and close only
+ * through their buttons. The operator route turns this on while it is mounted.
+ */
+let escapeIsPanic = false;
+export function setEscapeIsPanic(on: boolean): void {
+  escapeIsPanic = on;
+}
 
 interface Choice<T> {
   label: string;
@@ -60,20 +69,24 @@ function Shell({
   onCancel: () => void;
 }) {
   const ref = useRef<HTMLDialogElement>(null);
+  const titleId = useId();
   useEffect(() => {
     ref.current?.showModal();
   }, []);
   return (
     <dialog
       ref={ref}
+      aria-labelledby={titleId}
       onCancel={(e) => {
         e.preventDefault();
-        onCancel();
+        if (!escapeIsPanic) onCancel();
       }}
       className="m-auto w-[min(440px,calc(100vw-32px))] rounded-xl border border-ink-700 bg-ink-850 p-0 text-ink-100 shadow-2xl backdrop:bg-black/60"
     >
       <div className="p-5">
-        <h2 className="mb-3 text-base font-semibold">{title}</h2>
+        <h2 id={titleId} className="mb-3 text-base font-semibold">
+          {title}
+        </h2>
         {children}
       </div>
     </dialog>

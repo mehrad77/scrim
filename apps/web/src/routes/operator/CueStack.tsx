@@ -15,9 +15,7 @@ export function CueStack() {
 
   // Keep the standby cue in view.
   useEffect(() => {
-    list.current
-      ?.querySelector('[data-standby="true"]')
-      ?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    list.current?.querySelector('[data-standby="true"]')?.scrollIntoView({ block: 'nearest' }); // instant: standby moves come from keys and GO
   }, [state.standby]);
 
   const changed = (updatedAt: number) => rehearsal && lastRunAt !== null && updatedAt > lastRunAt;

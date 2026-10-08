@@ -1,8 +1,7 @@
-import { tweenValue } from '@scrim/engine';
 import { cueOrder } from '@scrim/format';
 import { Pause, Play, SkipBack, SkipForward, Square } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
-import { keyLabel } from '../../host/inputs.js';
+import { keyLabel, PANIC_KEY } from '../../host/inputs.js';
 import { epochNow } from '../../lib/clock.js';
 import { cn } from '../../lib/cn.js';
 import { Button } from '../../ui/Button.js';
@@ -16,7 +15,9 @@ export function GoPanel() {
   const standby = order.find((c) => c.id === state.standby);
   const last = order.find((c) => c.id === state.lastFired);
   const [now, setNow] = useState(epochNow);
-  const blackedOut = tweenValue(state.blackout, now) > 0.5 || state.blackout.to === 1;
+  // Follow the blackout's target, not its tween: the clock below only ticks while a follow or
+  // hold is running, so a tween read here could stay stale after Release.
+  const blackedOut = state.blackout.to === 1;
 
   useEffect(() => {
     if (!state.follow && !state.held) return;
@@ -26,7 +27,6 @@ export function GoPanel() {
 
   const keyFor = (type: string) => show.inputs.keys.find((k) => k.command.type === type)?.key;
   const goKey = keyFor('go');
-  const panicKey = keyFor('panic');
   const followIn = state.follow
     ? Math.max(0, (state.follow.at - (state.held ? (state.heldAt ?? now) : now)) / 1000)
     : null;
@@ -62,7 +62,7 @@ export function GoPanel() {
           <button
             onClick={() => host.command({ type: 'go' }, 'operator')}
             disabled={!standby}
-            className="flex h-28 w-48 flex-col items-center justify-center rounded-xl bg-go text-ink-950 shadow-[0_0_40px_-10px] shadow-green-500 transition-transform active:scale-[.97] disabled:opacity-30"
+            className="flex h-28 w-48 flex-col items-center justify-center rounded-xl bg-go text-ink-950 shadow-[0_0_40px_-10px] shadow-green-500 transition-transform active:scale-[.97] active:transition-none disabled:opacity-30"
           >
             <span className="text-5xl font-black tracking-tight">GO</span>
             {goKey !== undefined && <span className="text-xs opacity-70">{keyLabel(goKey)}</span>}
@@ -99,7 +99,7 @@ export function GoPanel() {
           <Button
             variant="danger"
             size="lg"
-            className="flex-1 animate-pulse"
+            className="flex-1"
             onClick={() => host.dispatch({ type: 'release', fade: 1 })}
           >
             Blacked out — release (fade back in 1s)
@@ -112,7 +112,7 @@ export function GoPanel() {
             icon={<Square size={16} />}
             onClick={() => host.dispatch({ type: 'panic' })}
           >
-            PANIC — black & mute everything {panicKey && <Kbd>{keyLabel(panicKey)}</Kbd>}
+            PANIC — black & mute everything <Kbd>{keyLabel(PANIC_KEY)}</Kbd>
           </Button>
         )}
       </div>

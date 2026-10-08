@@ -1,7 +1,7 @@
 import { Download, History, Lock, Play, Redo2, Undo2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router';
-import { isTyping } from '../../host/inputs.js';
+import { isTyping, overlayOpen } from '../../host/inputs.js';
 import { flushSave, forwardKey, useEditor } from '../../state/editor.js';
 import { exportShow, getShow } from '../../storage/shows.js';
 import { Button, IconButton } from '../../ui/Button.js';
@@ -62,8 +62,9 @@ export default function Editor() {
         void flushSave();
         return;
       }
-      // Panic must work from every Scrim window.
-      if (e.key === 'Escape' && !isTyping(e.target)) forwardKey(e.key);
+      // Panic works from the editor too, but Esc first closes an open dialog or menu and
+      // cancels a field edit; only a bare Esc reaches the running show.
+      if (e.key === 'Escape' && !isTyping(e.target) && !overlayOpen()) forwardKey(e.key);
     };
     const onUnload = () => void flushSave();
     window.addEventListener('keydown', onKey);

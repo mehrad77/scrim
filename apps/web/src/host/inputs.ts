@@ -34,7 +34,11 @@ export function midiCommand(inputs: Inputs, e: MidiEvent): Command | null {
   return m?.command ?? null;
 }
 
+/** Esc is PANIC whatever the show's key map says; a show can add more panic keys, not remove this one. */
+export const PANIC_KEY = 'Escape';
+
 export function keyCommand(inputs: Inputs, key: string): Command | null {
+  if (key === PANIC_KEY) return { type: 'panic' };
   const k = key.length === 1 ? key.toLowerCase() : key;
   return (
     inputs.keys.find((x) => (x.key.length === 1 ? x.key.toLowerCase() : x.key) === k)?.command ??
@@ -50,11 +54,22 @@ export function keyLabel(key: string): string {
   return key.length === 1 ? key.toUpperCase() : key;
 }
 
+const TEXT_INPUTS = new Set(['text', 'search', 'email', 'url', 'tel', 'password', 'number']);
+
+/**
+ * True only while the user is entering free text, where show keys must not fire. Selects,
+ * checkboxes, sliders and buttons never pause GO.
+ */
 export function isTyping(target: EventTarget | null): boolean {
   const el = target as HTMLElement | null;
   if (!el) return false;
-  const tag = el.tagName;
-  return tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || el.isContentEditable;
+  if (el.isContentEditable || el.tagName === 'TEXTAREA') return true;
+  return el.tagName === 'INPUT' && TEXT_INPUTS.has((el as HTMLInputElement).type);
+}
+
+/** True while a modal dialog or an overlay is open, so Esc should close it first (editor only). */
+export function overlayOpen(): boolean {
+  return document.querySelector('dialog[open], [data-overlay-open]') !== null;
 }
 
 /** Listen to every MIDI input, including ones plugged in later. */

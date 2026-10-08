@@ -1,7 +1,13 @@
 import type { Command, Show } from '@scrim/format';
 import { Gamepad2, Keyboard, Piano, Plus, Radio, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { keyLabel, listenGamepads, listenMidi, type MidiEvent } from '../../host/inputs.js';
+import {
+  keyLabel,
+  listenGamepads,
+  listenMidi,
+  PANIC_KEY,
+  type MidiEvent,
+} from '../../host/inputs.js';
 import { useEditor, useShow } from '../../state/editor.js';
 import { Button, IconButton } from '../../ui/Button.js';
 import { Select } from '../../ui/Field.js';
@@ -71,7 +77,9 @@ function KeysPanel() {
       e.preventDefault();
       e.stopPropagation();
       const key = e.key;
-      if (show.inputs.keys.some((k, i) => k.key === key && i !== recording)) {
+      if (key === PANIC_KEY) {
+        toast('Esc is always Panic. Pick another key.', 'error');
+      } else if (show.inputs.keys.some((k, i) => k.key === key && i !== recording)) {
         toast(`${keyLabel(key)} is already mapped`, 'error');
       } else {
         update((d) => void (d.inputs.keys[recording]!.key = key));
@@ -104,33 +112,42 @@ function KeysPanel() {
       <p className="mb-2 text-xs text-ink-400">
         Keys work in the operator view and in output windows. Panic also works from the editor.
       </p>
-      {show.inputs.keys.map((k, i) => (
-        <div key={i} className="mb-1 flex items-center gap-2">
-          <button
-            className="w-24 rounded border border-ink-700 py-1 text-center hover:border-ink-400"
-            onClick={() => setRecording(i)}
-            title="Click, then press a key"
-          >
-            {recording === i ? (
-              <span className="text-xs text-rose-300">Press a key…</span>
-            ) : k.key ? (
-              <Kbd>{keyLabel(k.key)}</Kbd>
-            ) : (
-              <span className="text-xs text-ink-500">none</span>
-            )}
-          </button>
-          <CommandPicker
-            show={show}
-            value={k.command}
-            onChange={(c) => update((d) => void (d.inputs.keys[i]!.command = c))}
-          />
-          <IconButton
-            label="Remove"
-            icon={<Trash2 size={12} />}
-            onClick={() => update((d) => void d.inputs.keys.splice(i, 1))}
-          />
-        </div>
-      ))}
+      <div className="mb-1 flex items-center gap-2" title="Esc always fires Panic, in every window">
+        <span className="w-24 py-1 text-center">
+          <Kbd>Esc</Kbd>
+        </span>
+        <span className="text-sm text-ink-200">Panic (blackout)</span>
+        <span className="ml-auto text-xs text-ink-400">Always on</span>
+      </div>
+      {show.inputs.keys.map((k, i) =>
+        k.key === PANIC_KEY ? null : (
+          <div key={i} className="mb-1 flex items-center gap-2">
+            <button
+              className="w-24 rounded border border-ink-700 py-1 text-center hover:border-ink-400"
+              onClick={() => setRecording(i)}
+              title="Click, then press a key"
+            >
+              {recording === i ? (
+                <span className="text-xs text-rose-300">Press a key…</span>
+              ) : k.key ? (
+                <Kbd>{keyLabel(k.key)}</Kbd>
+              ) : (
+                <span className="text-xs text-ink-500">none</span>
+              )}
+            </button>
+            <CommandPicker
+              show={show}
+              value={k.command}
+              onChange={(c) => update((d) => void (d.inputs.keys[i]!.command = c))}
+            />
+            <IconButton
+              label="Remove"
+              icon={<Trash2 size={12} />}
+              onClick={() => update((d) => void d.inputs.keys.splice(i, 1))}
+            />
+          </div>
+        ),
+      )}
     </Panel>
   );
 }

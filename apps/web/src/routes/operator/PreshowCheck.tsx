@@ -220,6 +220,8 @@ export function PreshowCheck({ onClose }: { onClose: () => void }) {
     <dialog
       ref={dialog}
       onClose={onClose}
+      // In the operator view Esc is PANIC only; this dialog closes with its button.
+      onCancel={(e) => e.preventDefault()}
       className="m-auto max-h-[90vh] w-[min(760px,calc(100vw-32px))] rounded-xl border border-ink-700 bg-ink-850 p-0 text-ink-100 shadow-2xl backdrop:bg-black/70"
     >
       <div className="flex items-center gap-3 border-b border-ink-700 p-4">

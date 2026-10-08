@@ -123,8 +123,8 @@ export default function OutputWindow() {
       if (e.key === ' ' || e.key.startsWith('Arrow')) e.preventDefault();
       channel.current?.post({ t: 'key', key: e.key });
     };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
+    window.addEventListener('keydown', onKey, { capture: true });
+    return () => window.removeEventListener('keydown', onKey, { capture: true });
   }, []);
 
   // The cursor and the small status bar appear only while the mouse moves.
