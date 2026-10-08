@@ -57,6 +57,11 @@ export const useEditor = create<EditorState>((set, get) => ({
     channel.on((m) => {
       if (m.t === 'state') set({ showModeLock: m.mode === 'show' });
       if (m.t === 'closing') set({ showModeLock: false });
+      // Map mode in the operator view changes the key map; take it, keep everything else.
+      if (m.t === 'showSaved' && m.show.id === get().show?.id) {
+        const current = get().show;
+        if (current) set({ show: { ...current, inputs: m.show.inputs } });
+      }
     });
     set({
       show,

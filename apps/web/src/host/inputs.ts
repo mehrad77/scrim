@@ -37,20 +37,72 @@ export function midiCommand(inputs: Inputs, e: MidiEvent): Command | null {
 /** Esc is PANIC whatever the show's key map says; a show can add more panic keys, not remove this one. */
 export const PANIC_KEY = 'Escape';
 
-export function keyCommand(inputs: Inputs, key: string): Command | null {
-  if (key === PANIC_KEY) return { type: 'panic' };
-  const k = key.length === 1 ? key.toLowerCase() : key;
-  return (
-    inputs.keys.find((x) => (x.key.length === 1 ? x.key.toLowerCase() : x.key) === k)?.command ??
-    null
-  );
+/** Physical key names (`KeyboardEvent.code`), which new bindings store so they survive layouts. */
+const CODE =
+  /^(Key[A-Z]|Digit\d|Numpad\w+|Arrow(Up|Down|Left|Right)|F\d{1,2}|Space|Escape|Enter|Tab|Backspace|Delete|Insert|Home|End|PageUp|PageDown|Bracket(Left|Right)|Semicolon|Quote|Backquote|Backslash|IntlBackslash|Comma|Period|Slash|Minus|Equal)$/;
+
+export const isKeyCode = (s: string) => CODE.test(s);
+
+/** Best guess at the physical key for a key value, when only the value is known. */
+export function keyToCode(key: string): string {
+  if (key === ' ') return 'Space';
+  if (/^[a-z]$/i.test(key)) return `Key${key.toUpperCase()}`;
+  if (/^\d$/.test(key)) return `Digit${key}`;
+  return key;
 }
 
+const norm = (k: string) => (k.length === 1 ? k.toLowerCase() : k);
+
+/**
+ * Does a stored binding match this key press? Bindings saved as a code (`KeyH`, `Space`) match
+ * the physical key; older bindings saved as a value (`h`, `' '`) match the typed character.
+ */
+export function keyMatches(binding: string, key: string, code?: string): boolean {
+  return isKeyCode(binding) ? binding === (code ?? keyToCode(key)) : norm(binding) === norm(key);
+}
+
+/** Whether two bindings name the same key, for conflict checks. */
+export function sameKey(a: string, b: string): boolean {
+  const code = (k: string) => (isKeyCode(k) ? k : keyToCode(norm(k)));
+  return code(a) === code(b);
+}
+
+export function keyCommand(inputs: Inputs, key: string, code?: string): Command | null {
+  if (key === PANIC_KEY || code === PANIC_KEY) return { type: 'panic' };
+  return inputs.keys.find((x) => keyMatches(x.key, key, code))?.command ?? null;
+}
+
+const LABELS: Record<string, string> = {
+  ' ': 'Space',
+  Space: 'Space',
+  Escape: 'Esc',
+  ArrowUp: '↑',
+  ArrowDown: '↓',
+  ArrowLeft: '←',
+  ArrowRight: '→',
+  Backspace: '⌫',
+  Enter: '↵',
+  BracketLeft: '[',
+  BracketRight: ']',
+  Semicolon: ';',
+  Quote: "'",
+  Backquote: '`',
+  Backslash: '\\',
+  IntlBackslash: '\\',
+  Comma: ',',
+  Period: '.',
+  Slash: '/',
+  Minus: '-',
+  Equal: '=',
+  PageUp: 'Page ↑',
+  PageDown: 'Page ↓',
+};
+
+/** How a binding reads on buttons and in the `?` sheet: "Space", "H", "↓", "[". */
 export function keyLabel(key: string): string {
-  if (key === ' ') return 'Space';
-  if (key.startsWith('Arrow'))
-    return { ArrowUp: '↑', ArrowDown: '↓', ArrowLeft: '←', ArrowRight: '→' }[key] ?? key;
-  if (key === 'Escape') return 'Esc';
+  if (LABELS[key]) return LABELS[key];
+  const m = /^(?:Key([A-Z])|Digit(\d)|Numpad(\w+))$/.exec(key);
+  if (m) return m[1] ?? m[2] ?? `Num ${m[3]}`;
   return key.length === 1 ? key.toUpperCase() : key;
 }
 

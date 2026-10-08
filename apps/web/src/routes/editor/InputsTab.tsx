@@ -3,6 +3,7 @@ import { Gamepad2, Keyboard, Piano, Plus, Radio, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import {
   keyLabel,
+  sameKey,
   listenGamepads,
   listenMidi,
   PANIC_KEY,
@@ -77,10 +78,11 @@ function KeysPanel() {
     const onKey = (e: KeyboardEvent) => {
       e.preventDefault();
       e.stopPropagation();
-      const key = e.key;
+      // Store the physical key, so the map survives non-US layouts.
+      const key = e.code || e.key;
       if (key === PANIC_KEY) {
         toast('Esc is always Panic. Pick another key.', 'error');
-      } else if (show.inputs.keys.some((k, i) => k.key === key && i !== recording)) {
+      } else if (show.inputs.keys.some((k, i) => sameKey(k.key, key) && i !== recording)) {
         toast(`${keyLabel(key)} is already mapped`, 'error');
       } else {
         update((d) => void (d.inputs.keys[recording]!.key = key));

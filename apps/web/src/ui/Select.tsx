@@ -116,8 +116,7 @@ export function Select({
   const portal = usePortal();
   // An empty chip says "Choose…", unless the list names its empty choice ("the default").
   const empty =
-    (value === '' || value === undefined) &&
-    !items.some((it) => 'key' in it && it.key === EMPTY);
+    (value === '' || value === undefined) && !items.some((it) => 'key' in it && it.key === EMPTY);
   const option = (o: Option) => (
     <ListBoxItem
       key={o.key}

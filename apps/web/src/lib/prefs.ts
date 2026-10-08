@@ -19,6 +19,10 @@ export interface Prefs {
   editorDensity: 'compact' | 'comfortable';
   /** Brightness of operator thumbnails in the Booth theme, 0.3–1. */
   thumbBrightness: number;
+  /** The one-line help along the bottom edge. */
+  infoStrip: boolean;
+  /** Editor shortcuts that are a single key with no modifier (WCAG 2.1.4). Never GO keys. */
+  singleKeys: boolean;
 }
 
 export const PREFS_KEY = 'scrim.prefs';
@@ -31,6 +35,8 @@ export const DEFAULT_PREFS: Prefs = {
   accentHue: 330,
   editorDensity: 'comfortable',
   thumbBrightness: 0.6,
+  infoStrip: true,
+  singleKeys: true,
 };
 
 /**
@@ -86,6 +92,8 @@ export function readPrefs(): Prefs {
 }
 
 let showModeMotionLock = false;
+/** Fired on window after preferences change in this tab. */
+export const PREFS_EVENT = 'scrim:prefs';
 
 /** Merge, store and apply preferences. */
 export function writePrefs(patch: Partial<Prefs>): Prefs {
@@ -96,7 +104,13 @@ export function writePrefs(patch: Partial<Prefs>): Prefs {
     // storage unavailable; the change still applies for this session
   }
   bootstrapPrefs(PREFS_KEY, showModeMotionLock);
+  window.dispatchEvent(new Event(PREFS_EVENT));
   return next;
+}
+
+/** Re-apply stored preferences, e.g. after another tab changed them. */
+export function reapplyPrefs(): void {
+  bootstrapPrefs(PREFS_KEY, showModeMotionLock);
 }
 
 /** Show mode forces the reduced motion profile (DESIGN_SYSTEM.md › Motion). */

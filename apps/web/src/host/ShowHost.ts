@@ -25,7 +25,7 @@ import { saveShow } from '../storage/shows.js';
 import { ShowChannel } from '../transport/local.js';
 import { RelayClient, type RelayStatus } from '../transport/relay.js';
 import { AudioEngine } from './audio.js';
-import { keyCommand, listenGamepads, listenMidi, midiCommand } from './inputs.js';
+import { keyCommand, listenGamepads, listenMidi, midiCommand, type MidiEvent } from './inputs.js';
 import { createRoom, storedRoom, type RoomInfo } from './room.js';
 
 const BEAT_MS = 500;
@@ -81,6 +81,10 @@ export interface HostSnapshot {
   offScript: OffScriptEntry[];
 }
 
+/** A controller press taken by Map mode instead of running its command. */
+export type CapturedInput =
+  { kind: 'midi'; event: MidiEvent } | { kind: 'gamepad'; button: number };
+
 export interface OffScriptEntry {
   at: number;
   label: string;
@@ -129,6 +133,7 @@ export class ShowHost {
   #lastGo = 0;
   #goDroppedAt: number | null = null;
   #offScript: OffScriptEntry[] = [];
+  #capture: ((input: CapturedInput) => void) | null = null;
 
   constructor(
     show: Show,
@@ -265,9 +270,22 @@ export class ShowHost {
     }
   }
 
+  /**
+   * Map mode: send the next MIDI and gamepad presses here instead of running their commands.
+   * Pass null to stop. Keys are taken by the operator view itself; Esc always panics.
+   */
+  captureInputs(fn: ((input: CapturedInput) => void) | null): void {
+    this.#capture = fn;
+  }
+
+  /** Save a new key, MIDI and gamepad map into the show (Map mode). */
+  setInputs(inputs: Show['inputs']): Promise<void> {
+    return this.saveShowEdit((show) => ({ ...show, inputs }));
+  }
+
   /** Keyboard input from this tab or any other Scrim window of this show. */
-  key(key: string, source: InputSource = 'keyboard'): boolean {
-    const c = keyCommand(this.engine.show.inputs, key);
+  key(key: string, source: InputSource = 'keyboard', code?: string): boolean {
+    const c = keyCommand(this.engine.show.inputs, key, code);
     if (!c) return false;
     this.command(c, source);
     return true;
@@ -310,6 +328,7 @@ export class ShowHost {
     try {
       const stop = await listenMidi(
         (e) => {
+          if (this.#capture) return this.#capture({ kind: 'midi', event: e });
           const c = midiCommand(this.engine.show.inputs, e);
           if (c) this.command(c, 'midi');
         },
@@ -458,7 +477,7 @@ export class ShowHost {
         this.setShow(msg.show);
         return;
       case 'key':
-        this.key(msg.key);
+        this.key(msg.key, 'keyboard', msg.code);
         return;
       case 'audioBlocked':
         if (!this.#audioBlocked.has(msg.outputId)) {
@@ -787,6 +806,7 @@ export class ShowHost {
   }
 
   #gamepad(button: number): void {
+    if (this.#capture) return this.#capture({ kind: 'gamepad', button });
     const m = this.engine.show.inputs.gamepad.find((g) => g.button === button);
     if (m) this.command(m.command, 'gamepad');
   }

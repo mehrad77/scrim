@@ -126,7 +126,7 @@ export default function OutputWindow() {
     const onKey = (e: KeyboardEvent) => {
       if (e.repeat) return;
       if (e.key === ' ' || e.key.startsWith('Arrow')) e.preventDefault();
-      channel.current?.post({ t: 'key', key: e.key });
+      channel.current?.post({ t: 'key', key: e.key, code: e.code });
     };
     window.addEventListener('keydown', onKey, { capture: true });
     return () => window.removeEventListener('keydown', onKey, { capture: true });

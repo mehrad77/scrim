@@ -151,6 +151,7 @@ inputs  = { keys: {key, command}[], midi: {kind: note|cc, channel|null, number, 
 ```
 
 - **Every matching rule runs**, top to bottom in `rules` order. The editor groups rules by `when` and numbers them in that order.
+- **`keys[].key` is a physical key**, a `KeyboardEvent.code` such as `Space`, `KeyH` or `BracketLeft`, so a map survives non-US layouts. Shows saved before this store the key's value (`' '`, `h`); those still match the typed character.
 - **Esc is always PANIC.** The app adds it at runtime whatever `keys` says; a show can map extra panic keys.
 - **`back`** returns to the state before the operator's last GO (one step). Older apps don't know this command, so they can't open shows that map a key to it.
 

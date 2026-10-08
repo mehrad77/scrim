@@ -1,7 +1,18 @@
 import { createShow, type Show } from '@scrim/format';
-import { Copy, Download, FolderOpen, HardDrive, Play, Plus, Sparkles, Trash2 } from 'lucide-react';
+import {
+  Copy,
+  Download,
+  FolderOpen,
+  HardDrive,
+  Play,
+  Plus,
+  Settings,
+  Sparkles,
+  Trash2,
+} from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router';
+import { openShortcutSheet, useCommands } from '../lib/commands.js';
 import { createDemoShow } from '../lib/demo.js';
 import { formatBytes, timeAgo } from '../lib/clock.js';
 import { opfsSupported } from '../storage/media.js';
@@ -16,7 +27,11 @@ import {
 } from '../storage/shows.js';
 import { Button, IconButton } from '../ui/Button.js';
 import { ask, confirmDialog, promptDialog } from '../ui/dialog.js';
+import { CommandPalette } from '../ui/CommandPalette.js';
+import { KeyHints } from '../ui/KeyHints.js';
+import { openPreferences, PreferencesHost } from '../ui/Preferences.js';
 import { Badge } from '../ui/Panel.js';
+import { ShortcutSheet } from '../ui/ShortcutSheet.js';
 import { errorToast, toast } from '../ui/toast.js';
 
 export function Library() {
@@ -84,6 +99,55 @@ export function Library() {
     }
   };
 
+  useCommands(
+    [
+      {
+        id: 'new',
+        group: 'Shows',
+        title: 'New show',
+        aliases: ['create'],
+        run: () => void create(),
+      },
+      {
+        id: 'demo',
+        group: 'Shows',
+        title: 'Open the demo show',
+        aliases: ['example', 'learn'],
+        run: () => void demo(),
+      },
+      {
+        id: 'import',
+        group: 'Shows',
+        title: 'Import a .scrim file…',
+        aliases: ['open', 'load'],
+        run: () => fileInput.current?.click(),
+      },
+      ...(shows ?? []).map((sh) => ({
+        id: `open:${sh.id}`,
+        group: 'Open',
+        title: sh.name,
+        aliases: ['edit', 'show'],
+        run: () => navigate(`/show/${sh.id}`),
+      })),
+      {
+        id: 'shortcuts',
+        group: 'Help',
+        title: 'Keyboard shortcuts',
+        shortcut: '?',
+        run: openShortcutSheet,
+      },
+      {
+        id: 'prefs',
+        group: 'Help',
+        title: 'Preferences',
+        aliases: ['settings', 'theme', 'accent'],
+        shortcut: '⌘,',
+        run: openPreferences,
+      },
+    ],
+    [shows],
+  );
+
   const persist = async () => {
     const ok = await requestPersistence();
     toast(
@@ -108,6 +172,13 @@ export function Library() {
           </div>
         </div>
         <div className="flex flex-wrap gap-2">
+          <IconButton
+            label="Preferences"
+            shortcut="⌘,"
+            icon={<Settings size={16} />}
+            className="h-control w-control"
+            onClick={openPreferences}
+          />
           <Button icon={<FolderOpen size={16} />} onClick={() => fileInput.current?.click()}>
             Import .scrim
           </Button>
@@ -177,6 +248,10 @@ export function Library() {
           )}
         </footer>
       )}
+      <CommandPalette />
+      <ShortcutSheet />
+      <KeyHints />
+      <PreferencesHost />
     </div>
   );
 }

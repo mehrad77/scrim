@@ -49,6 +49,7 @@ export function Button({
         sizes[size],
         className,
       )}
+      data-shortcut={shortcut}
       {...rest}
     >
       {icon}

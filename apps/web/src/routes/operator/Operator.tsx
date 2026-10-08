@@ -1,16 +1,28 @@
 import { formatValue } from '@scrim/engine';
 import { cueOrder, type Show } from '@scrim/format';
-import { ClipboardCheck, Lock, LockOpen, Pencil, RotateCcw } from 'lucide-react';
-import { createContext, useContext, useEffect, useState, useSyncExternalStore } from 'react';
+import { ClipboardCheck, Keyboard, Lock, LockOpen, Pencil, RotateCcw } from 'lucide-react';
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from 'react';
 import { Link, useParams } from 'react-router';
-import { isTyping, PANIC_KEY } from '../../host/inputs.js';
+import { isTyping, keyLabel, PANIC_KEY } from '../../host/inputs.js';
 import { ShowHost, type HostSnapshot } from '../../host/ShowHost.js';
+import { openShortcutSheet, useCommands } from '../../lib/commands.js';
 import { setShowModeMotion } from '../../lib/prefs.js';
 import { valueLabel } from '../../lib/logic.js';
 import { takeRehearsal } from '../../lib/simulate.js';
 import { db, getSetting } from '../../storage/db.js';
 import { getShow, listRuns } from '../../storage/shows.js';
-import { Button } from '../../ui/Button.js';
+import { Button, IconButton } from '../../ui/Button.js';
+import { CommandPalette } from '../../ui/CommandPalette.js';
+import { KeyHints } from '../../ui/KeyHints.js';
+import { openPreferences, PreferencesHost } from '../../ui/Preferences.js';
+import { ShortcutSheet, type SheetRow } from '../../ui/ShortcutSheet.js';
 import { setEscapeIsPanic } from '../../ui/escape.js';
 import { HoldButton } from '../../ui/HoldButton.js';
 import { useNotice } from '../../ui/notice.js';
@@ -22,6 +34,7 @@ import { AudiencePanel } from './AudiencePanel.js';
 import { CueStack } from './CueStack.js';
 import { GoPanel } from './GoPanel.js';
 import { LogPanel } from './LogPanel.js';
+import { MapBar, MapProvider, useMapApi, useMapMode } from './MapMode.js';
 import { MediaPanel, StatePanel } from './LivePanels.js';
 import { OutputsPanel } from './OutputsPanel.js';
 import { usePins } from './pins.js';
@@ -168,6 +181,9 @@ function OperatorView() {
   );
   const [checking, setChecking] = useState(false);
   const showMode = snap.mode === 'show';
+  const map = useMapApi(host, snap.show.inputs, !showMode);
+  const mapRef = useRef(map);
+  mapRef.current = map;
 
   useEffect(() => {
     document.title = `▶ ${snap.show.name} · Scrim`;
@@ -187,11 +203,18 @@ function OperatorView() {
       if (e.repeat) return;
       if (e.key === PANIC_KEY) {
         e.preventDefault();
-        host.key(e.key);
+        host.key(e.key, 'keyboard', e.code);
         return;
       }
       if (e.metaKey || e.ctrlKey || e.altKey || isTyping(e.target)) return;
-      if (host.key(e.key)) e.preventDefault();
+      // Map mode: the next key is the new binding, not a command.
+      const m = mapRef.current;
+      if (m.active && m.target && !m.conflict) {
+        e.preventDefault();
+        m.press({ kind: 'key', code: e.code || e.key });
+        return;
+      }
+      if (host.key(e.key, 'keyboard', e.code)) e.preventDefault();
     };
     // A picked value is committed; give the keys back to GO straight away.
     const onChange = (e: Event) => {
@@ -221,109 +244,221 @@ function OperatorView() {
     return () => window.removeEventListener('beforeunload', warn);
   }, [host]);
 
+  const goKey = snap.show.inputs.keys.find((k) => k.command.type === 'go')?.key;
   return (
-    <div className="flex h-full flex-col" data-density="stage">
-      <header className="flex shrink-0 flex-wrap items-center gap-3 border-b border-line-subtle bg-panel px-3 py-2">
-        <Link to="/" data-info="All shows" aria-label="All shows">
-          <img src="/favicon.svg" alt="Scrim" className="size-7" />
-        </Link>
-        <h1 className="max-w-72 truncate text-base font-semibold">{snap.show.name}</h1>
-        {showMode ? (
-          // Show is the calm, locked state; leaving it takes a deliberate one-second hold.
-          <div className="flex items-center gap-2">
-            <Lamp tone="off" icon={<Lock size={12} />} className="text-fg-muted">
-              Show
-            </Lamp>
-            <HoldButton
-              label="Hold for a second to leave Show mode"
-              icon={<LockOpen size={13} />}
-              onConfirm={() => host.setMode('rehearsal')}
-            >
-              Hold to unlock
-            </HoldButton>
-          </div>
-        ) : (
-          // Rehearsal is the loud state, because it is the unsafe one.
-          <div className="flex items-center gap-2">
-            <span className="label-caps flex h-7 items-center gap-1.5 bg-fg px-2 text-app">
-              <LockOpen size={12} /> Rehearsal · editing unlocked · double-click fires
-            </span>
-            <Button size="sm" icon={<Lock size={13} />} onClick={() => host.setMode('show')}>
-              Show mode
-            </Button>
-          </div>
-        )}
-        <StatusChips />
-        <div className="ml-auto flex items-center gap-2">
-          {!showMode && (
-            <>
-              <Button
-                size="sm"
-                icon={<ClipboardCheck size={14} />}
-                onClick={() => setChecking(true)}
-              >
-                Pre-show check
-              </Button>
+    <MapProvider value={map}>
+      <div className="flex h-full flex-col" data-density="stage">
+        <header className="flex shrink-0 flex-wrap items-center gap-3 border-b border-line-subtle bg-panel px-3 py-2">
+          <Link to="/" data-info="All shows" aria-label="All shows">
+            <img src="/favicon.svg" alt="Scrim" className="size-7" />
+          </Link>
+          <h1 className="max-w-72 truncate text-base font-semibold">{snap.show.name}</h1>
+          {showMode ? (
+            // Show is the calm, locked state; leaving it takes a deliberate one-second hold.
+            <div className="flex items-center gap-2">
+              <Lamp tone="off" icon={<Lock size={12} />} className="text-fg-muted">
+                Show
+              </Lamp>
               <HoldButton
-                label="Hold to reset: every layer, timer and value goes back to the top"
-                icon={<RotateCcw size={13} />}
-                onConfirm={() => host.dispatch({ type: 'reset' })}
+                label="Hold for a second to leave Show mode"
+                icon={<LockOpen size={13} />}
+                onConfirm={() => host.setMode('rehearsal')}
               >
-                Reset
+                Hold to unlock
               </HoldButton>
-              <Button
-                size="sm"
-                icon={<Pencil size={14} />}
-                onClick={() => window.open(`/show/${snap.show.id}`, `scrim-edit-${snap.show.id}`)}
-              >
-                Edit
+            </div>
+          ) : (
+            // Rehearsal is the loud state, because it is the unsafe one.
+            <div className="flex items-center gap-2">
+              <span className="label-caps flex h-7 items-center gap-1.5 bg-fg px-2 text-app">
+                <LockOpen size={12} /> Rehearsal · editing unlocked · double-click fires
+              </span>
+              <Button size="sm" icon={<Lock size={13} />} onClick={() => host.setMode('show')}>
+                Show mode
               </Button>
-            </>
+            </div>
           )}
-        </div>
-      </header>
-      <MessageStrip typing={typing} />
-      <main className="min-h-0 flex-1 border-t border-line-subtle">
-        <Columns id="operator" locked={showMode}>
-          <Pane id="cues" size="25%" min={280}>
-            <CueStack />
-          </Pane>
-          <Divider />
-          <Pane id="go" min={420}>
-            <div className="flex h-full min-h-0 flex-col gap-px bg-line-subtle">
-              <GoPanel />
-              <OutputsPanel />
-            </div>
-          </Pane>
-          <Divider />
-          <Pane id="side" size="28%" min={300} side>
-            <div className="flex h-full min-h-0 flex-col bg-panel">
-              <Tabs
-                value={side}
-                onChange={setSide}
-                label="Live panels"
-                className="border-b border-line-subtle p-1"
-                tabs={[
-                  { id: 'audience', label: 'Audience' },
-                  { id: 'state', label: 'State' },
-                  { id: 'media', label: 'Media' },
-                  { id: 'log', label: 'Log' },
-                ]}
-              />
-              <div className="min-h-0 flex-1">
-                {side === 'audience' && <AudiencePanel />}
-                {side === 'state' && <StatePanel />}
-                {side === 'media' && <MediaPanel />}
-                {side === 'log' && <LogPanel />}
+          <StatusChips />
+          <div className="ml-auto flex items-center gap-2">
+            {!showMode && (
+              <>
+                <IconButton
+                  label={
+                    map.active ? 'Stop mapping keys' : 'Map keys: assign keys, pedals and MIDI'
+                  }
+                  icon={<Keyboard size={15} />}
+                  variant={map.active ? 'primary' : 'ghost'}
+                  aria-pressed={map.active}
+                  onClick={() => map.setActive(!map.active)}
+                />
+                <Button
+                  size="sm"
+                  icon={<ClipboardCheck size={14} />}
+                  onClick={() => setChecking(true)}
+                >
+                  Pre-show check
+                </Button>
+                <HoldButton
+                  label="Hold to reset: every layer, timer and value goes back to the top"
+                  icon={<RotateCcw size={13} />}
+                  onConfirm={() => host.dispatch({ type: 'reset' })}
+                >
+                  Reset
+                </HoldButton>
+                <Button
+                  size="sm"
+                  icon={<Pencil size={14} />}
+                  onClick={() => window.open(`/show/${snap.show.id}`, `scrim-edit-${snap.show.id}`)}
+                >
+                  Edit
+                </Button>
+              </>
+            )}
+          </div>
+        </header>
+        <MessageStrip typing={typing} />
+        <main className="min-h-0 flex-1 border-t border-line-subtle">
+          <Columns id="operator" locked={showMode}>
+            <Pane id="cues" size="25%" min={280}>
+              <CueStack />
+            </Pane>
+            <Divider />
+            <Pane id="go" min={420}>
+              <div className="flex h-full min-h-0 flex-col gap-px bg-line-subtle">
+                <GoPanel />
+                <OutputsPanel />
               </div>
-            </div>
-          </Pane>
-        </Columns>
-      </main>
-      <InfoStrip fallback="Space fires GO · Esc is PANIC, always" />
-      {checking && <PreshowCheck onClose={() => setChecking(false)} />}
-    </div>
+            </Pane>
+            <Divider />
+            <Pane id="side" size="28%" min={300} side>
+              <div className="flex h-full min-h-0 flex-col bg-panel">
+                <Tabs
+                  value={side}
+                  onChange={setSide}
+                  label="Live panels"
+                  className="border-b border-line-subtle p-1"
+                  tabs={[
+                    { id: 'audience', label: 'Audience' },
+                    { id: 'state', label: 'State' },
+                    { id: 'media', label: 'Media' },
+                    { id: 'log', label: 'Log' },
+                  ]}
+                />
+                <div className="min-h-0 flex-1">
+                  {side === 'audience' && <AudiencePanel />}
+                  {side === 'state' && <StatePanel />}
+                  {side === 'media' && <MediaPanel />}
+                  {side === 'log' && <LogPanel />}
+                </div>
+              </div>
+            </Pane>
+          </Columns>
+        </main>
+        <InfoStrip
+          fallback={`${goKey ? `${keyLabel(goKey)} fires GO · ` : ''}Esc is PANIC, always`}
+        />
+        {checking && <PreshowCheck onClose={() => setChecking(false)} />}
+        {/* Help and the palette never open over a running show. */}
+        {!showMode && (
+          <>
+            <OperatorCommands onCheck={() => setChecking(true)} />
+            <CommandPalette />
+            <ShortcutSheet first={runningKeys(snap.show)} />
+            <KeyHints />
+            <PreferencesHost />
+          </>
+        )}
+      </div>
+    </MapProvider>
   );
+}
+
+/** The show's running keys, for the top of the `?` sheet. */
+function runningKeys(show: Show): { group: string; rows: SheetRow[] } {
+  const keys = (type: string) =>
+    show.inputs.keys.filter((k) => k.command.type === type).map((k) => keyLabel(k.key));
+  return {
+    group: 'Running the show',
+    rows: [
+      { title: 'GO', keys: keys('go') },
+      { title: 'Hold / resume', keys: keys('hold') },
+      {
+        title: 'PANIC: everything to black',
+        keys: ['Esc', ...keys('panic').filter((k) => k !== 'Esc')],
+      },
+      { title: 'Back: undo the last GO', keys: keys('back') },
+      { title: 'Next cue on standby', keys: keys('standbyNext') },
+      { title: 'Previous cue on standby', keys: keys('standbyPrev') },
+      ...show.triggers.map((t) => ({
+        title: `Trigger: ${t.name}`,
+        keys: show.inputs.keys
+          .filter((k) => k.command.type === 'trigger' && k.command.triggerId === t.id)
+          .map((k) => keyLabel(k.key)),
+      })),
+    ],
+  };
+}
+
+/** What Rehearsal offers the palette and the `?` sheet. */
+function OperatorCommands({ onCheck }: { onCheck: () => void }) {
+  const [host, snap] = useHost();
+  const map = useMapMode();
+  useCommands(
+    [
+      { id: 'go', group: 'Run', title: 'GO', run: () => host.command({ type: 'go' }, 'operator') },
+      {
+        id: 'hold',
+        group: 'Run',
+        title: 'Hold / resume',
+        run: () => host.dispatch({ type: 'hold' }),
+      },
+      {
+        id: 'back',
+        group: 'Run',
+        title: 'Back: undo the last GO',
+        disabled: !snap.state.back,
+        run: () => host.command({ type: 'back' }, 'operator'),
+      },
+      {
+        id: 'show-mode',
+        group: 'Run',
+        title: 'Show mode: lock for the performance',
+        aliases: ['lock'],
+        run: () => host.setMode('show'),
+      },
+      { id: 'check', group: 'Run', title: 'Pre-show check', aliases: ['checklist'], run: onCheck },
+      {
+        id: 'map',
+        group: 'Controls',
+        title: map?.active ? 'Stop mapping keys' : 'Map keys',
+        aliases: ['shortcut', 'midi', 'pedal', 'controller'],
+        run: () => map?.setActive(!map.active),
+      },
+      {
+        id: 'edit',
+        group: 'Show',
+        title: 'Edit show',
+        run: () => window.open(`/show/${snap.show.id}`, `scrim-edit-${snap.show.id}`),
+      },
+      {
+        id: 'shortcuts',
+        group: 'Help',
+        title: 'Keyboard shortcuts',
+        shortcut: '?',
+        run: openShortcutSheet,
+      },
+      {
+        id: 'prefs',
+        group: 'Help',
+        title: 'Preferences',
+        aliases: ['settings', 'theme', 'accent'],
+        shortcut: '⌘,',
+        run: openPreferences,
+      },
+    ],
+    [host, snap.state.back, snap.show.id, map?.active],
+  );
+  return null;
 }
 
 /**
@@ -332,6 +467,7 @@ function OperatorView() {
  */
 function MessageStrip({ typing }: { typing: boolean }) {
   const [, snap] = useHost();
+  const map = useMapMode();
   const [resumeHidden, setResumeHidden] = useState(false);
   const resumed =
     !resumeHidden && ((!!snap.resumedAt && !!snap.state.lastFired) || !!snap.rehearsingFrom);
@@ -340,9 +476,15 @@ function MessageStrip({ typing }: { typing: boolean }) {
   const pinned = snap.show.vars.filter((v) => pins.includes(v.id));
   return (
     <div className="flex h-11 shrink-0 items-center gap-3 overflow-hidden border-b border-line-subtle px-4 text-ui">
-      {resumed && <ResumeMessage onDone={() => setResumeHidden(true)} />}
-      {text && !resumed && <span className="truncate text-fg">{text}</span>}
-      {pinned.length > 0 && (
+      {map?.active ? (
+        <MapBar />
+      ) : (
+        <>
+          {resumed && <ResumeMessage onDone={() => setResumeHidden(true)} />}
+          {text && !resumed && <span className="truncate text-fg">{text}</span>}
+        </>
+      )}
+      {pinned.length > 0 && !map?.active && (
         <span className="ml-auto flex shrink-0 gap-3 text-caption" aria-label="Pinned values">
           {pinned.map((v) => {
             const val = snap.state.vars[v.id];

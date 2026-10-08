@@ -28,7 +28,8 @@ export type ClientMessage =
   | { t: 'mediaEnded'; v: number; layerId: string }
   | { t: 'showSaved'; v: number; show: Show }
   /** A key pressed in another Scrim window, so GO and panic work from any screen. */
-  | { t: 'key'; v: number; key: string }
+  /** `code` is the physical key (`KeyboardEvent.code`); older windows send only `key`. */
+  | { t: 'key'; v: number; key: string; code?: string }
   /** An output window could not start sound until clicked. */
   | { t: 'audioBlocked'; v: number; outputId: string }
   | { t: 'bye'; v: number; clientId: string };

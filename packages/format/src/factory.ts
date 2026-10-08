@@ -3,10 +3,11 @@ import { SHOW_FORMAT_VERSION, type Cue, type Inputs, type Output, type Show } fr
 
 export function defaultInputs(): Inputs {
   return {
+    // Physical keys (KeyboardEvent.code), so the map survives non-US layouts.
     keys: [
-      { key: ' ', command: { type: 'go' } },
+      { key: 'Space', command: { type: 'go' } },
       { key: 'Escape', command: { type: 'panic' } },
-      { key: 'h', command: { type: 'hold' } },
+      { key: 'KeyH', command: { type: 'hold' } },
       { key: 'ArrowDown', command: { type: 'standbyNext' } },
       { key: 'ArrowUp', command: { type: 'standbyPrev' } },
     ],

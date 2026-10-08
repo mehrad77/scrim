@@ -28,6 +28,7 @@ import {
 import Moveable from 'react-moveable';
 import { isTyping, overlayOpen } from '../../host/inputs.js';
 import { cn } from '../../lib/cn.js';
+import { readPrefs } from '../../lib/prefs.js';
 import {
   alignLayers,
   cueBringingIn,
@@ -216,9 +217,12 @@ export function Canvas() {
         setSpace(true);
         return;
       }
-      if (e.shiftKey && e.code === 'Digit1') return (e.preventDefault(), zoomTo(1));
-      if (e.shiftKey && e.code === 'Digit0') return (e.preventDefault(), fit && zoomTo(1 / fit));
-      if (e.shiftKey && e.code === 'Digit2') return (e.preventDefault(), zoomToSelection());
+      // Shift+digit types a character, so it obeys the single-key setting (WCAG 2.1.4).
+      const keys = readPrefs().singleKeys;
+      if (keys && e.shiftKey && e.code === 'Digit1') return (e.preventDefault(), zoomTo(1));
+      if (keys && e.shiftKey && e.code === 'Digit0')
+        return (e.preventDefault(), fit && zoomTo(1 / fit));
+      if (keys && e.shiftKey && e.code === 'Digit2') return (e.preventDefault(), zoomToSelection());
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'd')
         return (e.preventDefault(), duplicate());
       if (!selectedIds.length) return;

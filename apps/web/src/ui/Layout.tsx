@@ -46,7 +46,8 @@ export function resetLayouts(): () => void {
   try {
     for (let i = localStorage.length - 1; i >= 0; i--) {
       const k = localStorage.key(i);
-      if (k?.startsWith(PREFIX)) {
+      // react-resizable-panels prefixes our ids with its own name.
+      if (k?.includes(PREFIX)) {
         saved.push([k, localStorage.getItem(k) ?? '']);
         localStorage.removeItem(k);
       }

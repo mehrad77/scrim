@@ -8,6 +8,7 @@ import { valueLabel } from '../../lib/logic.js';
 import { Button, IconButton } from '../../ui/Button.js';
 import { CommitInput, NumberInput, Select, Toggle } from '../../ui/Field.js';
 import { Empty, Panel } from '../../ui/Panel.js';
+import { Mappable } from './MapMode.js';
 import { useHost } from './Operator.js';
 import { usePins } from './pins.js';
 
@@ -45,16 +46,17 @@ export function StatePanel() {
           <div className="mb-1 text-caption text-fg-subtle">Fire a trigger</div>
           <div className="flex flex-wrap gap-1">
             {show.triggers.map((t) => (
-              <Button
-                key={t.id}
-                size="sm"
-                icon={<Zap size={12} style={{ color: t.color }} />}
-                onClick={() =>
-                  host.dispatch({ type: 'trigger', triggerId: t.id, source: 'operator' })
-                }
-              >
-                {t.name}
-              </Button>
+              <Mappable key={t.id} command={{ type: 'trigger', triggerId: t.id }}>
+                <Button
+                  size="sm"
+                  icon={<Zap size={12} style={{ color: t.color }} />}
+                  onClick={() =>
+                    host.dispatch({ type: 'trigger', triggerId: t.id, source: 'operator' })
+                  }
+                >
+                  {t.name}
+                </Button>
+              </Mappable>
             ))}
           </div>
         </div>

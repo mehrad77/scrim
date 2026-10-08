@@ -12,7 +12,7 @@ import {
 import { cn } from '../../lib/cn.js';
 import { epochNow } from '../../lib/clock.js';
 import { readLocal, writeLocal } from '../../lib/local.js';
-import { readPrefs } from '../../lib/prefs.js';
+import { usePrefs } from '../../lib/usePrefs.js';
 import { Stage } from '../../render/Stage.js';
 import { Button, IconButton } from '../../ui/Button.js';
 import { Select, Toggle } from '../../ui/Field.js';
@@ -43,9 +43,10 @@ export function OutputsPanel() {
     [snap.show, snap.state],
   );
   // In the Booth theme a bright slide shouldn't be the brightest light in the room.
+  const prefs = usePrefs();
   const dim =
     document.documentElement.dataset.theme === 'booth'
-      ? { filter: `brightness(${readPrefs().thumbBrightness})` }
+      ? { filter: `brightness(${prefs.thumbBrightness})` }
       : undefined;
   const [screens, setScreens] = useState<ScreenChoice[] | null>(null);
   const [assigned, setAssigned] = useState(() =>

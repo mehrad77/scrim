@@ -7,8 +7,9 @@ import {
   type ReactElement,
 } from 'react';
 import { Focusable, Tooltip, TooltipTrigger } from 'react-aria-components';
-import { isTyping } from '../host/inputs.js';
-import { readLocal, writeLocal } from '../lib/local.js';
+import { X } from 'lucide-react';
+import { writePrefs } from '../lib/prefs.js';
+import { usePrefs } from '../lib/usePrefs.js';
 
 /**
  * How help for a control is shown. The editor and Library use floating tooltips; the operator
@@ -55,14 +56,13 @@ export function Tip({
   );
 }
 
-const STRIP_KEY = 'scrim.infoStrip';
-
 /**
  * One line along the bottom edge that names whatever is under the pointer or focused, with its
- * shortcut. `?` toggles it. It never covers other content.
+ * shortcut. It never covers other content. Hide it here; bring it back from the `?` sheet or
+ * Preferences.
  */
 export function InfoStrip({ fallback }: { fallback?: string }) {
-  const [on, setOn] = useState(() => readLocal(STRIP_KEY, true));
+  const on = usePrefs().infoStrip;
   const [info, setInfo] = useState<{ label: string; key: string | null } | null>(null);
 
   useEffect(() => {
@@ -75,20 +75,11 @@ export function InfoStrip({ fallback }: { fallback?: string }) {
       );
     };
     const onOver = (e: Event) => read(e.target);
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key !== '?' || e.metaKey || e.ctrlKey || isTyping(e.target)) return;
-      setOn((v) => {
-        writeLocal(STRIP_KEY, !v);
-        return !v;
-      });
-    };
     document.addEventListener('pointerover', onOver);
     document.addEventListener('focusin', onOver);
-    window.addEventListener('keydown', onKey);
     return () => {
       document.removeEventListener('pointerover', onOver);
       document.removeEventListener('focusin', onOver);
-      window.removeEventListener('keydown', onKey);
     };
   }, []);
 
@@ -112,7 +103,15 @@ export function InfoStrip({ fallback }: { fallback?: string }) {
           {fallback ?? 'Point at anything to see what it does.'}
         </span>
       )}
-      <span className="ml-auto text-fg-subtle">? hides this line</span>
+      <span className="ml-auto shrink-0 text-fg-subtle">? for shortcuts</span>
+      <button
+        aria-label="Hide this line"
+        data-info="Hide this line. Bring it back from the ? sheet or Preferences."
+        onClick={() => writePrefs({ infoStrip: false })}
+        className="-mr-1 rounded-control p-0.5 text-fg-icon outline-none hover:bg-control-hover hover:text-fg focus-visible:outline-2 focus-visible:outline-focus"
+      >
+        <X size={12} />
+      </button>
     </div>
   );
 }

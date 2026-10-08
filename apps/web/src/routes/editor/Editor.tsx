@@ -1,6 +1,6 @@
-import { Download, History, Lock, PanelsTopLeft, Play, Redo2, Undo2 } from 'lucide-react';
+import { Download, History, Lock, PanelsTopLeft, Play, Redo2, Settings, Undo2 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
-import { Link, useParams } from 'react-router';
+import { Link, useNavigate, useParams } from 'react-router';
 import { isTyping, overlayOpen } from '../../host/inputs.js';
 import { flushSave, forwardKey, useEditor } from '../../state/editor.js';
 import { exportShow, getShow } from '../../storage/shows.js';
@@ -15,7 +15,14 @@ import { InputsTab } from './InputsTab.js';
 import { InteractionTab } from './InteractionTab.js';
 import { OutputsTab } from './OutputsTab.js';
 import { StageTab } from './StageTab.js';
+import { openShortcutSheet, useCommands } from '../../lib/commands.js';
 import { readPrefs } from '../../lib/prefs.js';
+import { usePrefs } from '../../lib/usePrefs.js';
+import { CommandPalette } from '../../ui/CommandPalette.js';
+import { KeyHints } from '../../ui/KeyHints.js';
+import { openPreferences, PreferencesHost } from '../../ui/Preferences.js';
+import { ShortcutSheet } from '../../ui/ShortcutSheet.js';
+import { RECIPES } from './recipes.js';
 import { resetLayouts, toggleFocusCanvas } from '../../ui/Layout.js';
 import { MenuButton } from '../../ui/Menu.js';
 import { MotionRoot } from '../../ui/MotionRoot.js';
@@ -34,6 +41,7 @@ const TABS: { id: Tab; label: string }[] = [
 
 export default function Editor() {
   const { id } = useParams();
+  const prefs = usePrefs();
   const show = useEditor((s) => s.show);
   const [missing, setMissing] = useState(false);
   const [tab, setTab] = useState<Tab>(
@@ -63,7 +71,7 @@ export default function Editor() {
         else useEditor.getState().undo();
         return;
       }
-      if (e.key === '|' && e.shiftKey && !mod && !isTyping(e.target)) {
+      if (e.key === '|' && e.shiftKey && !mod && !isTyping(e.target) && readPrefs().singleKeys) {
         e.preventDefault();
         toggleFocusCanvas();
         return;
@@ -101,7 +109,7 @@ export default function Editor() {
 
   return (
     <MotionRoot>
-      <div className="flex h-full flex-col" data-density={readPrefs().editorDensity}>
+      <div className="flex h-full flex-col" data-density={prefs.editorDensity}>
         <EditorHeader tab={tab} setTab={setTab} />
         <LockBanner />
         <main className="min-h-0 flex-1 border-t border-line-subtle">
@@ -113,9 +121,125 @@ export default function Editor() {
           {tab === 'history' && <HistoryTab />}
         </main>
         <InfoStrip />
+        <EditorCommands tab={tab} setTab={setTab} />
+        <CommandPalette />
+        <ShortcutSheet />
+        <KeyHints />
+        <PreferencesHost />
       </div>
     </MotionRoot>
   );
+}
+
+async function runShow(): Promise<void> {
+  const show = useEditor.getState().show;
+  if (!show) return;
+  await flushSave();
+  window.open(`/show/${show.id}/run`, `scrim-run-${show.id}`);
+}
+
+async function exportCurrent(): Promise<void> {
+  await flushSave();
+  try {
+    await exportShow(useEditor.getState().show!);
+  } catch (e) {
+    errorToast(e);
+  }
+}
+
+/** What the editor offers the palette and the `?` sheet. */
+function EditorCommands({ tab, setTab }: { tab: Tab; setTab: (t: Tab) => void }) {
+  const navigate = useNavigate();
+  useCommands(
+    [
+      {
+        id: 'run',
+        group: 'Show',
+        title: 'Run show',
+        aliases: ['operator', 'play'],
+        run: () => void runShow(),
+      },
+      {
+        id: 'export',
+        group: 'Show',
+        title: 'Export show',
+        aliases: ['download', 'save as'],
+        run: () => void exportCurrent(),
+      },
+      {
+        id: 'library',
+        group: 'Show',
+        title: 'All shows',
+        aliases: ['library', 'home'],
+        run: () => navigate('/'),
+      },
+      {
+        id: 'undo',
+        group: 'Edit',
+        title: 'Undo',
+        shortcut: '⌘Z',
+        run: () => useEditor.getState().undo(),
+      },
+      {
+        id: 'redo',
+        group: 'Edit',
+        title: 'Redo',
+        shortcut: '⇧⌘Z',
+        run: () => useEditor.getState().redo(),
+      },
+      { id: 'save', group: 'Edit', title: 'Save now', shortcut: '⌘S', run: () => void flushSave() },
+      ...TABS.map((t) => ({
+        id: `tab:${t.id}`,
+        group: 'Go to',
+        title: t.label,
+        aliases: ['tab'],
+        disabled: t.id === tab,
+        run: () => setTab(t.id),
+      })),
+      {
+        id: 'focus',
+        group: 'View',
+        title: 'Focus canvas',
+        shortcut: '⇧\\',
+        disabled: tab !== 'stage',
+        run: toggleFocusCanvas,
+      },
+      {
+        id: 'reset-layout',
+        group: 'View',
+        title: 'Reset layout',
+        aliases: ['panels'],
+        run: () => toast('Panel layout reset', 'info', { label: 'Undo', run: resetLayouts() }),
+      },
+      ...RECIPES.map((r) => ({
+        id: `recipe:${r.id}`,
+        group: 'Recipes',
+        title: `${r.title}…`,
+        aliases: ['recipe', 'rule', 'add'],
+        run: () => {
+          setTab('interaction');
+          void r.run();
+        },
+      })),
+      {
+        id: 'shortcuts',
+        group: 'Help',
+        title: 'Keyboard shortcuts',
+        shortcut: '?',
+        run: openShortcutSheet,
+      },
+      {
+        id: 'prefs',
+        group: 'Help',
+        title: 'Preferences',
+        aliases: ['settings', 'theme', 'accent'],
+        shortcut: '⌘,',
+        run: openPreferences,
+      },
+    ],
+    [tab, setTab, navigate],
+  );
+  return null;
 }
 
 function EditorHeader({ tab, setTab }: { tab: Tab; setTab: (t: Tab) => void }) {
@@ -189,29 +313,16 @@ function EditorHeader({ tab, setTab }: { tab: Tab; setTab: (t: Tab) => void }) {
           icon={<History size={15} />}
           onClick={() => setTab('history')}
         />
-        <Button
-          size="sm"
-          icon={<Download size={14} />}
-          onClick={async () => {
-            await flushSave();
-            try {
-              await exportShow(useEditor.getState().show!);
-            } catch (e) {
-              errorToast(e);
-            }
-          }}
-        >
+        <IconButton
+          label="Preferences"
+          shortcut="⌘,"
+          icon={<Settings size={15} />}
+          onClick={openPreferences}
+        />
+        <Button size="sm" icon={<Download size={14} />} onClick={() => void exportCurrent()}>
           Export
         </Button>
-        <Button
-          size="sm"
-          variant="accent"
-          icon={<Play size={14} />}
-          onClick={async () => {
-            await flushSave();
-            window.open(`/show/${show.id}/run`, `scrim-run-${show.id}`);
-          }}
-        >
+        <Button size="sm" variant="accent" icon={<Play size={14} />} onClick={() => void runShow()}>
           Run show
         </Button>
       </div>

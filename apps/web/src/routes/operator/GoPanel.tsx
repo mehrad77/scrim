@@ -6,6 +6,7 @@ import { epochNow } from '../../lib/clock.js';
 import { cn } from '../../lib/cn.js';
 import { Button } from '../../ui/Button.js';
 import { Lamp } from '../../ui/Lamp.js';
+import { Mappable } from './MapMode.js';
 import { useHost } from './Operator.js';
 
 /**
@@ -56,46 +57,56 @@ export function GoPanel() {
           </div>
         </div>
         <div className="flex w-48 shrink-0 flex-col gap-2">
-          <GoButton
-            ready={!!standby}
-            goKey={goKey}
-            fired={state.fired}
-            lockedUntil={snap.goLockedUntil}
-            droppedAt={snap.goDroppedAt}
-            onGo={() => host.command({ type: 'go' }, 'operator')}
-          />
+          <Mappable command={{ type: 'go' }}>
+            <GoButton
+              ready={!!standby}
+              goKey={goKey}
+              fired={state.fired}
+              lockedUntil={snap.goLockedUntil}
+              droppedAt={snap.goDroppedAt}
+              onGo={() => host.command({ type: 'go' }, 'operator')}
+            />
+          </Mappable>
           <div className="flex gap-1">
-            <Button
-              className="flex-1"
-              variant={state.held ? 'primary' : 'secondary'}
-              icon={state.held ? <Play size={16} /> : <Pause size={16} />}
-              onClick={() => host.dispatch({ type: 'hold' })}
-            >
-              {state.held ? 'Resume' : 'Hold'}
-            </Button>
-            <Button
-              className="flex-1"
-              icon={<Undo2 size={16} />}
-              disabled={!state.back}
-              title="Back: undo the last GO"
-              onClick={() => host.command({ type: 'back' }, 'operator')}
-            >
-              Back
-            </Button>
+            <Mappable command={{ type: 'hold' }} className="flex-1">
+              <Button
+                className="w-full"
+                variant={state.held ? 'primary' : 'secondary'}
+                icon={state.held ? <Play size={16} /> : <Pause size={16} />}
+                onClick={() => host.dispatch({ type: 'hold' })}
+              >
+                {state.held ? 'Resume' : 'Hold'}
+              </Button>
+            </Mappable>
+            <Mappable command={{ type: 'back' }} className="flex-1">
+              <Button
+                className="w-full"
+                icon={<Undo2 size={16} />}
+                disabled={!state.back}
+                title="Back: undo the last GO"
+                onClick={() => host.command({ type: 'back' }, 'operator')}
+              >
+                Back
+              </Button>
+            </Mappable>
           </div>
           <div className="flex gap-1">
-            <Button
-              className="flex-1"
-              title="Previous cue on standby"
-              icon={<SkipBack size={16} />}
-              onClick={() => host.dispatch({ type: 'standbyPrev' })}
-            />
-            <Button
-              className="flex-1"
-              title="Next cue on standby"
-              icon={<SkipForward size={16} />}
-              onClick={() => host.dispatch({ type: 'standbyNext' })}
-            />
+            <Mappable command={{ type: 'standbyPrev' }} className="flex-1">
+              <Button
+                className="w-full"
+                title="Previous cue on standby"
+                icon={<SkipBack size={16} />}
+                onClick={() => host.dispatch({ type: 'standbyPrev' })}
+              />
+            </Mappable>
+            <Mappable command={{ type: 'standbyNext' }} className="flex-1">
+              <Button
+                className="w-full"
+                title="Next cue on standby"
+                icon={<SkipForward size={16} />}
+                onClick={() => host.dispatch({ type: 'standbyNext' })}
+              />
+            </Mappable>
           </div>
         </div>
       </div>
@@ -119,28 +130,30 @@ export function GoPanel() {
 
       {/* PANIC lives in its own corner: unmistakable, but not where a slip from GO lands. */}
       <div className="flex justify-end pt-2">
-        {blackedOut ? (
-          <button
-            type="button"
-            className="flex h-11 w-2/5 min-w-56 items-center justify-center gap-2 rounded-control bg-lamp-fault px-3 font-semibold text-on-fault"
-            onClick={() => host.dispatch({ type: 'release', fade: 1 })}
-          >
-            <span className="label-caps">Blacked out</span> · Release
-          </button>
-        ) : (
-          <button
-            type="button"
-            className="flex h-11 w-2/5 min-w-56 items-center justify-center gap-2 rounded-control border border-line-control bg-control px-3 font-semibold text-fg hover:bg-control-hover"
-            onClick={() => host.dispatch({ type: 'panic' })}
-          >
-            <span aria-hidden className="size-2 rounded-[1px] border border-lamp-fault" />
-            <Square size={14} className="text-fault" />
-            PANIC
-            <kbd className="label-caps rounded-control border border-line-control px-1 text-fg-muted">
-              {keyLabel(PANIC_KEY)}
-            </kbd>
-          </button>
-        )}
+        <Mappable command={{ type: 'panic' }} className="w-2/5 min-w-56">
+          {blackedOut ? (
+            <button
+              type="button"
+              className="flex h-11 w-full items-center justify-center gap-2 rounded-control bg-lamp-fault px-3 font-semibold text-on-fault"
+              onClick={() => host.dispatch({ type: 'release', fade: 1 })}
+            >
+              <span className="label-caps">Blacked out</span> · Release
+            </button>
+          ) : (
+            <button
+              type="button"
+              className="flex h-11 w-full items-center justify-center gap-2 rounded-control border border-line-control bg-control px-3 font-semibold text-fg hover:bg-control-hover"
+              onClick={() => host.dispatch({ type: 'panic' })}
+            >
+              <span aria-hidden className="size-2 rounded-[1px] border border-lamp-fault" />
+              <Square size={14} className="text-fault" />
+              PANIC
+              <kbd className="label-caps rounded-control border border-line-control px-1 text-fg-muted">
+                {keyLabel(PANIC_KEY)}
+              </kbd>
+            </button>
+          )}
+        </Mappable>
       </div>
     </section>
   );
