@@ -1,0 +1,22 @@
+{
+  "name": "@scrim/relay",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev --ip 0.0.0.0 --port 8790",
+    "deploy": "wrangler deploy",
+    "typecheck": "tsc -p .",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@scrim/engine": "workspace:*",
+    "@scrim/format": "workspace:*",
+    "@scrim/protocol": "workspace:*",
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^5.20261007.1",
+    "wrangler": "^4.148.0"
+  }
+}
