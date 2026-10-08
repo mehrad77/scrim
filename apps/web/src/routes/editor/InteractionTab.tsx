@@ -92,7 +92,7 @@ function VarsPanel() {
       )}
       <div className="flex flex-col gap-2">
         {show.vars.map((v) => (
-          <div key={v.id} className="rounded-md border border-ink-800 p-2">
+          <div key={v.id} className="rounded-md border border-line-subtle p-2">
             <div className="flex items-center gap-1">
               <CommitInput
                 aria-label="Name"
@@ -128,7 +128,7 @@ function VarsPanel() {
                 onClick={() => update((d) => removeVar(d, v.id))}
               />
             </div>
-            <div className="mt-1.5 flex items-center gap-2 text-xs text-ink-400">
+            <div className="mt-1.5 flex items-center gap-2 text-xs text-fg-subtle">
               {v.type === 'number' && (
                 <>
                   starts at
@@ -214,7 +214,7 @@ function TriggersPanel() {
             type="color"
             aria-label="Color"
             value={t.color}
-            className="h-8 w-9 shrink-0 rounded border border-ink-700 bg-ink-900"
+            className="h-8 w-9 shrink-0 rounded border border-line-subtle bg-panel"
             onChange={(e) =>
               update(
                 (d) => {
@@ -416,7 +416,9 @@ function MomentsPanel() {
             onClick={() => setSelected(m.id)}
             className={cn(
               'rounded-md border px-2 py-1 text-xs',
-              m.id === selected ? 'border-rose-400 bg-ink-800' : 'border-ink-700 hover:bg-ink-800',
+              m.id === selected
+                ? 'border-accent bg-control-hover'
+                : 'border-line-subtle hover:bg-control-hover',
             )}
           >
             {m.name}
@@ -461,9 +463,9 @@ function MomentEditor({
   );
   return (
     <div className="flex flex-col gap-3">
-      <p className="text-xs text-ink-400">
+      <p className="text-xs text-fg-subtle">
         {info.label}: {info.hint}
-        {!used && <span className="text-amber-300"> No cue opens this moment yet.</span>}
+        {!used && <span className="text-warn"> No cue opens this moment yet.</span>}
       </p>
       <div className="grid grid-cols-2 gap-2">
         <Field label="Name (for the operator)">
@@ -563,7 +565,7 @@ function MomentEditor({
         <Field label="Variants (each phone gets one, by weight)">
           <div className="flex flex-col gap-2">
             {m.variants.map((v, i) => (
-              <div key={v.id} className="rounded border border-ink-800 p-2">
+              <div key={v.id} className="rounded border border-line-subtle p-2">
                 <div className="flex gap-1">
                   <CommitInput
                     value={v.label}
@@ -689,7 +691,7 @@ function MomentEditor({
       <Button
         size="sm"
         variant="ghost"
-        className="w-fit text-rose-300"
+        className="w-fit text-fault"
         icon={<Trash2 size={13} />}
         onClick={() => {
           update((d) => removeMoment(d, m.id));
@@ -751,7 +753,7 @@ function RulesPanel() {
           <div
             key={r.id}
             className={cn(
-              'rounded-lg border border-ink-700 bg-ink-850 p-3',
+              'rounded-lg border border-line-subtle bg-control p-3',
               !r.enabled && 'opacity-50',
             )}
           >
@@ -774,7 +776,7 @@ function RulesPanel() {
             </div>
             <div className="flex flex-col gap-2">
               <div className="flex flex-wrap items-center gap-2">
-                <span className="w-12 text-xs text-violet-300">when</span>
+                <span className="w-12 text-xs font-medium text-fg-muted">when</span>
                 <WhenPicker
                   show={show}
                   when={r.when}
@@ -787,7 +789,7 @@ function RulesPanel() {
                 onChange={(c) => setRule(r.id, (x) => void (x.if = c))}
               />
               <div className="flex gap-2">
-                <span className="mt-1.5 w-12 shrink-0 text-xs text-violet-300">then</span>
+                <span className="mt-1.5 w-12 shrink-0 text-xs font-medium text-fg-muted">then</span>
                 <div className="min-w-0 flex-1">
                   <ActionList
                     show={show}

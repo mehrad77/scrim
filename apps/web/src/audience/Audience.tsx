@@ -73,18 +73,15 @@ export function Audience() {
   return (
     <div className="mx-auto flex min-h-full max-w-md flex-col px-5 pt-6 pb-[max(24px,env(safe-area-inset-bottom))]">
       <header className="mb-6 flex items-center justify-between">
-        <span className="text-sm font-semibold text-ink-200">{title || 'Scrim'}</span>
+        <span className="text-sm font-semibold text-fg-muted">{title || 'Scrim'}</span>
         <span
           className={cn(
             'flex items-center gap-1.5 text-xs',
-            status === 'open' ? 'text-ink-400' : 'text-amber-300',
+            status === 'open' ? 'text-fg-subtle' : 'text-warn',
           )}
         >
           <span
-            className={cn(
-              'size-2 rounded-full',
-              status === 'open' ? 'bg-go' : 'animate-pulse bg-amber-400',
-            )}
+            className={cn('size-2 rounded-full', status === 'open' ? 'bg-fg-muted' : 'bg-warn')}
           />
           {status === 'open' ? 'Joined' : status === 'failed' ? 'Closed' : 'Connecting…'}
         </span>
@@ -94,8 +91,10 @@ export function Audience() {
           <p className="text-lg">
             {closeCode === CLOSE.full ? 'This room is full.' : 'This room is not open.'}
           </p>
-          <p className="mt-2 text-sm text-ink-400">Check the code with the front of house team.</p>
-          <button className="mt-6 text-sm text-rose-300 underline" onClick={() => setCode('')}>
+          <p className="mt-2 text-sm text-fg-subtle">
+            Check the code with the front of house team.
+          </p>
+          <button className="mt-6 text-sm text-accent-text underline" onClick={() => setCode('')}>
             Enter another code
           </button>
         </Center>
@@ -103,7 +102,7 @@ export function Audience() {
         <Center>
           <div className="mb-4 text-5xl">{thanks ? '✨' : '🎭'}</div>
           <p className="text-xl font-semibold">{thanks ? 'Thank you!' : 'Watch the stage'}</p>
-          <p className="mt-2 text-sm text-ink-400">
+          <p className="mt-2 text-sm text-fg-subtle">
             {thanks
               ? 'Your answer is on its way to the stage.'
               : 'Keep this page open. When it is your turn, it will light up here.'}
@@ -153,12 +152,12 @@ function CodeEntry({ onCode }: { onCode: (c: string) => void }) {
         placeholder="CODE"
         value={clean}
         onChange={(e) => setValue(e.target.value)}
-        className="w-48 rounded-xl border border-ink-600 bg-ink-900 py-3 text-center font-mono text-3xl tracking-[0.3em] uppercase"
+        className="w-48 rounded-xl border border-line-control bg-panel py-3 text-center font-mono text-3xl tracking-[0.3em] uppercase"
       />
       <button
         type="submit"
         disabled={clean.length !== ROOM_CODE_LENGTH}
-        className="w-48 rounded-xl bg-live py-3 font-semibold text-white disabled:opacity-40"
+        className="w-48 rounded-control bg-accent py-3 font-semibold text-accent-fg disabled:opacity-40"
       >
         Join
       </button>
@@ -176,7 +175,7 @@ function Countdown({ closesAt, offset }: { closesAt: number | null; offset: () =
   if (closesAt === null) return null;
   const left = Math.max(0, Math.ceil((closesAt - (Date.now() + offset())) / 1000));
   return (
-    <span className={cn('font-mono text-sm', left <= 5 ? 'text-live' : 'text-ink-300')}>
+    <span className={cn('font-mono text-sm', left <= 5 ? 'text-warn' : 'text-fg-muted')}>
       {left}s
     </span>
   );
@@ -224,10 +223,10 @@ function MomentView({
       {m.type === 'slider' && <Slider moment={m} send={send} />}
       {m.type === 'text' && <TextEntry moment={m} send={send} />}
       {m.type === 'prop' && m.prop && (
-        <div className="rounded-2xl border border-ink-600 bg-ink-850 p-6">
-          <div className="text-xs tracking-wide text-ink-400 uppercase">{m.prop.label}</div>
+        <div className="rounded-2xl border border-line-control bg-control p-6">
+          <div className="text-xs tracking-wide text-fg-subtle uppercase">{m.prop.label}</div>
           <p className="mt-2 text-xl whitespace-pre-wrap">{m.prop.content}</p>
-          <p className="mt-4 text-xs text-ink-500">Only your phone shows this.</p>
+          <p className="mt-4 text-xs text-fg-subtle">Only your phone shows this.</p>
         </div>
       )}
     </section>
@@ -250,15 +249,15 @@ function Vote({ moment: m, send }: { moment: PublicMoment; send: Send }) {
           className={cn(
             'rounded-2xl border-2 px-5 py-5 text-left text-xl font-semibold transition-colors',
             choice === o.id
-              ? 'border-live bg-live text-white'
-              : 'border-ink-600 bg-ink-850 active:bg-ink-700',
+              ? 'border-accent bg-accent text-accent-fg'
+              : 'border-line-control bg-control active:bg-control-active',
           )}
         >
           {o.label}
         </button>
       ))}
       {choice && (
-        <p className="text-center text-sm text-ink-400">
+        <p className="text-center text-sm text-fg-subtle">
           Vote counted. You can change it until voting closes.
         </p>
       )}
@@ -311,14 +310,14 @@ function Tap({ moment: m, send }: { moment: PublicMoment; send: Send }) {
           e.preventDefault();
           tap();
         }}
-        className="flex size-60 touch-manipulation items-center justify-center rounded-full bg-live text-4xl font-black text-white shadow-[0_0_60px_-10px] shadow-rose-500 select-none active:scale-95"
+        className="flex size-60 touch-manipulation items-center justify-center rounded-full bg-accent text-4xl font-black text-accent-fg select-none active:scale-95"
       >
         TAP
       </button>
       <div className="font-mono text-3xl">{count}</div>
       {!shake && 'DeviceMotionEvent' in window && (
         <button
-          className="text-sm text-ink-300 underline"
+          className="text-sm text-fg-muted underline"
           onClick={async () => {
             const req = (
               DeviceMotionEvent as unknown as { requestPermission?: () => Promise<string> }
@@ -354,10 +353,10 @@ function Slider({ moment: m, send }: { moment: PublicMoment; send: Send }) {
         step={1}
         value={value}
         onChange={(e) => change(Number(e.target.value))}
-        className="h-10 w-full accent-rose-500"
+        className="h-10 w-full accent-accent"
         aria-label={m.prompt}
       />
-      <div className="flex justify-between text-xs text-ink-400">
+      <div className="flex justify-between text-xs text-fg-subtle">
         <span>{m.min}</span>
         <span>{sent ? 'Sent' : ' '}</span>
         <span>{m.max}</span>
@@ -369,7 +368,7 @@ function Slider({ moment: m, send }: { moment: PublicMoment; send: Send }) {
 function TextEntry({ moment: m, send }: { moment: PublicMoment; send: Send }) {
   const [text, setText] = useState('');
   const [sent, setSent] = useStored<number>(`text:${m.id}`, 0);
-  if (sent >= 3) return <p className="text-ink-300">Thanks — you've sent the maximum of three.</p>;
+  if (sent >= 3) return <p className="text-fg-muted">Thanks — you've sent the maximum of three.</p>;
   return (
     <form
       className="flex flex-col gap-3"
@@ -387,18 +386,18 @@ function TextEntry({ moment: m, send }: { moment: PublicMoment; send: Send }) {
         maxLength={280}
         onChange={(e) => setText(e.target.value)}
         placeholder="Type here"
-        className="rounded-xl border border-ink-600 bg-ink-900 px-4 py-3 text-lg"
+        className="rounded-xl border border-line-control bg-panel px-4 py-3 text-lg"
         aria-label={m.prompt}
       />
       <button
         type="submit"
         disabled={!text.trim()}
-        className="rounded-xl bg-live py-3 font-semibold text-white disabled:opacity-40"
+        className="rounded-control bg-accent py-3 font-semibold text-accent-fg disabled:opacity-40"
       >
         Send
       </button>
       {sent > 0 && (
-        <p className="text-center text-sm text-ink-400">
+        <p className="text-center text-sm text-fg-subtle">
           Sent. The team may pick it to appear on stage.
         </p>
       )}

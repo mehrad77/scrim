@@ -45,7 +45,7 @@ function Inspector({ show, layer }: { show: Show; layer: Layer }) {
       <Field label="Name">
         <CommitInput value={layer.name} onCommit={(name) => set({ name })} />
       </Field>
-      <p className="-mt-2 text-[11px] text-ink-400">
+      <p className="-mt-2 text-[11px] text-fg-subtle">
         Used by {usage} cue or rule action{usage === 1 ? '' : 's'}.
       </p>
 
@@ -141,7 +141,7 @@ function Inspector({ show, layer }: { show: Show; layer: Layer }) {
             max={1}
             step={0.01}
             value={layer.opacity}
-            className="accent-rose-500"
+            className="accent-accent"
             onChange={(e) => set({ opacity: Number(e.target.value) }, 'opacity')}
           />
         </Field>
@@ -176,7 +176,7 @@ function Inspector({ show, layer }: { show: Show; layer: Layer }) {
                 max={1}
                 step={0.01}
                 value={layer.volume}
-                className="accent-rose-500"
+                className="accent-accent"
                 onChange={(e) =>
                   set({ volume: Number(e.target.value) } as Partial<Layer>, 'volume')
                 }
@@ -276,8 +276,8 @@ function Inspector({ show, layer }: { show: Show; layer: Layer }) {
               e.target.value !== layer.text && set({ text: e.target.value } as Partial<Layer>)
             }
           />
-          <p className="text-[11px] text-ink-400">
-            Insert live state with <code className="text-ink-200">{'{{name}}'}</code>
+          <p className="text-[11px] text-fg-subtle">
+            Insert live state with <code className="text-fg-muted">{'{{name}}'}</code>
             {show.vars.length ? `, e.g. {{${show.vars[0]!.name}}}` : ''}.
           </p>
         </Section>
@@ -310,7 +310,7 @@ function Inspector({ show, layer }: { show: Show; layer: Layer }) {
               <input
                 type="color"
                 value={layer.color}
-                className="h-8 w-full rounded border border-ink-700 bg-ink-900"
+                className="h-8 w-full rounded border border-line-subtle bg-panel"
                 onChange={(e) => set({ color: e.target.value } as Partial<Layer>, 'color')}
               />
             </Field>
@@ -345,7 +345,7 @@ function Inspector({ show, layer }: { show: Show; layer: Layer }) {
               <input
                 type="color"
                 value={layer.background.startsWith('#') ? layer.background : '#000000'}
-                className="h-8 w-12 rounded border border-ink-700 bg-ink-900"
+                className="h-8 w-12 rounded border border-line-subtle bg-panel"
                 onChange={(e) => set({ background: e.target.value } as Partial<Layer>, 'bg')}
               />
               <Button
@@ -359,7 +359,7 @@ function Inspector({ show, layer }: { show: Show; layer: Layer }) {
         </Section>
       )}
 
-      <div className="flex flex-wrap gap-2 border-t border-ink-800 pt-3">
+      <div className="flex flex-wrap gap-2 border-t border-line-subtle pt-3">
         <Button
           size="sm"
           icon={<Zap size={13} />}
@@ -407,7 +407,7 @@ function Inspector({ show, layer }: { show: Show; layer: Layer }) {
         <Button
           size="sm"
           variant="ghost"
-          className="text-rose-300"
+          className="text-fault"
           icon={<Trash2 size={13} />}
           onClick={() => {
             update((d) => removeLayer(d, layer.id));
@@ -424,7 +424,7 @@ function Inspector({ show, layer }: { show: Show; layer: Layer }) {
 function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
     <fieldset className="flex flex-col gap-2">
-      <legend className="mb-1 text-[11px] font-semibold tracking-wide text-ink-400 uppercase">
+      <legend className="mb-1 text-[11px] font-semibold tracking-wide text-fg-subtle uppercase">
         {title}
       </legend>
       {children}

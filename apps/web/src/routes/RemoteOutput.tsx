@@ -120,7 +120,7 @@ export default function RemoteOutput() {
     return (
       <Message>
         <p className="mb-2 text-lg font-semibold">{show.name}</p>
-        <p className="mb-4 text-sm text-ink-300">
+        <p className="mb-4 text-sm text-fg-muted">
           This screen needs the show's media ({missing} file{missing === 1 ? '' : 's'} missing).
           Export the show as a .scrim file on the operator machine and open it here once. It stays
           on this device for every performance.
@@ -170,8 +170,8 @@ export default function RemoteOutput() {
       {!document.fullscreenElement && (
         <div
           className={cn(
-            'absolute right-3 bottom-3 flex items-center gap-2 rounded bg-ink-900/90 px-3 py-2 text-xs',
-            (hostGone || status !== 'open') && 'text-amber-300',
+            'absolute right-3 bottom-3 flex items-center gap-2 rounded bg-panel/90 px-3 py-2 text-xs',
+            (hostGone || status !== 'open') && 'text-warn',
           )}
         >
           <Maximize size={12} /> Click for full screen
@@ -185,7 +185,7 @@ export default function RemoteOutput() {
 function Message({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex min-h-full items-center justify-center p-6">
-      <div className="max-w-md text-center text-ink-200">{children}</div>
+      <div className="max-w-md text-center text-fg-muted">{children}</div>
     </div>
   );
 }

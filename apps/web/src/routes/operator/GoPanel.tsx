@@ -34,21 +34,23 @@ export function GoPanel() {
   return (
     <section
       className={cn(
-        'rounded-lg border bg-ink-900 p-4',
-        blackedOut ? 'border-live' : 'border-ink-800',
+        'rounded-lg border bg-panel p-4',
+        blackedOut ? 'border-lamp-fault' : 'border-line-subtle',
       )}
     >
       <div className="flex gap-4">
         <div className="min-w-0 flex-1">
-          <div className="text-[11px] font-semibold tracking-wide text-ink-400 uppercase">Live</div>
-          <div className="truncate text-lg text-ink-200">{last ? last.name : '—'}</div>
+          <div className="text-[11px] font-semibold tracking-wide text-fg-subtle uppercase">
+            Live
+          </div>
+          <div className="truncate text-lg text-fg-muted">{last ? last.name : '—'}</div>
           <div className="mt-3 text-[11px] font-semibold tracking-wide text-standby uppercase">
             Standby
           </div>
           <div className="truncate text-3xl font-semibold">
             {standby ? standby.name : 'End of show'}
           </div>
-          {standby?.notes && <div className="mt-1 text-sm text-amber-200/80">{standby.notes}</div>}
+          {standby?.notes && <div className="mt-1 text-sm text-fg-muted">{standby.notes}</div>}
           {followIn !== null && (
             <div className="mt-2 text-sm text-standby">
               {state.held ? 'Held — auto-follow paused' : `Auto-follow in ${followIn.toFixed(1)}s`}
@@ -62,7 +64,7 @@ export function GoPanel() {
           <button
             onClick={() => host.command({ type: 'go' }, 'operator')}
             disabled={!standby}
-            className="flex h-28 w-48 flex-col items-center justify-center rounded-xl bg-go text-ink-950 shadow-[0_0_40px_-10px] shadow-green-500 transition-transform active:scale-[.97] active:transition-none disabled:opacity-30"
+            className="flex h-28 w-48 flex-col items-center justify-center rounded-control bg-lamp-go text-on-lamp transition-transform active:scale-[.97] active:transition-none disabled:opacity-30"
           >
             <span className="text-5xl font-black tracking-tight">GO</span>
             {goKey !== undefined && <span className="text-xs opacity-70">{keyLabel(goKey)}</span>}

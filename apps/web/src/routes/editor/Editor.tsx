@@ -80,13 +80,14 @@ export default function Editor() {
     return (
       <div className="p-8">
         <p>This show isn't on this machine.</p>
-        <Link to="/" className="text-rose-400 underline">
+        <Link to="/" className="text-accent-text underline">
           Back to shows
         </Link>
       </div>
     );
   }
-  if (!show || show.id !== id) return <div className="p-6 text-sm text-ink-400">Loading show…</div>;
+  if (!show || show.id !== id)
+    return <div className="p-6 text-sm text-fg-subtle">Loading show…</div>;
 
   return (
     <div className="flex h-full flex-col" data-density={readPrefs().editorDensity}>
@@ -111,7 +112,7 @@ function EditorHeader({ tab, setTab }: { tab: Tab; setTab: (t: Tab) => void }) {
   const canUndo = useEditor((s) => s.past.length > 0);
   const canRedo = useEditor((s) => s.future.length > 0);
   return (
-    <header className="flex shrink-0 flex-wrap items-center gap-3 border-b border-ink-800 bg-ink-900 px-3 py-2">
+    <header className="flex shrink-0 flex-wrap items-center gap-3 border-b border-line-subtle bg-panel px-3 py-2">
       <Link to="/" title="All shows" className="shrink-0">
         <img src="/favicon.svg" alt="Scrim" className="size-7" />
       </Link>
@@ -119,11 +120,11 @@ function EditorHeader({ tab, setTab }: { tab: Tab; setTab: (t: Tab) => void }) {
         aria-label="Show name"
         value={show.name}
         onCommit={(name) => name.trim() && update((d) => void (d.name = name.trim()))}
-        className="w-56 border-transparent bg-transparent text-base font-semibold hover:border-ink-700"
+        className="w-56 border-transparent bg-transparent text-base font-semibold hover:border-line-subtle"
       />
       <Tabs value={tab} onChange={setTab} tabs={TABS} className="overflow-x-auto" />
       <div className="ml-auto flex items-center gap-1">
-        <span className="mr-2 text-xs text-ink-400" aria-live="polite">
+        <span className="mr-2 text-xs text-fg-subtle" aria-live="polite">
           {saving === 'pending' ? 'Saving…' : saving === 'error' ? 'Not saved!' : 'Saved'}
         </span>
         <IconButton
@@ -177,7 +178,7 @@ function LockBanner() {
   const locked = useEditor((s) => s.showModeLock && !s.unlocked);
   if (!locked) return null;
   return (
-    <div className="flex items-center gap-3 border-b border-rose-500/40 bg-rose-950/60 px-4 py-2 text-sm text-rose-100">
+    <div className="flex items-center gap-3 border-b border-line-strong bg-control px-4 py-2 text-sm text-fg">
       <Lock size={16} />
       <span>
         This show is running in Show mode. Editing is locked so nothing changes mid-performance.

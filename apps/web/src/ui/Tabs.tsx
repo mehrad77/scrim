@@ -20,10 +20,10 @@ export function Tabs<T extends string>({
           aria-selected={value === t.id}
           onClick={() => onChange(t.id)}
           className={cn(
-            'h-8 rounded-md px-3 text-sm font-medium transition-colors',
+            'h-8 rounded-control px-3 text-sm font-medium transition-colors',
             value === t.id
-              ? 'bg-ink-700 text-ink-100'
-              : 'text-ink-300 hover:bg-ink-800 hover:text-ink-100',
+              ? 'bg-control-active text-fg'
+              : 'text-fg-muted hover:bg-control-hover hover:text-fg',
           )}
         >
           {t.label}

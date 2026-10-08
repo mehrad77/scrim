@@ -16,7 +16,7 @@ export function StatePanel() {
     <Panel title="Show state" className="h-full" bodyClassName="p-2">
       {show.triggers.length > 0 && (
         <div className="mb-3">
-          <div className="mb-1 text-[11px] text-ink-400">Fire a trigger</div>
+          <div className="mb-1 text-[11px] text-fg-subtle">Fire a trigger</div>
           <div className="flex flex-wrap gap-1">
             {show.triggers.map((t) => (
               <Button
@@ -35,8 +35,8 @@ export function StatePanel() {
       )}
       {show.vars.length === 0 && <Empty>No state values in this show.</Empty>}
       {show.vars.map((v) => (
-        <div key={v.id} className="flex items-center gap-2 border-b border-ink-800 py-1.5">
-          <span className="w-32 shrink-0 truncate font-mono text-xs text-ink-300">{v.name}</span>
+        <div key={v.id} className="flex items-center gap-2 border-b border-line-subtle py-1.5">
+          <span className="w-32 shrink-0 truncate font-mono text-xs text-fg-muted">{v.name}</span>
           {rehearsal ? (
             <VarEditor
               def={v}
@@ -51,7 +51,7 @@ export function StatePanel() {
         </div>
       ))}
       {!rehearsal && show.vars.length > 0 && (
-        <p className="mt-2 text-[11px] text-ink-500">Switch to Rehearsal to override values.</p>
+        <p className="mt-2 text-[11px] text-fg-subtle">Switch to Rehearsal to override values.</p>
       )}
     </Panel>
   );
@@ -109,7 +109,7 @@ export function MediaPanel() {
         const pos = clock ? mediaPosition(clock, now) : 0;
         const shown = duration ? (l.loop ? pos % duration : Math.min(pos, duration)) : pos;
         return (
-          <div key={l.id} className="border-b border-ink-800 py-2">
+          <div key={l.id} className="border-b border-line-subtle py-2">
             <div className="flex items-center gap-2">
               <IconButton
                 label={clock?.playing ? 'Pause' : 'Play'}
@@ -125,7 +125,7 @@ export function MediaPanel() {
                 }
               />
               <span className="min-w-0 flex-1 truncate text-sm">{l.name}</span>
-              <span className="font-mono text-xs text-ink-300">
+              <span className="font-mono text-xs text-fg-muted">
                 {formatClock(shown)}
                 {duration ? ` / ${formatClock(duration)}` : ''}
               </span>
@@ -137,7 +137,7 @@ export function MediaPanel() {
                 max={duration}
                 step={0.1}
                 value={shown}
-                className="mt-1 w-full accent-rose-500"
+                className="mt-1 w-full accent-fg"
                 onChange={(e) =>
                   host.dispatch({ type: 'seek', layerId: l.id, time: Number(e.target.value) })
                 }

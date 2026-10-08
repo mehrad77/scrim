@@ -81,7 +81,7 @@ function Shell({
         e.preventDefault();
         if (!escapeIsPanic) onCancel();
       }}
-      className="m-auto w-[min(440px,calc(100vw-32px))] rounded-xl border border-ink-700 bg-ink-850 p-0 text-ink-100 shadow-2xl backdrop:bg-black/60"
+      className="m-auto w-[min(440px,calc(100vw-32px))] rounded-overlay border border-line-strong bg-overlay p-0 text-fg shadow-overlay backdrop:bg-black/60"
     >
       <div className="p-5">
         <h2 id={titleId} className="mb-3 text-base font-semibold">
@@ -106,7 +106,7 @@ function Modal<T>({
 }) {
   return (
     <Shell title={title} onCancel={() => onDone(null)}>
-      <div className="text-sm text-ink-200">{body}</div>
+      <div className="text-sm text-fg-muted">{body}</div>
       <div className="mt-5 flex flex-wrap justify-end gap-2">
         {choices.map((c, i) => (
           <Button
@@ -143,7 +143,7 @@ function PromptModal({
           if (value.trim()) onDone(value.trim());
         }}
       >
-        {label && <div className="mb-1 text-xs text-ink-300">{label}</div>}
+        {label && <div className="mb-1 text-xs text-fg-muted">{label}</div>}
         <TextInput
           autoFocus
           value={value}

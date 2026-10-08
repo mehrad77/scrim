@@ -56,7 +56,7 @@ export default function Remote() {
 
   if (!code || !key)
     return (
-      <div className="p-6 text-center text-ink-300">
+      <div className="p-6 text-center text-fg-muted">
         This remote link is incomplete. Scan the performer QR code from the operator view again.
       </div>
     );
@@ -70,14 +70,9 @@ export default function Remote() {
       <header className="flex items-center justify-between text-sm">
         <span className="font-semibold">{view?.showName || 'Scrim remote'}</span>
         <span
-          className={cn(
-            'flex items-center gap-1.5 text-xs',
-            live ? 'text-green-300' : 'text-amber-300',
-          )}
+          className={cn('flex items-center gap-1.5 text-xs', live ? 'text-fg-muted' : 'text-warn')}
         >
-          <span
-            className={cn('size-2 rounded-full', live ? 'bg-go' : 'animate-pulse bg-amber-400')}
-          />
+          <span className={cn('size-2 rounded-full', live ? 'bg-fg-muted' : 'bg-warn')} />
           {status === 'failed'
             ? relay.current?.lastClose?.code === CLOSE.unauthorized
               ? 'Link no longer valid'
@@ -89,15 +84,19 @@ export default function Remote() {
                 : 'Connecting…'}
         </span>
       </header>
-      {view?.standby && <div className="text-xs text-ink-400">Next cue: {view.standby}</div>}
+      {view?.standby && <div className="text-xs text-fg-subtle">Next cue: {view.standby}</div>}
       {status === 'failed' && (
-        <div className="rounded bg-rose-950 px-3 py-2 text-sm text-rose-200">
+        <div className="rounded-control border border-lamp-fault bg-panel px-3 py-2 text-sm text-fg">
           {relay.current?.lastClose?.code === CLOSE.unauthorized
             ? 'This remote link is out of date. Scan the performer QR code in the operator view again.'
             : 'The show’s room is closed. Ask the operator to open it.'}
         </div>
       )}
-      {error && <div className="rounded bg-rose-950 px-3 py-2 text-sm text-rose-200">{error}</div>}
+      {error && (
+        <div className="rounded-control border border-lamp-fault bg-panel px-3 py-2 text-sm text-fg">
+          {error}
+        </div>
+      )}
       <div
         className="grid flex-1 auto-rows-fr gap-3"
         style={{
@@ -114,7 +113,7 @@ export default function Remote() {
             }}
             className={cn(
               'min-h-24 rounded-2xl text-2xl font-bold text-white shadow-lg transition-transform active:scale-95 disabled:opacity-40',
-              flash === t.id && 'ring-4 ring-white',
+              flash === t.id && 'ring-4 ring-fg',
             )}
             style={{ background: t.color }}
           >
@@ -122,7 +121,7 @@ export default function Remote() {
           </button>
         ))}
         {view && view.triggers.length === 0 && (
-          <p className="text-center text-sm text-ink-400">This show has no triggers yet.</p>
+          <p className="text-center text-sm text-fg-subtle">This show has no triggers yet.</p>
         )}
       </div>
     </div>

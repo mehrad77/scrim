@@ -179,9 +179,9 @@ export default function OutputWindow() {
       ) : null}
       {identify && output && (
         <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/70">
-          <div className="rounded-2xl border-4 border-rose-500 px-16 py-10 text-center">
+          <div className="rounded-2xl border-4 border-white px-16 py-10 text-center">
             <div className="text-7xl font-bold text-white">{output.name}</div>
-            <div className="mt-2 text-2xl text-ink-300">
+            <div className="mt-2 text-2xl text-fg-muted">
               {output.width}×{output.height}
             </div>
           </div>
@@ -189,21 +189,21 @@ export default function OutputWindow() {
       )}
       <div
         className={cn(
-          'absolute right-3 bottom-3 flex items-center gap-3 rounded-lg bg-ink-900/90 px-3 py-2 text-xs text-ink-200 shadow-lg transition-opacity',
+          'absolute right-3 bottom-3 flex items-center gap-3 rounded-lg bg-panel/90 px-3 py-2 text-xs text-fg-muted shadow-lg transition-opacity',
           hud ? 'opacity-100' : 'pointer-events-none opacity-0',
         )}
       >
-        <span className={cn('size-2 rounded-full', hostAlive ? 'bg-go' : 'bg-amber-400')} />
+        <span className={cn('size-2 rounded-full', hostAlive ? 'bg-fg-muted' : 'bg-warn')} />
         <span>
           {output?.name ??
             (show ? `This output is not in “${show.name}” any more` : 'Waiting for the show…')}
         </span>
-        <span className="text-ink-400">
+        <span className="text-fg-subtle">
           {hostAlive ? 'Live' : 'Operator not connected — holding last picture'}
         </span>
         {!document.fullscreenElement && (
           <button
-            className="flex items-center gap-1 rounded bg-ink-700 px-2 py-1 hover:bg-ink-600"
+            className="flex items-center gap-1 rounded bg-control-active px-2 py-1 hover:bg-line-strong"
             onClick={goFullscreen}
           >
             <Maximize size={12} /> Full screen

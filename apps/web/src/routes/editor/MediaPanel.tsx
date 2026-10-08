@@ -78,7 +78,7 @@ export function MediaPanel() {
           onClick={() => input.current?.click()}
         />
       }
-      className={cn(over && 'border-rose-400')}
+      className={cn(over && 'border-accent')}
       bodyClassName="p-1"
     >
       <div
@@ -115,14 +115,14 @@ export function MediaPanel() {
             return (
               <li
                 key={m.id}
-                className="group flex items-center gap-2 rounded px-2 py-1.5 hover:bg-ink-800"
+                className="group flex items-center gap-2 rounded px-2 py-1.5 hover:bg-control-hover"
                 draggable
                 onDragStart={(e) => e.dataTransfer.setData('application/x-scrim-media', m.id)}
               >
-                <Icon size={15} className="shrink-0 text-ink-400" />
+                <Icon size={15} className="shrink-0 text-fg-subtle" />
                 <div className="min-w-0 flex-1">
                   <div className="truncate text-sm">{m.name}</div>
-                  <div className="text-[11px] text-ink-400">
+                  <div className="text-[11px] text-fg-subtle">
                     {formatBytes(m.size)}
                     {m.duration ? ` · ${formatClock(m.duration)}` : ''}
                     {m.width ? ` · ${m.width}×${m.height}` : ''}
@@ -143,7 +143,7 @@ export function MediaPanel() {
             );
           })}
           {uploading.map((n) => (
-            <li key={n} className="px-2 py-1.5 text-sm text-ink-400">
+            <li key={n} className="px-2 py-1.5 text-sm text-fg-subtle">
               Adding {n}…
             </li>
           ))}

@@ -45,10 +45,10 @@ export function Toaster() {
         <div
           key={t.id}
           className={cn(
-            'pointer-events-auto max-w-sm rounded-lg border px-3 py-2 text-sm shadow-xl',
-            t.tone === 'error' && 'border-rose-500/50 bg-rose-950 text-rose-100',
-            t.tone === 'good' && 'border-green-500/40 bg-green-950 text-green-100',
-            t.tone === 'info' && 'border-ink-700 bg-ink-800 text-ink-100',
+            'pointer-events-auto max-w-sm rounded-overlay border bg-raised px-3 py-2 text-sm text-fg shadow-overlay',
+            t.tone === 'error' && 'border-lamp-fault',
+            t.tone === 'good' && 'border-line-control',
+            t.tone === 'info' && 'border-line-control',
           )}
         >
           {t.text}

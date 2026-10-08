@@ -23,7 +23,7 @@ const router = createBrowserRouter([
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <Suspense fallback={<div className="p-6 text-sm text-ink-400">Loading…</div>}>
+    <Suspense fallback={<div className="p-6 text-sm text-fg-subtle">Loading…</div>}>
       <RouterProvider router={router} />
     </Suspense>
     <Toaster />

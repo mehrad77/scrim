@@ -69,12 +69,12 @@ export default function Operator() {
   }, [id, takeover]);
 
   if (phase.kind === 'loading')
-    return <div className="p-6 text-sm text-ink-400">Loading show…</div>;
+    return <div className="p-6 text-sm text-fg-subtle">Loading show…</div>;
   if (phase.kind === 'missing') {
     return (
       <div className="p-8">
         This show isn't on this machine.{' '}
-        <Link to="/" className="text-rose-400 underline">
+        <Link to="/" className="text-fg underline">
           Back to shows
         </Link>
       </div>
@@ -86,7 +86,7 @@ export default function Operator() {
         <h1 className="mb-2 text-lg font-semibold">
           “{phase.show.name}” is already running in another tab
         </h1>
-        <p className="mb-4 text-sm text-ink-300">
+        <p className="mb-4 text-sm text-fg-muted">
           Only one operator view can drive the outputs. Switch to that tab, or take over here; the
           other tab stops.
         </p>
@@ -191,20 +191,20 @@ function OperatorView() {
 
   return (
     <div className="flex h-full flex-col" data-density="stage">
-      <header className="flex shrink-0 flex-wrap items-center gap-3 border-b border-ink-800 bg-ink-900 px-3 py-2">
+      <header className="flex shrink-0 flex-wrap items-center gap-3 border-b border-line-subtle bg-panel px-3 py-2">
         <Link to="/" title="All shows">
           <img src="/favicon.svg" alt="Scrim" className="size-7" />
         </Link>
         <h1 className="max-w-72 truncate text-base font-semibold">{snap.show.name}</h1>
-        <div className="flex overflow-hidden rounded-md border border-ink-700">
+        <div className="flex overflow-hidden rounded-md border border-line-subtle">
           <button
-            className={`flex items-center gap-1.5 px-3 py-1 text-sm ${!showMode ? 'bg-ink-700 text-ink-100' : 'text-ink-300 hover:bg-ink-800'}`}
+            className={`flex items-center gap-1.5 px-3 py-1 text-sm ${!showMode ? 'bg-fg text-app' : 'text-fg-muted hover:bg-control-hover'}`}
             onClick={() => host.setMode('rehearsal')}
           >
             <LockOpen size={14} /> Rehearsal
           </button>
           <button
-            className={`flex items-center gap-1.5 px-3 py-1 text-sm ${showMode ? 'bg-live text-white' : 'text-ink-300 hover:bg-ink-800'}`}
+            className={`flex items-center gap-1.5 px-3 py-1 text-sm ${showMode ? 'bg-control-active text-fg' : 'text-fg-muted hover:bg-control-hover'}`}
             onClick={() => host.setMode('show')}
           >
             <Lock size={14} /> Show
@@ -287,10 +287,10 @@ function MessageStrip({ typing }: { typing: boolean }) {
   const [resumeHidden, setResumeHidden] = useState(false);
   const resumed = !resumeHidden && !!snap.resumedAt && !!snap.state.lastFired;
   return (
-    <div className="flex h-11 shrink-0 items-center gap-3 overflow-hidden border-b border-ink-800 px-4 text-sm">
+    <div className="flex h-11 shrink-0 items-center gap-3 overflow-hidden border-b border-line-subtle px-4 text-sm">
       {resumed && <ResumeMessage onDone={() => setResumeHidden(true)} />}
       {typing && (
-        <span className="ml-auto rounded border border-ink-700 px-2 py-0.5 text-xs text-ink-300">
+        <span className="ml-auto rounded border border-line-subtle px-2 py-0.5 text-xs text-fg-muted">
           Keys paused while typing · Esc still panics
         </span>
       )}
@@ -302,7 +302,7 @@ function ResumeMessage({ onDone }: { onDone: () => void }) {
   const [host, snap] = useHost();
   const cue = cueOrder(snap.show).find((c) => c.id === snap.state.lastFired);
   return (
-    <div className="flex min-w-0 flex-1 items-center gap-3 text-amber-100">
+    <div className="flex min-w-0 flex-1 items-center gap-3 text-fg">
       <span className="truncate">
         Resumed where the show left off — last cue “{cue?.name}”. Outputs show the same picture as
         before the reload.

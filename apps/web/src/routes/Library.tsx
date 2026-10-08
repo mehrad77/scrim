@@ -102,7 +102,7 @@ export function Library() {
           <img src="/favicon.svg" alt="" className="size-10" />
           <div>
             <h1 className="text-2xl font-semibold tracking-tight">Scrim</h1>
-            <p className="text-sm text-ink-300">
+            <p className="text-sm text-fg-muted">
               Show control in your browser. Build a show, press GO.
             </p>
           </div>
@@ -132,23 +132,23 @@ export function Library() {
       </header>
 
       {!opfsSupported() && (
-        <div className="rounded-lg border border-amber-500/40 bg-amber-500/10 p-4 text-sm text-amber-200">
+        <div className="rounded-control border border-line-control bg-panel p-4 text-sm text-warn">
           This browser can't store media for offline shows. Use a current Chrome or Edge on the show
           machine.
         </div>
       )}
 
       {busy && (
-        <div className="rounded-lg border border-ink-700 bg-ink-850 p-3 text-sm text-ink-200">
+        <div className="rounded-lg border border-line-subtle bg-control p-3 text-sm text-fg-muted">
           {busy}
         </div>
       )}
 
       <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {shows === null ? null : shows.length === 0 ? (
-          <div className="col-span-full rounded-xl border border-dashed border-ink-700 p-10 text-center">
-            <p className="text-ink-200">No shows on this machine yet.</p>
-            <p className="mt-1 text-sm text-ink-400">
+          <div className="col-span-full rounded-xl border border-dashed border-line-subtle p-10 text-center">
+            <p className="text-fg-muted">No shows on this machine yet.</p>
+            <p className="mt-1 text-sm text-fg-subtle">
               Start a new one, import a .scrim file, or open the demo to see an interactive show.
             </p>
           </div>
@@ -160,7 +160,7 @@ export function Library() {
       </section>
 
       {storage && (
-        <footer className="mt-auto flex flex-wrap items-center gap-3 text-xs text-ink-400">
+        <footer className="mt-auto flex flex-wrap items-center gap-3 text-xs text-fg-subtle">
           <HardDrive size={14} />
           <span>
             {formatBytes(storage.usage)} used of {formatBytes(storage.quota)} available
@@ -193,14 +193,14 @@ function ShowCard({
   const size = show.media.reduce((n, m) => n + m.size, 0);
   const run = () => window.open(`/show/${show.id}/run`, `scrim-run-${show.id}`);
   return (
-    <article className="group flex flex-col rounded-xl border border-ink-800 bg-ink-900 p-4 transition-colors hover:border-ink-600">
+    <article className="group flex flex-col rounded-xl border border-line-subtle bg-panel p-4 transition-colors hover:border-line-control">
       <Link to={`/show/${show.id}`} className="flex-1">
         <h2 className="truncate text-base font-semibold">{show.name}</h2>
-        <p className="mt-1 text-xs text-ink-400">
+        <p className="mt-1 text-xs text-fg-subtle">
           {show.cues.length} cues · {show.scenes.length} scenes · {show.outputs.length} output
           {show.outputs.length === 1 ? '' : 's'} · {formatBytes(size)} media
         </p>
-        <p className="mt-0.5 text-xs text-ink-500">Edited {timeAgo(show.updatedAt)}</p>
+        <p className="mt-0.5 text-xs text-fg-subtle">Edited {timeAgo(show.updatedAt)}</p>
       </Link>
       <div className="mt-4 flex items-center gap-1">
         <Button size="sm" variant="go" icon={<Play size={14} />} onClick={run}>

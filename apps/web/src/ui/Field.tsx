@@ -9,7 +9,7 @@ import {
 import { cn } from '../lib/cn.js';
 
 const control =
-  'w-full min-w-0 rounded-md border border-ink-700 bg-ink-900 px-2 text-sm text-ink-100 placeholder:text-ink-500 focus:border-ink-400 focus:outline-none disabled:opacity-50';
+  'w-full min-w-0 rounded-control border border-line-control bg-control px-2 text-sm text-fg placeholder:text-fg-subtle focus:border-fg-muted focus:outline-none disabled:opacity-50';
 
 export function Field({
   label,
@@ -23,10 +23,10 @@ export function Field({
   className?: string;
 }) {
   return (
-    <label className={cn('flex flex-col gap-1 text-xs text-ink-300', className)}>
+    <label className={cn('flex flex-col gap-1 text-xs text-fg-muted', className)}>
       <span>{label}</span>
       {children}
-      {hint && <span className="text-[11px] text-ink-400">{hint}</span>}
+      {hint && <span className="text-[11px] text-fg-subtle">{hint}</span>}
     </label>
   );
 }
@@ -116,7 +116,7 @@ export function NumberInput({
         onKeyDown={(e) => e.key === 'Enter' && (e.target as HTMLInputElement).blur()}
       />
       {suffix && (
-        <span className="pointer-events-none absolute top-1/2 right-2 -translate-y-1/2 text-[11px] text-ink-400">
+        <span className="pointer-events-none absolute top-1/2 right-2 -translate-y-1/2 text-[11px] text-fg-subtle">
           {suffix}
         </span>
       )}
@@ -138,10 +138,10 @@ export function Toggle({
   label: ReactNode;
 }) {
   return (
-    <label className="flex cursor-pointer items-center gap-2 text-sm text-ink-200 select-none">
+    <label className="flex cursor-pointer items-center gap-2 text-sm text-fg-muted select-none">
       <input
         type="checkbox"
-        className="size-4 accent-rose-500"
+        className="size-4 accent-accent"
         checked={checked}
         onChange={(e) => onChange(e.target.checked)}
       />

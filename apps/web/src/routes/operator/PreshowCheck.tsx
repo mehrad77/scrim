@@ -222,16 +222,16 @@ export function PreshowCheck({ onClose }: { onClose: () => void }) {
       onClose={onClose}
       // In the operator view Esc is PANIC only; this dialog closes with its button.
       onCancel={(e) => e.preventDefault()}
-      className="m-auto max-h-[90vh] w-[min(760px,calc(100vw-32px))] rounded-xl border border-ink-700 bg-ink-850 p-0 text-ink-100 shadow-2xl backdrop:bg-black/70"
+      className="m-auto max-h-[90vh] w-[min(760px,calc(100vw-32px))] rounded-overlay border border-line-strong bg-overlay p-0 text-fg shadow-overlay backdrop:bg-black/70"
     >
-      <div className="flex items-center gap-3 border-b border-ink-700 p-4">
+      <div className="flex items-center gap-3 border-b border-line-subtle p-4">
         <h2 className="text-lg font-semibold">Pre-show check</h2>
         {blocking === 0 ? (
-          <span className="rounded bg-go px-2 py-0.5 text-sm font-bold text-ink-950">
+          <span className="rounded bg-go px-2 py-0.5 text-sm font-bold text-app">
             READY{warnings ? ` · ${warnings} warning${warnings > 1 ? 's' : ''}` : ''}
           </span>
         ) : (
-          <span className="text-sm text-ink-300">
+          <span className="text-sm text-fg-muted">
             {blocking} item{blocking > 1 ? 's' : ''} to clear
           </span>
         )}
@@ -239,7 +239,7 @@ export function PreshowCheck({ onClose }: { onClose: () => void }) {
           Close
         </Button>
       </div>
-      <ul className="divide-y divide-ink-800 overflow-auto">
+      <ul className="divide-y divide-line-subtle overflow-auto">
         {items.map((i) => {
           const s = effective(i);
           return (
@@ -247,7 +247,7 @@ export function PreshowCheck({ onClose }: { onClose: () => void }) {
               <StatusIcon status={s} />
               <div className="min-w-0 flex-1">
                 <div className="text-sm font-medium">{i.title}</div>
-                {i.detail && <div className="mt-0.5 text-xs text-ink-400">{i.detail}</div>}
+                {i.detail && <div className="mt-0.5 text-xs text-fg-subtle">{i.detail}</div>}
               </div>
               <div className="flex shrink-0 items-center gap-2">
                 {i.action}
@@ -255,7 +255,7 @@ export function PreshowCheck({ onClose }: { onClose: () => void }) {
                   <label className="flex items-center gap-1.5 text-xs">
                     <input
                       type="checkbox"
-                      className="size-4 accent-green-500"
+                      className="size-4 accent-fg"
                       checked={!!confirmed[i.id]}
                       onChange={(e) => setConfirmed({ ...confirmed, [i.id]: e.target.checked })}
                     />
@@ -276,12 +276,12 @@ function StatusIcon({ status }: { status: Status }) {
     case 'ok':
       return <CheckCircle2 size={18} className="mt-0.5 shrink-0 text-go" />;
     case 'warn':
-      return <AlertTriangle size={18} className="mt-0.5 shrink-0 text-amber-400" />;
+      return <AlertTriangle size={18} className="mt-0.5 shrink-0 text-warn" />;
     case 'fail':
-      return <XCircle size={18} className="mt-0.5 shrink-0 text-live" />;
+      return <XCircle size={18} className="mt-0.5 shrink-0 text-fault" />;
     case 'pending':
-      return <Loader2 size={18} className="mt-0.5 shrink-0 animate-spin text-ink-400" />;
+      return <Loader2 size={18} className="mt-0.5 shrink-0 animate-spin text-fg-subtle" />;
     case 'manual':
-      return <Circle size={18} className="mt-0.5 shrink-0 text-ink-400" />;
+      return <Circle size={18} className="mt-0.5 shrink-0 text-fg-subtle" />;
   }
 }

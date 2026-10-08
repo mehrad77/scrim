@@ -1,15 +1,17 @@
 import type { ButtonHTMLAttributes, ReactNode } from 'react';
 import { cn } from '../lib/cn.js';
 
-type Variant = 'primary' | 'secondary' | 'ghost' | 'danger' | 'go';
+type Variant = 'primary' | 'accent' | 'secondary' | 'ghost' | 'danger' | 'go';
 type Size = 'sm' | 'md' | 'lg';
 
 const variants: Record<Variant, string> = {
-  primary: 'bg-ink-100 text-ink-950 hover:bg-white',
-  secondary: 'bg-ink-800 text-ink-100 hover:bg-ink-700 border border-ink-700',
-  ghost: 'text-ink-200 hover:bg-ink-800 hover:text-ink-100',
-  danger: 'bg-live text-white hover:bg-rose-400',
-  go: 'bg-go text-ink-950 hover:bg-green-400',
+  primary: 'bg-fg text-app hover:bg-fg-muted',
+  // The brand accent: editor and Library only, never on operator surfaces.
+  accent: 'bg-accent text-accent-fg hover:bg-accent-hover',
+  secondary: 'bg-control text-fg hover:bg-control-hover border border-line-control',
+  ghost: 'text-fg-muted hover:bg-control-hover hover:text-fg',
+  danger: 'border border-line-control bg-control text-fault hover:bg-control-hover',
+  go: 'bg-lamp-go text-on-lamp hover:brightness-110',
 };
 
 const sizes: Record<Size, string> = {
@@ -37,7 +39,7 @@ export function Button({
     <button
       type={type}
       className={cn(
-        'inline-flex shrink-0 items-center justify-center rounded-md font-medium transition-colors select-none disabled:pointer-events-none disabled:opacity-40',
+        'inline-flex shrink-0 items-center justify-center rounded-control font-medium transition-colors select-none disabled:pointer-events-none disabled:opacity-40',
         variants[variant],
         sizes[size],
         className,

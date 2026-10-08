@@ -29,7 +29,7 @@ export function CueStack() {
           return (
             <div key={scene.id} className="mb-1">
               <button
-                className="w-full px-2 pt-2 pb-1 text-left text-[11px] font-semibold tracking-wide text-ink-400 uppercase hover:text-ink-200"
+                className="w-full px-2 pt-2 pb-1 text-left text-[11px] font-semibold tracking-wide text-fg-subtle uppercase hover:text-fg-muted"
                 onClick={() => host.dispatch({ type: 'standby', cueId: cues[0]!.id })}
                 title="Put the first cue of this scene on standby"
               >
@@ -52,27 +52,27 @@ export function CueStack() {
                     className={cn(
                       'flex cursor-pointer items-center gap-2 rounded-md border px-2 py-2',
                       isStandby
-                        ? 'border-standby bg-amber-500/10'
+                        ? 'border-standby bg-lamp-standby-tint'
                         : isLast
-                          ? 'border-go/50 bg-green-500/10'
-                          : 'border-transparent hover:bg-ink-800',
+                          ? 'border-go bg-lamp-go-tint'
+                          : 'border-transparent hover:bg-control-hover',
                     )}
                   >
-                    <span className="w-6 text-right font-mono text-xs text-ink-400">
+                    <span className="w-6 text-right font-mono text-xs text-fg-subtle">
                       {numbers.get(cue.id)}
                     </span>
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-1.5 truncate text-sm">
                         {changed(cue.updatedAt) && (
                           <span
-                            className="size-1.5 shrink-0 rounded-full bg-sky-400"
+                            className="size-1.5 shrink-0 rounded-full bg-info"
                             title="Changed since the last run"
                           />
                         )}
                         {cue.name}
                       </div>
                       {cue.notes && (
-                        <div className="truncate text-[11px] text-ink-400">{cue.notes}</div>
+                        <div className="truncate text-[11px] text-fg-subtle">{cue.notes}</div>
                       )}
                     </div>
                     {cue.follow.auto && (
@@ -82,12 +82,12 @@ export function CueStack() {
                       </span>
                     )}
                     {isStandby && (
-                      <span className="rounded bg-standby px-1 text-[10px] font-bold text-ink-950">
+                      <span className="rounded bg-standby px-1 text-[10px] font-bold text-app">
                         NEXT
                       </span>
                     )}
                     {isLast && (
-                      <span className="rounded bg-go px-1 text-[10px] font-bold text-ink-950">
+                      <span className="rounded bg-go px-1 text-[10px] font-bold text-app">
                         LIVE
                       </span>
                     )}
@@ -98,8 +98,8 @@ export function CueStack() {
           );
         })}
         {show.cues.some((c) => changed(c.updatedAt)) && (
-          <p className="flex items-center gap-1.5 px-2 py-2 text-[11px] text-ink-500">
-            <span className="size-1.5 rounded-full bg-sky-400" /> changed since the last run
+          <p className="flex items-center gap-1.5 px-2 py-2 text-[11px] text-fg-subtle">
+            <span className="size-1.5 rounded-full bg-info" /> changed since the last run
           </p>
         )}
       </div>

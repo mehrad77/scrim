@@ -22,7 +22,7 @@ export function AudiencePanel() {
     <Panel title="Audience & remotes" className="h-full" bodyClassName="p-2">
       {relay.status === 'off' ? (
         <div className="flex flex-col items-start gap-2 p-2">
-          <p className="text-sm text-ink-300">
+          <p className="text-sm text-fg-muted">
             {needsRoom
               ? 'Open the room so audience phones and performer remotes can join. The show keeps running if the network drops.'
               : 'This show has no audience moments or triggers, so it does not need a room.'}
@@ -76,20 +76,17 @@ function RoomInfo() {
   const [, setBase] = useState(appBase);
   const room = relay.room;
   const local = isLocalHost(new URL(appBase()).hostname);
-  if (!room) return <p className="p-2 text-sm text-ink-300">{relay.error ?? 'Opening room…'}</p>;
+  if (!room) return <p className="p-2 text-sm text-fg-muted">{relay.error ?? 'Opening room…'}</p>;
   const url = who === 'audience' ? audienceUrl(room) : remoteUrl(room);
   return (
-    <div className="rounded-lg border border-ink-800 p-2">
+    <div className="rounded-lg border border-line-subtle p-2">
       <div className="flex items-center gap-2">
         <span
-          className={cn(
-            'size-2 rounded-full',
-            relay.status === 'open' ? 'bg-go' : 'animate-pulse bg-amber-400',
-          )}
+          className={cn('size-2 rounded-full', relay.status === 'open' ? 'bg-fg-muted' : 'bg-warn')}
         />
         <span className="text-sm">Room</span>
         <span className="font-mono text-lg font-bold tracking-widest">{room.code}</span>
-        <span className="ml-auto flex items-center gap-2 text-xs text-ink-300">
+        <span className="ml-auto flex items-center gap-2 text-xs text-fg-muted">
           <span className="flex items-center gap-1" title="Audience phones">
             <Users size={13} /> {relay.presence.audience}
           </span>
@@ -99,7 +96,7 @@ function RoomInfo() {
         </span>
       </div>
       {relay.status !== 'open' && (
-        <p className="mt-1 text-xs text-amber-300">
+        <p className="mt-1 text-xs text-warn">
           {relay.error ?? 'Reconnecting… audience moments use their defaults if this lasts.'}
         </p>
       )}
@@ -110,7 +107,7 @@ function RoomInfo() {
             onClick={() => setWho(w)}
             className={cn(
               'rounded px-2 py-0.5 text-xs',
-              who === w ? 'bg-ink-700' : 'text-ink-400 hover:bg-ink-800',
+              who === w ? 'bg-control-active' : 'text-fg-subtle hover:bg-control-hover',
             )}
           >
             {w === 'audience' ? 'Audience QR' : 'Performer remote QR'}
@@ -120,7 +117,7 @@ function RoomInfo() {
       <div className="mt-2 flex gap-3">
         <Qr text={url} />
         <div className="flex min-w-0 flex-col gap-2 text-xs">
-          <p className="text-ink-300">
+          <p className="text-fg-muted">
             {who === 'audience'
               ? 'Project this, print it, or put it on the tickets.'
               : 'Only for performers: it can fire triggers.'}
@@ -141,7 +138,7 @@ function RoomInfo() {
         </div>
       </div>
       {local && (
-        <div className="mt-2 rounded bg-amber-950/60 p-2 text-xs text-amber-200">
+        <div className="mt-2 rounded-control border border-line-control p-2 text-xs text-warn">
           Phones can't open “localhost”. Enter the address phones should use, such as this machine's
           network address:
           <CommitInput
@@ -185,7 +182,7 @@ function MomentCard({
     <div
       className={cn(
         'rounded-lg border p-2',
-        open ? 'border-rose-500/60 bg-rose-500/5' : 'border-ink-800',
+        open ? 'border-go bg-lamp-go-tint' : 'border-line-subtle',
       )}
     >
       <div className="flex items-center gap-2">
@@ -199,8 +196,8 @@ function MomentCard({
       </div>
       {(open || ms.status === 'closed') && <Results moment={m} ms={ms} />}
       {ms.status === 'closed' && (
-        <div className="mt-1 text-xs text-ink-300">
-          Result: <span className="font-mono text-ink-100">{formatValue(ms.result)}</span>
+        <div className="mt-1 text-xs text-fg-muted">
+          Result: <span className="font-mono text-fg">{formatValue(ms.result)}</span>
           {ms.usedDefault && (
             <Badge tone="warn" className="ml-2">
               Default — no input
@@ -210,15 +207,15 @@ function MomentCard({
       )}
       {pending.length > 0 && (
         <div className="mt-2 flex flex-col gap-1">
-          <div className="text-[11px] text-ink-400">Waiting for approval ({pending.length})</div>
+          <div className="text-[11px] text-fg-subtle">Waiting for approval ({pending.length})</div>
           {pending.slice(0, 8).map((e) => (
             <div
               key={e.id}
-              className="flex items-center gap-2 rounded bg-ink-850 px-2 py-1 text-sm"
+              className="flex items-center gap-2 rounded bg-control px-2 py-1 text-sm"
             >
               <span className="min-w-0 flex-1 break-words">{e.text}</span>
               <button
-                className="rounded p-1 text-green-300 hover:bg-ink-700"
+                className="rounded-control p-1 text-go hover:bg-control-active"
                 title="Approve"
                 onClick={() =>
                   host.dispatch({ type: 'moderate', momentId: m.id, entryId: e.id, approve: true })
@@ -227,7 +224,7 @@ function MomentCard({
                 <Check size={14} />
               </button>
               <button
-                className="rounded p-1 text-rose-300 hover:bg-ink-700"
+                className="rounded-control p-1 text-fault hover:bg-control-active"
                 title="Reject"
                 onClick={() =>
                   host.dispatch({ type: 'moderate', momentId: m.id, entryId: e.id, approve: false })
@@ -306,9 +303,9 @@ function Results({ moment: m, ms }: { moment: Moment; ms: MomentState }) {
         {items.map((i) => (
           <div key={i.id} className="flex items-center gap-2 text-xs">
             <span className="w-24 truncate">{i.label}</span>
-            <div className="h-3 flex-1 overflow-hidden rounded bg-ink-800">
+            <div className="h-3 flex-1 overflow-hidden rounded bg-control-hover">
               <div
-                className="h-full bg-rose-500 transition-[width]"
+                className="h-full bg-fg-muted transition-[width]"
                 style={{ width: `${((ms.tally[i.id] ?? 0) / total) * 100}%` }}
               />
             </div>
@@ -326,7 +323,7 @@ function Results({ moment: m, ms }: { moment: Moment; ms: MomentState }) {
       </div>
     );
   return (
-    <div className="mt-1 text-xs text-ink-400">
+    <div className="mt-1 text-xs text-fg-subtle">
       {ms.entries.filter((e) => e.status === 'approved').length} approved · {ms.entries.length}{' '}
       received
     </div>

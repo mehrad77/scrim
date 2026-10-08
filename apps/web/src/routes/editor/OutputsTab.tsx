@@ -56,15 +56,15 @@ function OutputsPanel() {
         </Button>
       }
     >
-      <p className="mb-3 text-xs text-ink-400">
+      <p className="mb-3 text-xs text-fg-subtle">
         Each output is a clean, full-screen picture: a projector, a TV, or a screen on another
         device. Its canvas size is the pixel space you lay layers out in.
       </p>
       <div className="flex flex-col gap-3">
         {show.outputs.map((o) => (
-          <div key={o.id} className="rounded-lg border border-ink-800 p-3">
+          <div key={o.id} className="rounded-lg border border-line-subtle p-3">
             <div className="mb-3 flex items-center gap-2">
-              <Monitor size={16} className="text-ink-400" />
+              <Monitor size={16} className="text-fg-subtle" />
               <CommitInput
                 value={o.name}
                 onCommit={(name) => set(o.id, { name })}
@@ -130,7 +130,7 @@ function OutputsPanel() {
                 <input
                   type="color"
                   value={o.background}
-                  className="h-8 w-full rounded border border-ink-700 bg-ink-900"
+                  className="h-8 w-full rounded border border-line-subtle bg-panel"
                   onChange={(e) => set(o.id, { background: e.target.value }, 'bg')}
                 />
               </Field>
@@ -168,17 +168,17 @@ function CornerPin({
   const labels = ['Top left', 'Top right', 'Bottom right', 'Bottom left'];
   return (
     <details className="mt-3 text-xs">
-      <summary className="cursor-pointer text-ink-300">
+      <summary className="cursor-pointer text-fg-muted">
         Corner pin (keystone correction){output.cornerPin ? ' — on' : ''}
       </summary>
-      <p className="my-2 text-ink-400">
+      <p className="my-2 text-fg-subtle">
         Move each corner of the picture by a number of pixels to square it up on a tilted surface.
         Adjust while the output is open.
       </p>
       <div className="grid grid-cols-4 gap-2">
         {pin.map((p, i) => (
           <div key={i}>
-            <div className="mb-1 text-ink-400">{labels[i]}</div>
+            <div className="mb-1 text-fg-subtle">{labels[i]}</div>
             <div className="flex gap-1">
               {(['x', 'y'] as const).map((axis) => (
                 <NumberInput
@@ -233,7 +233,7 @@ function AudioPanel() {
         </Button>
       }
     >
-      <p className="mb-3 text-xs text-ink-400">
+      <p className="mb-3 text-xs text-fg-subtle">
         Sounds and video audio play through a bus. Choose which device each bus uses on{' '}
         <em>this machine</em>; the choice stays here, not in the show file.
       </p>
@@ -255,7 +255,7 @@ function AudioPanel() {
       )}
       {show.audioBuses.map((b) => (
         <div key={b.id} className="mb-2 flex items-center gap-2">
-          <Speaker size={15} className="shrink-0 text-ink-400" />
+          <Speaker size={15} className="shrink-0 text-fg-subtle" />
           <CommitInput
             className="w-32"
             value={b.name}

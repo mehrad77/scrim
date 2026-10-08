@@ -99,19 +99,19 @@ export function OutputsPanel() {
               key={o.id}
               className={cn(
                 'rounded-lg border p-2',
-                health === 'lost' ? 'border-live bg-rose-950/30' : 'border-ink-800',
+                health === 'lost' ? 'border-lamp-fault' : 'border-line-subtle',
               )}
             >
               <div className="relative aspect-video overflow-hidden rounded bg-black">
                 {live ? (
                   <Stage show={snap.show} state={snap.state} outputId={o.id} variant="thumb" />
                 ) : (
-                  <div className="flex size-full items-center justify-center text-xs text-ink-500">
+                  <div className="flex size-full items-center justify-center text-xs text-fg-subtle">
                     Previews off
                   </div>
                 )}
                 {health === 'lost' && (
-                  <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-rose-950/80 text-sm font-semibold text-rose-100">
+                  <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-app/85 text-sm font-semibold text-fault">
                     Output window lost
                     <div className="flex gap-2">
                       <Button size="sm" variant="danger" onClick={() => void open(o)}>
@@ -125,7 +125,7 @@ export function OutputsPanel() {
                 )}
               </div>
               <div className="mt-2 flex flex-wrap items-center gap-1.5">
-                <Monitor size={14} className="text-ink-400" />
+                <Monitor size={14} className="text-fg-subtle" />
                 <span className="text-sm font-medium">{o.name}</span>
                 {health === 'ok' && (
                   <Badge tone="good">Open{links.length > 1 ? ` ×${links.length}` : ''}</Badge>
@@ -159,7 +159,7 @@ export function OutputsPanel() {
               </div>
               {windowManagementSupported() && (
                 <div className="mt-1.5 flex items-center gap-2">
-                  <span className="text-[11px] text-ink-400">Display</span>
+                  <span className="text-[11px] text-fg-subtle">Display</span>
                   {screens ? (
                     <Select
                       className="h-7 text-xs"
@@ -189,7 +189,7 @@ export function OutputsPanel() {
         })}
       </div>
       {snap.relay.room && (
-        <p className="mt-2 text-[11px] text-ink-500">
+        <p className="mt-2 text-[11px] text-fg-subtle">
           Audience page: {audienceUrl(snap.relay.room)}
         </p>
       )}

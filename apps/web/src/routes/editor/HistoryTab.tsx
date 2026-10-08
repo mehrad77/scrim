@@ -41,15 +41,15 @@ export function HistoryTab() {
           </Button>
         }
       >
-        <p className="mb-2 text-xs text-ink-400">
+        <p className="mb-2 text-xs text-fg-subtle">
           Scrim keeps a version every few minutes while you edit, and before every restore.
         </p>
         {versions.length === 0 && <Empty>No versions yet.</Empty>}
         {versions.map((v) => (
-          <div key={v.id} className="flex items-center gap-2 border-b border-ink-800 px-1 py-2">
+          <div key={v.id} className="flex items-center gap-2 border-b border-line-subtle px-1 py-2">
             <div className="flex-1">
               <div className="text-sm">{v.label}</div>
-              <div className="text-xs text-ink-400">
+              <div className="text-xs text-fg-subtle">
                 {new Date(v.savedAt).toLocaleString()} · {v.show.cues.length} cues ·{' '}
                 {v.show.layers.length} layers
               </div>
@@ -78,7 +78,7 @@ export function HistoryTab() {
         ))}
       </Panel>
       <Panel title="Run logs" bodyClassName="p-2">
-        <p className="mb-2 text-xs text-ink-400">
+        <p className="mb-2 text-xs text-fg-subtle">
           Every rehearsal and performance is logged: cues fired, audience results and warnings.
         </p>
         {runs.length === 0 && <Empty>No runs yet.</Empty>}
@@ -95,7 +95,7 @@ function RunItem({ run }: { run: RunRecord }) {
   const warnings = run.entries.filter((e) => e.kind === 'warning').length;
   const minutes = Math.round((run.endedAt - run.startedAt) / 60000);
   return (
-    <div className="border-b border-ink-800">
+    <div className="border-b border-line-subtle">
       <button
         className="flex w-full items-center gap-2 px-1 py-2 text-left"
         onClick={() => setOpen(!open)}
@@ -103,7 +103,7 @@ function RunItem({ run }: { run: RunRecord }) {
         <ChevronDown size={14} className={cn('transition-transform', !open && '-rotate-90')} />
         <div className="flex-1">
           <div className="text-sm">{new Date(run.startedAt).toLocaleString()}</div>
-          <div className="text-xs text-ink-400">
+          <div className="text-xs text-fg-subtle">
             {minutes} min · {run.cuesFired} cues{warnings ? ` · ${warnings} warnings` : ''} ·{' '}
             {timeAgo(run.startedAt)}
           </div>
@@ -116,10 +116,10 @@ function RunItem({ run }: { run: RunRecord }) {
               key={i}
               className={cn(
                 'py-0.5',
-                e.kind === 'warning' && 'text-amber-300',
-                e.kind === 'panic' && 'text-rose-300',
-                e.kind === 'cue' && 'text-ink-100',
-                e.kind === 'info' && 'text-ink-400',
+                e.kind === 'warning' && 'text-warn',
+                e.kind === 'panic' && 'text-fault',
+                e.kind === 'cue' && 'text-fg',
+                e.kind === 'info' && 'text-fg-subtle',
               )}
             >
               {new Date(e.at).toLocaleTimeString()} {e.text}

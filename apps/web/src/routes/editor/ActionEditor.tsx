@@ -139,12 +139,12 @@ export function ActionList({
         <div
           key={i}
           className={cn(
-            'group rounded-md border border-ink-700 bg-ink-850 p-2',
-            a.type === 'branch' && 'border-violet-500/40',
+            'group rounded-md border border-line-subtle bg-control p-2',
+            a.type === 'branch' && 'border-line-strong',
           )}
         >
           <div className="flex items-start gap-2">
-            <span className="mt-1.5 w-32 shrink-0 text-xs font-medium text-ink-200">
+            <span className="mt-1.5 w-32 shrink-0 text-xs font-medium text-fg-muted">
               {ACTION_LABELS[a.type]}
             </span>
             <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2">
@@ -211,7 +211,7 @@ function ActionFields({
     );
   const fadeFields = 'duration' in a && 'easing' in a && (
     <>
-      <span className="text-xs text-ink-400">over</span>
+      <span className="text-xs text-fg-subtle">over</span>
       <NumberInput
         className="w-20"
         value={a.duration}
@@ -246,7 +246,7 @@ function ActionFields({
       return (
         <>
           {layerPick()}
-          <span className="text-xs text-ink-400">to</span>
+          <span className="text-xs text-fg-subtle">to</span>
           <NumberInput
             className="w-20"
             value={Math.round(a.opacity * 100)}
@@ -275,7 +275,7 @@ function ActionFields({
       return (
         <>
           {layerPick((k) => k === 'video' || k === 'audio')}
-          <span className="text-xs text-ink-400">to</span>
+          <span className="text-xs text-fg-subtle">to</span>
           <NumberInput
             className="w-24"
             value={a.time}
@@ -326,7 +326,7 @@ function ActionFields({
       return (
         <>
           <VarPick show={show} value={a.varId} onChange={(varId) => onChange({ ...a, varId })} />
-          <span className="text-xs text-ink-400">to</span>
+          <span className="text-xs text-fg-subtle">to</span>
           {def?.options?.length ? (
             <Select
               className="w-36"
@@ -420,7 +420,7 @@ function ActionFields({
     case 'stopAll':
       return (
         <>
-          <span className="text-xs text-ink-400">fade every layer and sound out over</span>
+          <span className="text-xs text-fg-subtle">fade every layer and sound out over</span>
           <NumberInput
             className="w-20"
             value={a.duration}
@@ -474,7 +474,7 @@ function counterStart(show: Show, layerId: string): number {
 function Labeled({ label, children }: { label: ReactNode; children: ReactNode }) {
   return (
     <div className="flex gap-2">
-      <span className="mt-1.5 flex w-12 shrink-0 items-center gap-1 text-xs text-violet-300">
+      <span className="mt-1.5 flex w-12 shrink-0 items-center gap-1 text-xs font-medium text-fg-muted">
         {label}
       </span>
       <div className="min-w-0 flex-1">{children}</div>
@@ -495,7 +495,7 @@ function Pick({
 }) {
   return (
     <Select
-      className={cn('w-44', !value && 'border-amber-500/60')}
+      className={cn('w-44', !value && 'border-dashed')}
       value={value}
       onChange={(e) => onChange(e.target.value)}
     >
@@ -551,7 +551,7 @@ export function Conditions({
         const def = show.vars.find((v) => v.id === c.varId);
         return (
           <div key={i} className="flex flex-wrap items-center gap-2">
-            <span className="w-12 text-xs text-violet-300">{i === 0 ? 'if' : 'and'}</span>
+            <span className="w-12 text-xs font-medium text-fg-muted">{i === 0 ? 'if' : 'and'}</span>
             <VarPick show={show} value={c.varId} onChange={(varId) => set(i, { ...c, varId })} />
             <Select
               className="w-24"
@@ -597,7 +597,7 @@ export function Conditions({
         );
       })}
       <button
-        className="flex w-fit items-center gap-1 text-xs text-ink-300 hover:text-ink-100"
+        className="flex w-fit items-center gap-1 text-xs text-fg-muted hover:text-fg"
         onClick={() =>
           onChange([...conditions, { varId: show.vars[0]?.id ?? '', op: 'eq', value: '' }])
         }

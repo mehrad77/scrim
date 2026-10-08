@@ -90,7 +90,7 @@ export function Stage(props: StageProps) {
 
   if (!output) {
     return (
-      <div className="flex size-full items-center justify-center bg-black text-xs text-ink-400">
+      <div className="flex size-full items-center justify-center bg-black text-xs text-fg-subtle">
         No such output
       </div>
     );

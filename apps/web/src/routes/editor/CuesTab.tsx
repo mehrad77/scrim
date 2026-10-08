@@ -110,7 +110,7 @@ function CueList() {
         return (
           <div key={scene.id} className="mb-2">
             <div className="group flex items-center gap-1 rounded px-1 py-1">
-              <ChevronRight size={14} className="text-ink-500" />
+              <ChevronRight size={14} className="text-fg-subtle" />
               <CommitInput
                 aria-label="Scene name"
                 value={scene.name}
@@ -120,7 +120,7 @@ function CueList() {
                     if (s && name.trim()) s.name = name.trim();
                   })
                 }
-                className="h-7 border-transparent bg-transparent text-xs font-semibold tracking-wide text-ink-300 uppercase hover:border-ink-700"
+                className="h-7 border-transparent bg-transparent text-xs font-semibold tracking-wide text-fg-muted uppercase hover:border-line-subtle"
               />
               <div className="flex opacity-0 group-hover:opacity-100">
                 <IconButton
@@ -165,15 +165,15 @@ function CueList() {
                   onClick={() => select({ cueId: cue.id })}
                   className={cn(
                     'group flex cursor-pointer items-center gap-2 rounded py-1.5 pr-1 pl-3',
-                    cue.id === cueId ? 'bg-ink-700' : 'hover:bg-ink-800',
+                    cue.id === cueId ? 'bg-control-active' : 'hover:bg-control-hover',
                   )}
                 >
-                  <span className="w-6 text-right font-mono text-xs text-ink-400">
+                  <span className="w-6 text-right font-mono text-xs text-fg-subtle">
                     {numbers.get(cue.id)}
                   </span>
                   <div className="min-w-0 flex-1">
                     <div className="truncate text-sm">{cue.name}</div>
-                    <div className="truncate text-[11px] text-ink-400">
+                    <div className="truncate text-[11px] text-fg-subtle">
                       {cue.actions.length} action{cue.actions.length === 1 ? '' : 's'}
                       {cue.notes && ` · ${cue.notes}`}
                     </div>
@@ -271,21 +271,21 @@ function CueEditor() {
           <CommitInput value={cue.name} onCommit={(name) => set((c) => void (c.name = name))} />
         </Field>
         <div>
-          <div className="mb-2 text-xs text-ink-300">When this cue fires</div>
+          <div className="mb-2 text-xs text-fg-muted">When this cue fires</div>
           <ActionList
             show={show}
             actions={cue.actions}
             onChange={(actions) => set((c) => void (c.actions = actions))}
           />
         </div>
-        <div className="flex flex-wrap items-center gap-3 rounded-md border border-ink-800 p-2">
+        <div className="flex flex-wrap items-center gap-3 rounded-md border border-line-subtle p-2">
           <Toggle
             checked={cue.follow.auto}
             onChange={(auto) => set((c) => void (c.follow.auto = auto))}
             label="Then fire the next cue automatically"
           />
           {cue.follow.auto && (
-            <div className="flex items-center gap-2 text-xs text-ink-300">
+            <div className="flex items-center gap-2 text-xs text-fg-muted">
               after
               <NumberInput
                 className="w-20"
@@ -322,8 +322,8 @@ function CuePreview() {
     <Panel title="After this cue" bodyClassName="flex flex-col gap-2 p-2">
       {show.outputs.map((o) => (
         <div key={o.id}>
-          <div className="mb-1 text-[11px] text-ink-400">{o.name}</div>
-          <div className="aspect-video overflow-hidden rounded border border-ink-800 bg-black">
+          <div className="mb-1 text-[11px] text-fg-subtle">{o.name}</div>
+          <div className="aspect-video overflow-hidden rounded border border-line-subtle bg-black">
             <Stage show={show} state={state} outputId={o.id} variant="editor" />
           </div>
         </div>
@@ -337,11 +337,11 @@ function StatePreview({ show, state }: { show: Show; state: Record<string, unkno
   if (!show.vars.length) return null;
   return (
     <div className="mt-2 text-xs">
-      <div className="mb-1 text-[11px] text-ink-400">State (assuming no audience input)</div>
+      <div className="mb-1 text-[11px] text-fg-subtle">State (assuming no audience input)</div>
       {show.vars.map((v) => (
-        <div key={v.id} className="flex justify-between border-b border-ink-800 py-1">
-          <span className="text-ink-300">{v.name}</span>
-          <span className="font-mono text-ink-100">{JSON.stringify(state[v.id])}</span>
+        <div key={v.id} className="flex justify-between border-b border-line-subtle py-1">
+          <span className="text-fg-muted">{v.name}</span>
+          <span className="font-mono text-fg">{JSON.stringify(state[v.id])}</span>
         </div>
       ))}
     </div>

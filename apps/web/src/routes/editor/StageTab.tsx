@@ -74,12 +74,12 @@ function LayersPanel() {
       onClick={() => select({ layerId: l.id })}
       className={cn(
         'group flex cursor-pointer items-center gap-1 rounded px-2 py-1',
-        l.id === layerId ? 'bg-ink-700' : 'hover:bg-ink-800',
+        l.id === layerId ? 'bg-control-active' : 'hover:bg-control-hover',
       )}
     >
       <IconButton
         label={l.visible ? 'Visible at start' : 'Hidden at start'}
-        icon={l.visible ? <Eye size={13} /> : <EyeOff size={13} className="text-ink-500" />}
+        icon={l.visible ? <Eye size={13} /> : <EyeOff size={13} className="text-fg-subtle" />}
         onClick={(e) => {
           e.stopPropagation();
           update((d) => {
@@ -90,7 +90,7 @@ function LayersPanel() {
       />
       <div className="min-w-0 flex-1">
         <div className="truncate text-sm">{l.name}</div>
-        <div className="text-[11px] text-ink-400">{layerKindLabel(l)}</div>
+        <div className="text-[11px] text-fg-subtle">{layerKindLabel(l)}</div>
       </div>
       {l.kind !== 'audio' && (
         <div className="flex opacity-0 group-hover:opacity-100">
@@ -140,14 +140,14 @@ function LayersPanel() {
       )}
       {sounds.length > 0 && (
         <>
-          <div className="mt-2 flex items-center gap-1 px-2 text-[11px] font-semibold tracking-wide text-ink-400 uppercase">
+          <div className="mt-2 flex items-center gap-1 px-2 text-[11px] font-semibold tracking-wide text-fg-subtle uppercase">
             <Music size={12} /> Sound (plays from the show machine)
           </div>
           <ul>{sounds.map(row)}</ul>
         </>
       )}
       {layers.length > 0 && (
-        <p className="mt-2 flex items-center gap-1 px-2 pb-1 text-[11px] text-ink-500">
+        <p className="mt-2 flex items-center gap-1 px-2 pb-1 text-[11px] text-fg-subtle">
           <Plus size={11} /> Top of the list is in front.
         </p>
       )}
@@ -214,8 +214,8 @@ function Canvas() {
     .filter((e): e is HTMLElement => !!e);
 
   return (
-    <section className="flex min-h-0 flex-col rounded-lg border border-ink-800 bg-ink-900">
-      <header className="flex h-10 shrink-0 items-center gap-2 border-b border-ink-800 px-3">
+    <section className="flex min-h-0 flex-col rounded-lg border border-line-subtle bg-panel">
+      <header className="flex h-10 shrink-0 items-center gap-2 border-b border-line-subtle px-3">
         {show.outputs.length > 1 && (
           <Select
             value={output.id}
@@ -229,7 +229,7 @@ function Canvas() {
             ))}
           </Select>
         )}
-        <span className="text-xs text-ink-400">
+        <span className="text-xs text-fg-subtle">
           {output.name} · {output.width}×{output.height}
         </span>
         <div className="ml-auto flex items-center gap-3">
