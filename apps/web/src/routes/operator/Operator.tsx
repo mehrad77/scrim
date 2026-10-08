@@ -10,6 +10,7 @@ import { getShow, listRuns } from '../../storage/shows.js';
 import { Button } from '../../ui/Button.js';
 import { setEscapeIsPanic } from '../../ui/escape.js';
 import { HoldButton } from '../../ui/HoldButton.js';
+import { useNotice } from '../../ui/notice.js';
 import { Lamp } from '../../ui/Lamp.js';
 import { Columns, Divider, Pane } from '../../ui/Layout.js';
 import { Tabs } from '../../ui/Tabs.js';
@@ -319,9 +320,11 @@ function MessageStrip({ typing }: { typing: boolean }) {
   const [, snap] = useHost();
   const [resumeHidden, setResumeHidden] = useState(false);
   const resumed = !resumeHidden && !!snap.resumedAt && !!snap.state.lastFired;
+  const text = useNotice();
   return (
     <div className="flex h-11 shrink-0 items-center gap-3 overflow-hidden border-b border-line-subtle px-4 text-ui">
       {resumed && <ResumeMessage onDone={() => setResumeHidden(true)} />}
+      {text && !resumed && <span className="truncate text-fg">{text}</span>}
       {typing && (
         <span className="ml-auto rounded-control border border-line-subtle px-2 py-0.5 text-caption text-fg-muted">
           Keys paused while typing · Esc still panics

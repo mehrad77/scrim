@@ -234,7 +234,10 @@ export const ActionSchema: z.ZodType<ActionShape, unknown> = z.lazy(() =>
 export type Action = ActionShape;
 export type ActionType = Action['type'];
 
-export const SceneSchema = z.object({ id: Id, name: z.string() });
+/** A spike-tape colour (1–8) that tags a scene or cue in the editor and on printed sheets. */
+export const TapeSchema = z.number().int().min(1).max(8);
+
+export const SceneSchema = z.object({ id: Id, name: z.string(), tape: TapeSchema.optional() });
 export type Scene = z.infer<typeof SceneSchema>;
 
 export const CueSchema = z.object({
@@ -247,6 +250,8 @@ export const CueSchema = z.object({
     .object({ auto: z.boolean(), delay: z.number().nonnegative() })
     .default({ auto: false, delay: 0 }),
   notes: z.string().default(''),
+  /** Overrides the scene's tape colour. */
+  tape: TapeSchema.optional(),
   /** Epoch ms of the last edit; rehearsal mode highlights cues changed since the last run. */
   updatedAt: z.number().default(0),
 });

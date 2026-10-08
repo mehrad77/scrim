@@ -664,7 +664,8 @@ export class ShowHost {
           runId: this.#run.id,
           mode: this.#mode,
           savedAt: Date.now(),
-          state: this.engine.state,
+          // Lean and fast to write; Back isn't offered after a crash.
+          state: publicState(this.engine.state),
         }),
       );
     };

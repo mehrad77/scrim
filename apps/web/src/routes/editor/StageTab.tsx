@@ -4,6 +4,7 @@ import {
   ArrowUp,
   Eye,
   EyeOff,
+  GripVertical,
   Hash,
   Music,
   Plus,
@@ -13,6 +14,13 @@ import {
 } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import Moveable from 'react-moveable';
+import {
+  Button as AriaButton,
+  DropIndicator,
+  GridList,
+  GridListItem,
+  useDragAndDrop,
+} from 'react-aria-components';
 import type { PanelImperativeHandle } from 'react-resizable-panels';
 import { cn } from '../../lib/cn.js';
 import { layerKindLabel, syntheticLayer, type SyntheticKind } from '../../lib/layers.js';
@@ -95,6 +103,32 @@ function LayersPanel() {
       if (self.z === other.z) self.z += dir;
     });
 
+  // Dragging a layer, or Alt+↑/↓, rewrites the stacking order (top of the list is in front).
+  const reorder = (ids: string[], target: string, position: 'before' | 'after') =>
+    update((d) => {
+      const order = d.layers
+        .filter((l) => l.outputId === output?.id)
+        .sort((a, b) => b.z - a.z)
+        .map((l) => l.id)
+        .filter((id) => !ids.includes(id));
+      const at = order.indexOf(target) + (position === 'after' ? 1 : 0);
+      order.splice(at, 0, ...ids);
+      order.forEach((id, i) => {
+        const l = d.layers.find((x) => x.id === id);
+        if (l) l.z = order.length - i;
+      });
+    });
+  const { dragAndDropHooks } = useDragAndDrop({
+    getItems: (keys) => [...keys].map((k) => ({ 'text/plain': String(k) })),
+    onReorder: (e) =>
+      reorder(
+        [...e.keys].map(String),
+        String(e.target.key),
+        e.target.dropPosition === 'after' ? 'after' : 'before',
+      ),
+    renderDropIndicator: (target) => <DropIndicator target={target} className="h-0.5 bg-accent" />,
+  });
+
   const row = (l: Layer) => (
     <li
       key={l.id}
@@ -168,7 +202,81 @@ function LayersPanel() {
           buttons above.
         </Empty>
       ) : (
-        <ul>{layers.map(row)}</ul>
+        <div
+          onKeyDownCapture={(e) => {
+            const l = layers.find((x) => x.id === layerId);
+            if (!l || !e.altKey || (e.key !== 'ArrowUp' && e.key !== 'ArrowDown')) return;
+            e.preventDefault();
+            e.stopPropagation();
+            move(l, e.key === 'ArrowUp' ? 1 : -1);
+          }}
+        >
+          <GridList
+            aria-label="Layers, front first"
+            items={layers}
+            dependencies={[layerId]}
+            selectionMode="single"
+            selectedKeys={layerId ? [layerId] : []}
+            onSelectionChange={(keys) => {
+              const k = [...keys][0];
+              if (k !== undefined) select({ layerId: String(k) });
+            }}
+            dragAndDropHooks={dragAndDropHooks}
+            className="outline-none"
+          >
+            {(l) => (
+              <GridListItem
+                id={l.id}
+                textValue={l.name}
+                className={({ isSelected, isFocusVisible }) =>
+                  cn(
+                    'group flex cursor-default items-center gap-1 px-1 py-1 outline-none',
+                    isSelected ? 'bg-control-active' : 'hover:bg-control-hover',
+                    isFocusVisible && 'outline-2 -outline-offset-2 outline-focus',
+                  )
+                }
+              >
+                <AriaButton
+                  slot="drag"
+                  aria-label={`Drag ${l.name}`}
+                  className="cursor-grab text-fg-icon opacity-40 outline-none group-hover:opacity-100"
+                >
+                  <GripVertical size={14} />
+                </AriaButton>
+                <IconButton
+                  label={l.visible ? 'Visible at start' : 'Hidden at start'}
+                  icon={
+                    l.visible ? <Eye size={13} /> : <EyeOff size={13} className="text-fg-subtle" />
+                  }
+                  onClick={() =>
+                    update((d) => {
+                      const x = d.layers.find((y) => y.id === l.id);
+                      if (x) x.visible = !x.visible;
+                    })
+                  }
+                />
+                <div className="min-w-0 flex-1">
+                  <div className="truncate text-ui">{l.name}</div>
+                  <div className="text-caption text-fg-subtle">{layerKindLabel(l)}</div>
+                </div>
+                <div className="flex opacity-0 group-focus-within:opacity-100 group-hover:opacity-100">
+                  <IconButton
+                    label="Bring forward"
+                    shortcut="⌥↑"
+                    icon={<ArrowUp size={12} />}
+                    onClick={() => move(l, 1)}
+                  />
+                  <IconButton
+                    label="Send backward"
+                    shortcut="⌥↓"
+                    icon={<ArrowDown size={12} />}
+                    onClick={() => move(l, -1)}
+                  />
+                </div>
+              </GridListItem>
+            )}
+          </GridList>
+        </div>
       )}
       {sounds.length > 0 && (
         <>

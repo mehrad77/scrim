@@ -1,24 +1,41 @@
-import { cueOrder } from '@scrim/format';
-import { Timer } from 'lucide-react';
-import { useEffect, useMemo, useRef } from 'react';
+import { cueOrder, type Cue } from '@scrim/format';
+import { Check, Play, Timer } from 'lucide-react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { GridList, GridListItem } from 'react-aria-components';
 import { cn } from '../../lib/cn.js';
+import { notice } from '../../ui/notice.js';
 import { Panel } from '../../ui/Panel.js';
 import { useHost } from './Operator.js';
 
+/**
+ * The operator's cue list. Next, running and done differ by position and shape, not just hue:
+ * a playhead bar for NEXT, a play icon for LIVE, a check and dimmed text for done.
+ * Rehearsal: click puts a cue on standby, double-click fires it. Show: click only selects (to
+ * read it); Enter puts the selected cue on standby, and the message strip confirms the change.
+ */
 export function CueStack() {
   const [host, snap] = useHost();
   const { show, state, mode, lastRunAt } = snap;
   const order = useMemo(() => cueOrder(show), [show]);
-  const numbers = useMemo(() => new Map(order.map((c, i) => [c.id, i + 1])), [order]);
+  const index = useMemo(() => new Map(order.map((c, i) => [c.id, i])), [order]);
   const list = useRef<HTMLDivElement>(null);
   const rehearsal = mode === 'rehearsal';
+  const [selected, setSelected] = useState<string | null>(null);
+  const lastIndex = state.lastFired ? (index.get(state.lastFired) ?? -1) : -1;
 
-  // Keep the standby cue in view.
+  // Keep the standby cue in view; instant, because standby moves come from keys and GO.
   useEffect(() => {
-    list.current?.querySelector('[data-standby="true"]')?.scrollIntoView({ block: 'nearest' }); // instant: standby moves come from keys and GO
+    list.current?.querySelector('[data-standby="true"]')?.scrollIntoView({ block: 'nearest' });
   }, [state.standby]);
 
   const changed = (updatedAt: number) => rehearsal && lastRunAt !== null && updatedAt > lastRunAt;
+
+  const setStandby = (cue: Cue) => {
+    if (cue.id === state.standby) return;
+    const was = order.find((c) => c.id === state.standby);
+    host.dispatch({ type: 'standby', cueId: cue.id });
+    if (!rehearsal) notice(`Next: ${cue.name}${was ? ` (was ${was.name})` : ''}`);
+  };
 
   return (
     <Panel title="Cues" bodyClassName="p-1">
@@ -29,74 +46,117 @@ export function CueStack() {
           return (
             <div key={scene.id} className="mb-1">
               <button
+                type="button"
                 className="label-caps w-full px-2 pt-2 pb-1 text-left text-fg-subtle hover:text-fg-muted"
-                onClick={() => host.dispatch({ type: 'standby', cueId: cues[0]!.id })}
+                onClick={() => setStandby(cues[0]!)}
                 data-info="Put the first cue of this scene on standby"
               >
                 {scene.name}
               </button>
-              {cues.map((cue) => {
-                const isStandby = cue.id === state.standby;
-                const isLast = cue.id === state.lastFired;
-                return (
-                  <div
-                    key={cue.id}
-                    data-standby={isStandby}
-                    role="button"
-                    tabIndex={-1}
-                    onClick={() => host.dispatch({ type: 'standby', cueId: cue.id })}
-                    onDoubleClick={() =>
-                      rehearsal && host.dispatch({ type: 'fireCue', cueId: cue.id })
-                    }
-                    data-info={
-                      rehearsal ? 'Click: standby · Double-click: fire now' : 'Click: standby'
-                    }
-                    className={cn(
-                      'flex cursor-pointer items-center gap-2 rounded-control border px-2 py-2',
-                      isStandby
-                        ? 'border-standby bg-lamp-standby-tint'
-                        : isLast
-                          ? 'border-go bg-lamp-go-tint'
-                          : 'border-transparent hover:bg-control-hover',
-                    )}
-                  >
-                    <span className="w-6 text-right font-mono text-caption text-fg-subtle">
-                      {numbers.get(cue.id)}
-                    </span>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-1.5 truncate text-ui">
-                        {changed(cue.updatedAt) && (
+              <GridList
+                aria-label={`Cues in ${scene.name}`}
+                items={cues}
+                // Rows read engine state, not just the cue: re-render them when it changes.
+                dependencies={[state.standby, state.lastFired, lastIndex, rehearsal, lastRunAt]}
+                selectionMode={rehearsal ? 'none' : 'single'}
+                selectionBehavior="replace"
+                selectedKeys={selected ? [selected] : []}
+                onSelectionChange={(keys) => {
+                  const k = [...keys][0];
+                  setSelected(k === undefined ? null : String(k));
+                }}
+                onAction={(key) => {
+                  const cue = cues.find((c) => c.id === key);
+                  if (cue) setStandby(cue);
+                }}
+                className="outline-none"
+              >
+                {(cue) => {
+                  const isStandby = cue.id === state.standby;
+                  const isLive = cue.id === state.lastFired;
+                  const done = !isLive && (index.get(cue.id) ?? 0) < lastIndex;
+                  return (
+                    <GridListItem
+                      id={cue.id}
+                      textValue={cue.name}
+                      data-standby={isStandby}
+                      data-info={
+                        rehearsal
+                          ? 'Click: standby · Double-click: fire now'
+                          : 'Click: select to read · Enter: put on standby'
+                      }
+                      className={({ isFocusVisible, isSelected }) =>
+                        cn(
+                          'relative flex cursor-default items-center gap-2 py-2 pr-2 pl-3 outline-none',
+                          isStandby
+                            ? 'bg-lamp-standby-tint'
+                            : isSelected
+                              ? 'bg-control-active'
+                              : 'hover:bg-control-hover',
+                          isFocusVisible && 'outline-2 -outline-offset-2 outline-focus',
+                        )
+                      }
+                    >
+                      <div
+                        className="flex min-w-0 flex-1 items-center gap-2"
+                        onDoubleClick={() =>
+                          rehearsal && host.dispatch({ type: 'fireCue', cueId: cue.id })
+                        }
+                      >
+                        {/* The playhead: a bar on the NEXT cue's edge. */}
+                        {isStandby && (
                           <span
-                            className="size-1.5 shrink-0 rounded-full bg-info"
-                            data-info="Changed since the last run"
-                            aria-label="Changed since the last run"
+                            aria-hidden
+                            className="absolute inset-y-0 left-0 w-1 bg-lamp-standby"
                           />
                         )}
-                        {cue.name}
+                        <span
+                          className={cn(
+                            'w-6 text-right font-mono text-caption tabular-nums',
+                            isStandby ? 'text-standby' : 'text-fg-subtle',
+                          )}
+                        >
+                          {(index.get(cue.id) ?? 0) + 1}
+                        </span>
+                        <div className="min-w-0 flex-1">
+                          <div
+                            className={cn(
+                              'flex items-center gap-1.5 truncate text-ui',
+                              done && 'text-fg-subtle',
+                              isStandby && 'font-semibold',
+                            )}
+                          >
+                            {changed(cue.updatedAt) && (
+                              <span
+                                className="size-1.5 shrink-0 rounded-full bg-info"
+                                data-info="Changed since the last run"
+                                aria-label="Changed since the last run"
+                              />
+                            )}
+                            {cue.name}
+                          </div>
+                          {cue.notes && (
+                            <div className="truncate text-caption text-fg-subtle">{cue.notes}</div>
+                          )}
+                        </div>
+                        {cue.follow.auto && (
+                          <span className="flex items-center gap-0.5 font-mono text-caption text-fg-muted tabular-nums">
+                            <Timer size={11} />
+                            {cue.follow.delay}s
+                          </span>
+                        )}
+                        {isStandby && <span className="label-caps text-standby">Next</span>}
+                        {isLive && (
+                          <span className="label-caps flex items-center gap-1 text-go">
+                            <Play size={11} /> Live
+                          </span>
+                        )}
+                        {done && <Check size={13} className="text-fg-subtle" aria-label="Done" />}
                       </div>
-                      {cue.notes && (
-                        <div className="truncate text-caption text-fg-subtle">{cue.notes}</div>
-                      )}
-                    </div>
-                    {cue.follow.auto && (
-                      <span className="flex items-center gap-0.5 text-caption text-standby">
-                        <Timer size={11} />
-                        {cue.follow.delay}s
-                      </span>
-                    )}
-                    {isStandby && (
-                      <span className="rounded-control bg-standby px-1 text-caption font-bold text-app">
-                        NEXT
-                      </span>
-                    )}
-                    {isLast && (
-                      <span className="rounded-control bg-go px-1 text-caption font-bold text-app">
-                        LIVE
-                      </span>
-                    )}
-                  </div>
-                );
-              })}
+                    </GridListItem>
+                  );
+                }}
+              </GridList>
             </div>
           );
         })}

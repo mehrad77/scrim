@@ -26,7 +26,15 @@ test('GO drives an output window; panic blacks out; a reload resumes', async ({
   const blackout = output.locator('.bg-black.pointer-events-none');
   await expect.poll(() => blackout.evaluate((el) => (el as HTMLElement).style.opacity)).toBe('1');
 
-  // Crash recovery: reload the operator and land on the same cue.
+  // Crash recovery: once the journal has the blackout, reload and land on the same cue.
+  await expect
+    .poll(() =>
+      page.evaluate(async (id) => {
+        const { db } = await import('/src/storage/db.ts' as string);
+        return (await (await db()).get('journal', id))?.state.blackout.to;
+      }, showId),
+    )
+    .toBe(1);
   await page.reload();
   await expect(page.getByText(/Resumed where the show left off/)).toBeVisible();
   await expect(page.getByRole('button', { name: /Blacked out/ })).toBeVisible();
