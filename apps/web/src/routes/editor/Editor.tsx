@@ -14,6 +14,7 @@ import { InputsTab } from './InputsTab.js';
 import { InteractionTab } from './InteractionTab.js';
 import { OutputsTab } from './OutputsTab.js';
 import { StageTab } from './StageTab.js';
+import { readPrefs } from '../../lib/prefs.js';
 
 type Tab = 'stage' | 'cues' | 'interaction' | 'inputs' | 'outputs' | 'history';
 
@@ -88,7 +89,7 @@ export default function Editor() {
   if (!show || show.id !== id) return <div className="p-6 text-sm text-ink-400">Loading show…</div>;
 
   return (
-    <div className="flex h-full flex-col">
+    <div className="flex h-full flex-col" data-density={readPrefs().editorDensity}>
       <EditorHeader tab={tab} setTab={setTab} />
       <LockBanner />
       <main className="min-h-0 flex-1">

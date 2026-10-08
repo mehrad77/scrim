@@ -2,9 +2,21 @@ import tailwind from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
+import { bootstrapPrefs, PREFS_KEY } from './src/lib/prefs';
 
 export default defineConfig({
   plugins: [
+    {
+      // Apply theme, contrast, motion and scale before first paint (src/lib/prefs.ts).
+      name: 'scrim-prefs-bootstrap',
+      transformIndexHtml: () => [
+        {
+          tag: 'script',
+          children: `(${bootstrapPrefs.toString()})(${JSON.stringify(PREFS_KEY)});`,
+          injectTo: 'head-prepend',
+        },
+      ],
+    },
     react(),
     tailwind(),
     VitePWA({
@@ -15,8 +27,8 @@ export default defineConfig({
         name: 'Scrim',
         short_name: 'Scrim',
         description: 'Browser-native show control for interactive theater',
-        theme_color: '#0b0b0f',
-        background_color: '#0b0b0f',
+        theme_color: '#090705',
+        background_color: '#090705',
         display: 'standalone',
         icons: [{ src: '/favicon.svg', sizes: 'any', type: 'image/svg+xml', purpose: 'any' }],
       },

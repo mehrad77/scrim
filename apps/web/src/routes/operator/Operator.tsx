@@ -190,7 +190,7 @@ function OperatorView() {
   }, [host]);
 
   return (
-    <div className="flex h-full flex-col">
+    <div className="flex h-full flex-col" data-density="stage">
       <header className="flex shrink-0 flex-wrap items-center gap-3 border-b border-ink-800 bg-ink-900 px-3 py-2">
         <Link to="/" title="All shows">
           <img src="/favicon.svg" alt="Scrim" className="size-7" />

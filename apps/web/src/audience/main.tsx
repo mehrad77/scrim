@@ -3,6 +3,9 @@ import { createRoot } from 'react-dom/client';
 import '../styles.css';
 import { Audience } from './Audience.js';
 
+// Phones get the large-target density.
+document.documentElement.dataset.density = 'stage';
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <Audience />

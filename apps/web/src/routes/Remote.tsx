@@ -63,7 +63,10 @@ export default function Remote() {
 
   const live = status === 'open' && view?.connected;
   return (
-    <div className="flex min-h-full flex-col gap-3 p-3 pb-[max(12px,env(safe-area-inset-bottom))]">
+    <div
+      className="flex min-h-full flex-col gap-3 p-3 pb-[max(12px,env(safe-area-inset-bottom))]"
+      data-density="stage"
+    >
       <header className="flex items-center justify-between text-sm">
         <span className="font-semibold">{view?.showName || 'Scrim remote'}</span>
         <span
