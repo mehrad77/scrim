@@ -64,12 +64,17 @@ The five primary users come from the [product proposal](https://claude.ai/code/a
 - Autosave every 400 ms.
 - Versions every 5 minutes, with restore.
 - `.scrim` export and import.
-- A start gallery with the demo and three starters (an audience vote that branches, slides with cues, a performer button counter), and **Save as template** on this machine.
+- A start gallery with the demo and three starters (an audience vote that branches, slides with cues, a performer button counter), and **Save as template** on this machine. A show made from a template gets ids of its own.
+- **Wizards** that build ordinary cues, layers and rules: a song, a photo story, notices, a quiz question, and a choice point.
+- **Import scenes** from another `.scrim` file, with everything their cues use.
+- A **simple editor** that folds rules, values and mappings one labelled step away.
+- The **Access** tab: captions, audio description, content warnings and translations against the cue list.
+- Gentler versions of cues and **intense** layers for relaxed performances, and a **flash check** on cue timings.
 
 **Gaps.**
 
 - No collaboration: one person edits a show on one machine.
-- No templates for the use cases below; saved templates stay on one machine.
+- The template gallery for the use cases below is next; saved templates stay on one machine.
 - Effects, blend modes and projection warping wait for the [GPU compositor](research/gpu-compositor.md).
 
 ### Director
@@ -99,6 +104,8 @@ The five primary users come from the [product proposal](https://claude.ai/code/a
 
 - All of the above. Edits in the editor apply live to the running show.
 - Notes are a field on each cue.
+- **Back** undoes the last GO, one step. A key or pedal can jump to a scene, or to a section of the scene that is live (the next chorus).
+- Tonight's running order can be changed live: reorder or skip scenes, or switch to a prepared setlist.
 
 **Gaps.**
 
@@ -151,6 +158,12 @@ The five primary users come from the [product proposal](https://claude.ai/code/a
 **Today.**
 
 - All of the above. See the [operator guide](operator-guide.md) and the reliability rules in [architecture.md](architecture.md#reliability-rules).
+- **Back**, PANIC's secondary clears (text, media, sound) and a live **running order** with setlists.
+- A **simple view** for tablets and nervous volunteers: one huge GO, now and next, Hold, Back and PANIC.
+- GO can wait for a **hold** of a key, pedal or button, against accidental presses.
+- A screen-reader **announcer** reads what fired and what is next.
+- A **Relaxed** switch for relaxed performances (a one-second hold in Show mode).
+- Counts from people without a phone: arcade-style buttons mapped to vote options, and counts the operator types in.
 
 **Gaps.**
 
@@ -181,6 +194,7 @@ The five primary users come from the [product proposal](https://claude.ai/code/a
 - All of the above. When the room is replaced, the phone says **Link no longer valid** and explains what to do.
 - The phone vibrates on a press and shows **Sent ✓** once the operator has it.
 - A trigger that a cue waits for reads **Not yet** until that cue is on standby, then **Your cue · tap Ready**.
+- When the show allows **Remote GO**, a remote can press GO, Hold and Back: for a leader running the show from a tablet.
 
 **Gaps.**
 
@@ -221,8 +235,9 @@ The five primary users come from the [product proposal](https://claude.ai/code/a
 - The phone id is kept in `localStorage`, so votes survive a reload.
 - Past answers are cleared when a moment closes.
 - Load-tested at 200 phones, with a p95 of about 200 ms from vote to operator.
-
-**Since added.** An **Access** menu on the phone: the show's language (the page's own words follow it, right to left for Arabic and the like), captions, text size, audio description read by the phone's own voice, vibration and content warnings. Each person's choices stay on their phone. See the [personal access channel](#1-a-personal-access-channel-on-the-audience-phone).
+- An **Access** menu on the phone: the show's language (the page's own words follow it, right to left for Arabic and the like), captions, text size, audio description read by the phone's own voice, vibration and content warnings. Each person's choices stay on their phone. See the [personal access channel](#1-a-personal-access-channel-on-the-audience-phone).
+- In a relaxed performance the phone says so, and that it's OK to step out and come back.
+- People without a phone take part through a shared tablet (each answer counts as one person), buttons in the room, or a raised hand the operator counts.
 
 **Gaps.**
 
@@ -241,7 +256,10 @@ The five primary users come from the [product proposal](https://claude.ai/code/a
   - Sets keystone with corner pin.
   - Brings a dedicated Wi-Fi router for large audiences.
   - Imports the `.scrim` file onto remote output devices.
-- **Today:** the Outputs & audio tab, Identify, the pre-show check, and per-machine settings that are not saved in the show (display assignments and audio devices). The corner pin is saved in the show.
+- **Today:**
+  - The Outputs & audio tab, Identify, and per-machine settings that are not saved in the show (display assignments and audio devices). The corner pin is saved in the show.
+  - The pre-show check, which also says when the browser or an administrator blocks window placement, pop-ups, full screen or MIDI, and names the Chrome policy.
+  - For unattended machines, an installation page and the [installation guide](installation-guide.md): kiosk flags, policies, autostart and power-loss recovery.
 - **Gaps:**
   - No mesh warp, edge blending or test patterns ([GPU compositor research](research/gpu-compositor.md)).
   - Media must be copied to remote outputs by hand.
@@ -289,7 +307,7 @@ The five primary users come from the [product proposal](https://claude.ai/code/a
     - a "how to join" help card;
     - a plain explanation of each access option.
   - A way to submit counts for no-phone participation.
-- **Today:** nothing specific. Only the operator sees the audience panel.
+- **Today:** no view of their own. The operator's audience panel gives a QR code for a shared tablet passed from person to person, and takes the counts ushers call in (raised hands, coloured cards).
 - **Gaps:** a front-of-house role in the relay. It would be like the performer remote: a key from the operator, and a limited view.
 
 ## The overarching journey
@@ -359,9 +377,11 @@ Design and rehearsal loop many times. Review feeds the next rehearsal. Touring r
 - **Today:**
   - Autosave, undo and redo, and versions.
   - References can be left unfinished while designing; the engine skips them and warns.
+  - Wizards build a song, a photo story, notices, a quiz question or a choice point in one go, and scenes can be imported from another show.
+  - The logic check also catches cue loops with no time between, and the flash check catches cues that flash more than three times a second.
 - **Risks and gaps:**
   - Single-user only.
-  - Only three starters; no templates for the use cases below.
+  - Only three starters; the template gallery for the use cases below is next.
   - Visual effects and mapping are limited by the DOM renderer.
 
 ### 3. Rehearse
@@ -399,7 +419,7 @@ Design and rehearsal loop many times. Review feeds the next rehearsal. Touring r
   12. Work through the pre-show check.
 - **Moment of truth:** the pre-show check says **READY** on the real machine, in the real room.
 - **Today:**
-  - The pre-show check covers the logic check, media, storage, outputs, sound, wake lock and sleep, controllers, the audience room, the offline cache and Show mode.
+  - The pre-show check covers the logic check, flashing, media, storage, outputs, sound, what the browser allows, open captions, a relaxed performance, Remote GO, wake lock and sleep, controllers, the audience room, the offline cache and Show mode.
   - Display assignments are remembered per machine.
 - **Risks and gaps:**
   - Lighting and sound consoles are not connected ([research](research/show-control-output.md)).
@@ -429,7 +449,8 @@ Design and rehearsal loop many times. Review feeds the next rehearsal. Touring r
   - Crash resume for the operator tab.
   - Default results when the network fails.
   - Hold for an unexpected pause.
-- **Today:** all of the above, plus a 300 ms double-GO guard, a wake lock, and a single operator per show per machine.
+  - **Back** to undo the last GO, and secondary clears for text, media and sound.
+- **Today:** all of the above, plus a 300 ms double-GO guard, an optional hold-to-confirm GO, a wake lock, and a single operator per show per machine (another tab can take over).
 - **Risks and gaps:**
   - The phone's Access menu (captions, language, description) is best effort: it stops if the network does, so access the show depends on also needs a stage version, such as open captions.
   - The phone has no full screen-reader pass yet.
@@ -502,13 +523,13 @@ The same set of users covers a band's live show, but in a different shape. Theat
 
 ### What Scrim would need
 
-Only setlist mode exists so far:
+Setlist mode, and lyrics by section, exist so far:
 
 1. **Tempo sync:** cues, follows and effects timed in beats and bars, locked to MIDI clock or Ableton Link.
 2. **Timecode chase:** cues fire at timecode positions sent by the playback rig. This needs care, because browser timers jitter.
 3. **Setlist mode:** reorder, skip and jump between songs live, safely. _Built:_ the operator's **Order** view changes tonight's running order in Show mode without editing the show, prepared setlists, keys and MIDI program changes that start a song, and keys that jump to a section such as the chorus.
 4. **Audio-reactive visuals:** a live audio input analysed for level, bands and beat, driving effects. This depends on the [GPU compositor](research/gpu-compositor.md).
-5. **Lyrics and captions:** a text layer that follows the song's timeline.
+5. **Lyrics and captions:** a text layer that follows the song's timeline. _Partly built:_ the song wizard makes a cue for each section in the order sung, captioned on phones, with a key or pedal to jump to the chorus; following the track's own timeline waits for timecode.
 6. **Fast venue setup:** saved per-venue output profiles that can be reapplied in minutes.
 
 Scrim's model already fits: outputs, layers, cues, show state, audience moments and triggers all apply as they are. The work is in timing and the live setlist, not in a new model.
@@ -537,14 +558,15 @@ For each user, **Ideas** links to the cross-cutting ideas in [Accessible to all]
   - **Works under school IT policy.** Managed Chrome can block permissions such as Web MIDI and window management; the pre-show check should say so plainly.
   - **Room for every student.** Students with additional needs can operate or perform through switch, voice or hold-to-confirm controls.
 - **Today:**
-  - Runs on ChromeOS.
-  - No accounts.
-  - Text moments are moderated.
-  - The demo show and the starters are a starting point.
+  - Runs on ChromeOS, with no accounts. Text moments are moderated, and **No free text** keeps phones to votes and taps.
+  - A **simple editor** that folds rules, values and mappings one labelled step away, and a simple operator view.
+  - **Import scenes** brings each group's scenes into the class show with new ids.
+  - The pre-show check says when the browser or the school's administrator blocks window placement, pop-ups, full screen or MIDI, and names the Chrome policy.
+  - Hold-to-confirm GO, and keys, pedals and buttons for students who operate or perform without a mouse.
+  - Relaxed performances for school audiences, and a flash check on cue timings.
 - **Gaps:**
-  - Templates and a simple mode.
-  - Merging work from several groups into one show.
-- **Since added:** the pre-show check says when the browser or the school's administrator blocks window management, pop-ups, full screen or MIDI, and names the Chrome policy where there is one. A relaxed performance for school audiences, and a flash check on cue timings. A **simple editor** that folds rules, values and mappings one labelled step away; **No free text**, so phones can vote and tap but never send words; and **Import scenes**, which brings each group's scenes into the class show with new ids.
+  - The School play template (the gallery is next).
+  - Switch scanning and voice control.
 - **Ideas:** [3 inclusive operation](#3-inclusive-operation), [5 simple modes and templates](#5-simple-modes-and-templates), [2 relaxed mode](#2-relaxed-mode-and-a-flash-safety-check) for relaxed school performances.
 
 ### Museum or gallery curator (installations)
@@ -568,12 +590,14 @@ For each user, **Ideas** links to the cross-cutting ideas in [Accessible to all]
     - captions, audio description and translations on the visitor's own phone;
     - a physical button for visitors without one.
 - **Today:**
-  - Crash resume from the journal.
-  - Fully offline running.
-  - Auto-follow and rules that can loop scenes.
+  - An **installation page** that runs the show unattended in Show mode, carries on from the crash journal after a power cut, and reloads itself after repeated errors. The [installation guide](installation-guide.md) covers kiosk mode, policies and autostart.
+  - **Opening hours** set a value that rules react to; the attract loop is a rule, not a feature.
+  - **Kept room codes** for printed QR codes, with a room pass for a replacement machine.
+  - Captions, description and translations on visitors' phones, and a physical button for visitors without one.
+  - Relaxed performances for quiet or sensory-friendly visiting hours.
+  - Fully offline running, and auto-follow and rules that loop scenes.
 - **Gaps:**
   - Remote monitoring and alerts.
-- **Since added:** captions, description and translations on visitors' phones; a physical button for visitors without one; relaxed performances for quiet visiting hours. An **installation page** that runs the show unattended in Show mode and carries on after a power cut; **opening hours** that set a value rules react to (the attract loop is a rule, not a feature); **kept room codes** for printed QR codes, with a room pass for a replacement machine; and an [installation guide](installation-guide.md) for kiosk mode, policies and autostart.
 - **Ideas:** [1 personal access channel](#1-a-personal-access-channel-on-the-audience-phone), [4 no-phone participation](#4-no-phone-participation), [2 relaxed mode](#2-relaxed-mode-and-a-flash-safety-check) for quiet or sensory-friendly visiting hours.
 
 ### Faith or community group volunteer (lyrics, notices)
@@ -597,13 +621,16 @@ For each user, **Ideas** links to the cross-cutting ideas in [Accessible to all]
   - **Lyrics on people's own phones,** in large print for people with low vision, or translated for congregations that speak several languages.
   - **Licence compliance:** song lyrics are usually licensed, for example through CCLI. Scrim should store the copyright line for each song and display it.
 - **Today:**
-  - Text layers, cues, scenes and jumping between scenes.
-  - Cues can name their section (Verse, Chorus); one key or pedal jumps to the next chorus of the song that's playing, or repeats the last one.
+  - A **song wizard**: paste the words, and each verse and chorus becomes a cue in the order sung, captioned on phones, with the credit and the church's licence line on screen. Songs are kept in a library on the machine and shared as a file.
+  - Cues name their section; one key or pedal jumps to the next chorus of the song that's playing, or repeats the last one.
   - Songs can be reordered or skipped live, and a prepared order kept as a setlist.
-  - Notices can loop with auto-follow.
+  - A **notices** wizard: announcements that change on their own and go round again.
+  - A simple operator view (one huge GO, now and next, the song's sections as buttons), with an optional hold-to-confirm GO.
+  - Lyrics on people's own phones as captions, in large print or translated.
 - **Gaps:**
-  - The song library and lyrics import.
-- **Since added:** a simple operator view for volunteers (one huge GO, now and next, the song's sections as buttons), with an optional hold-to-confirm GO. A **song wizard**: paste the words, and each verse and chorus becomes a cue in the order sung, captioned for phones, with the credit and the church's licence line on screen. Songs are kept in a library on the machine (and shared as a file), and a **notices** wizard makes announcements that change on their own.
+  - The Lyrics and notices template (the gallery is next).
+  - A library shared between machines; today it moves as a file.
+  - Streaming.
 - **Ideas:** [5 simple modes and templates](#5-simple-modes-and-templates), [1 personal access channel](#1-a-personal-access-channel-on-the-audience-phone), [3 inclusive operation](#3-inclusive-operation).
 
 ### Drama therapist or care-home activity leader
@@ -627,12 +654,13 @@ For each user, **Ideas** links to the cross-cutting ideas in [Accessible to all]
   - **The leader can run the show from a tablet** while facing the group.
   - **Privacy.** This is a health setting. Scrim's local-first design means photos and choices stay on the machine, and the relay is used only if phones join.
 - **Today:**
-  - Moments with no time limit.
-  - Offline running.
-  - Moments with a default result.
+  - Moments with no time limit and a default result, and offline running.
+  - The simple operator view for tablets, and Remote GO for a leader whose tablet isn't the show machine.
+  - A shared tablet passed around the group (each answer counts as one person, in large print), large buttons mapped to vote options, and counts the leader types in.
+  - Calm by default: a show can start every session relaxed, with soft fades, limited brightness and capped sound.
+  - A **photo story** wizard: pictures that dissolve one into the next under music, going round again.
 - **Gaps:**
-  - Session templates.
-- **Since added:** the simple operator view for tablets, and Remote GO for a leader whose tablet isn't the show machine; a shared tablet passed around the group (each answer counts as one person, in large print), large buttons mapped to vote options, and counts the leader types in. Calm by default: a show can start every session relaxed, with soft fades, limited brightness and capped sound. A **photo story** wizard: pictures that dissolve one into the next under music, going round again, for a memory session.
+  - The Memory session template (the gallery is next).
 - **Ideas:** [2 relaxed mode](#2-relaxed-mode-and-a-flash-safety-check) as the default, [4 no-phone participation](#4-no-phone-participation), [3 inclusive operation](#3-inclusive-operation), [5 simple modes and templates](#5-simple-modes-and-templates).
 
 ### Street or festival performer
@@ -655,13 +683,12 @@ For each user, **Ideas** links to the cross-cutting ideas in [Accessible to all]
   - **Battery and brightness awareness.**
   - **Running the show from a tablet.**
 - **Today:**
-  - Offline show running.
-  - Foot pedals and the performer remote.
-  - Wake lock.
+  - Offline show running, a wake lock, foot pedals and the performer remote.
+  - The simple operator view on a tablet or phone, and Remote GO from the phone in a pocket.
+  - Votes from pedals and buttons, for people without a phone.
 - **Gaps:**
-  - A local relay.
-  - Microphone-based moments.
-- **Since added:** the simple operator view on a tablet or phone, and Remote GO from the phone in a pocket.
+  - A local relay, so phones can vote without the internet.
+  - Microphone-based moments, such as an applause meter.
 - **Ideas:** [4 no-phone participation](#4-no-phone-participation), [3 inclusive operation](#3-inclusive-operation).
 
 ### Young creator (a child at home, a youth group)
@@ -689,13 +716,13 @@ For each user, **Ideas** links to the cross-cutting ideas in [Accessible to all]
     - no data collected, which matters under children's privacy rules.
     - Scrim's local-first design already gives most of this.
 - **Today:**
-  - No accounts.
-  - Local-only storage.
-  - The demo show as an example.
+  - No accounts, and local-only storage.
+  - The simple editor, and wizards for a choice point (a new scene for each option, and "You chose …" on stage), a quiz question (the room against the quizmaster) and a photo story.
+  - No free text keeps guests' phones to votes and taps.
 - **Gaps:**
-  - Children's templates.
+  - The Choose your own adventure, Quiz night and Birthday surprise templates (the gallery is next).
   - Media capture inside the app.
-- **Since added:** the simple editor, and wizards for a choice point (new scenes for each option, and "You chose …" on stage), a quiz question (the room against the quizmaster) and a photo story. No free text keeps a youth group's phones to votes and taps.
+  - Read-aloud help for younger readers.
 - **Ideas:** [5 simple modes and templates](#5-simple-modes-and-templates), [3 inclusive operation](#3-inclusive-operation).
 
 ## Accessible to all
@@ -803,7 +830,7 @@ Accessibility usually stops at the audience. Scrim should let **anyone run a sho
 | **Hold to confirm**                   | _Built._ An option to fire GO only after a press is held, for example for half a second. This prevents accidental presses, helps people with tremor, and calms new volunteers. It works with Scrim's existing 300 ms double-GO guard.                                                                           |
 | **Voice**                             | "Go", "hold", "standby next" spoken aloud, with Panic always on a physical key. The browser's speech recognition often sends audio to a server, which breaks the offline rule. Only on-device recognition is acceptable _(on-device support in Chrome unverified)_, and voice must never be the only way to GO. |
 | **Screen reader**                     | _Built for the operator view:_ it announces the standby cue, each fired cue, moment results and warnings (ARIA live regions). The editor works fully from the keyboard, and every control has a text label.                                                                                                     |
-| **Large, high-contrast display**      | An operator theme with large text and high contrast. Status never relies on colour alone.                                                                                                                                                                                                                       |
+| **Large, high-contrast display**      | _Built:_ Preferences › Appearance offers a high-contrast theme and a larger interface scale, for the operator view too. Status never relies on colour alone.                                                                                                                                                    |
 | **Touch, from a tablet**              | _Built:_ the simple operator view, on any tablet or phone, and Remote GO from a performer remote, so leaders and performers can run a show while facing the room.                                                                                                                                               |
 
 Every option maps to the same commands the engine already understands (`go`, `hold`, `panic`, `standbyNext`, triggers), so none of them changes the engine.
@@ -864,9 +891,10 @@ Templates are ordinary `.scrim` files, so they can be shared by communities: a s
 - **The next research topics map onto the journey:**
   - [Show-control output](research/show-control-output.md) closes the biggest Tech gap for stage managers and lighting/sound designers.
   - The [GPU compositor](research/gpu-compositor.md) closes the Tech gaps for technicians (warping, blending) and the Design gaps for designers (effects).
-  - Both are also prerequisites for [music and live events](#music-and-live-events), which then need timing (tempo sync, timecode) and a live setlist.
+  - Both are also prerequisites for [music and live events](#music-and-live-events), which then need timing (tempo sync, timecode). The live setlist is built.
 - **Being accessible to all is a product direction, not a checklist.**
   - The [personal access channel](#1-a-personal-access-channel-on-the-audience-phone) turns the audience phone, which is already in every seat, into each person's own access device. Few venues can offer that today.
   - Combined with [inclusive operation](#3-inclusive-operation), [no-phone participation](#4-no-phone-participation) and [simple modes](#5-simple-modes-and-templates), Scrim reaches schools, care homes, museums, faith groups and street performers. Those users are poorly served by professional show tools.
-  - Most of these ideas reuse what exists: the relay, the input mapping, moment totals and the pure engine. None needs a format version bump.
+  - Most of these ideas reuse what exists: the relay, the input mapping, moment totals and the pure engine. None needed a format version bump.
+  - Four of the five are built (the access channel, relaxed and flash, no-phone participation, simple modes); inclusive operation lacks single-switch scanning and voice. What remains is the template gallery, which puts them together for each of these users.
 - **Collaboration helps three stages at once.** A cloud workspace with roles and comments would help Design, Rehearse and Review, and would serve the director, who is the user Scrim supports least today.

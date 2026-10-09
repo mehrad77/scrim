@@ -10,6 +10,7 @@ A runbook for the stage manager or operator running a show in Scrim.
 - [ ] Export a `.scrim` backup to a USB stick. It is the master copy if the machine fails.
 - [ ] For screens on other devices: import the same `.scrim` file on each device once.
 - [ ] For more than about 50 audience phones, bring a dedicated Wi-Fi router.
+- [ ] For a show that runs with nobody at the desk (a museum piece, a lobby loop), follow the [installation guide](installation-guide.md) instead.
 
 ## Before doors open
 
@@ -48,14 +49,15 @@ A runbook for the stage manager or operator running a show in Scrim.
 
 ## If something goes wrong
 
-| Symptom                                                  | What to do                                                                                                        |
-| -------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
-| An output shows **Output window lost**                   | Press **Reopen**. It returns to the current picture.                                                              |
-| The operator tab crashed or was closed                   | Reopen it from the library. The show resumes at the same cue, and the outputs and audience room reconnect.        |
-| The audience room shows **Reconnecting**                 | Carry on. Moments that get no input close with their designed default. Phones and remotes reconnect on their own. |
-| A performer remote says **Link out of date**             | The room was replaced. Have them scan the current performer QR code.                                              |
-| You went **off script** (forced a result, moved standby) | The **Off script** chip lists what changed; **Back to script** puts the next cue in running order on standby.     |
-| No sound from a video                                    | Click that output window once, then check **Outputs & audio** for the bus device on this machine.                 |
+| Symptom                                                  | What to do                                                                                                                            |
+| -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| An output shows **Output window lost**                   | Press **Reopen**. It returns to the current picture.                                                                                  |
+| The operator tab crashed or was closed                   | Reopen it from the library. The show resumes at the same cue, and the outputs and audience room reconnect.                            |
+| The audience room shows **Reconnecting**                 | Carry on. Moments that get no input close with their designed default. Phones and remotes reconnect on their own.                     |
+| A performer remote says **Link out of date**             | The room was replaced. Have them scan the current performer QR code.                                                                  |
+| You went **off script** (forced a result, moved standby) | The **Off script** chip lists what changed; **Back to script** puts the next cue in running order on standby.                         |
+| No sound from a video                                    | Click that output window once, then check **Outputs & audio** for the bus device on this machine.                                     |
+| The operator view says the show **was taken over**       | Another tab or the installation page on this machine is running it. Hold **Take over here** to run it from this one; the other stops. |
 
 ## In rehearsal
 

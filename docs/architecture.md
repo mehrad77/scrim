@@ -46,6 +46,8 @@ step(show, state, input, now) → { state, events }
 - **Inputs** are what can happen: `go`, `fireCue`, `standby*`, `jump`, `setOrder`, `hold`, `panic`/`release`, `trigger`, `tick`, audience totals (`momentAgg`), counts from the room (`countVote`), moment control, `mediaEnded`, `setVar`, `seek`, a direct `action`, `back`, the secondary clears, `mute`, `relaxed`, the time of day (`clock`, for opening hours), and `reset`.
 - **Access channel.** `access: { captionCue, describeCue, seq, buzz }` is engine state, set when a cue fires, so a jump, Back or a crash resume restores the right caption. The host turns it into an access view for phones (`lib/access.ts`).
 - **Relaxed performances.** `relaxed` is a tween like `mute`, so outputs dim and sound eases down over 2 seconds; renderers read it through `relaxedBrightness` and `soundLevel`. While it is on, the reducer lengthens fades to the show's minimum, skips `show`, `play` and `fade` on intense layers (emitting `leftOut`), and fires a cue's `gentle` actions instead of its own. Back and Reset keep it.
+- **Opening hours.** The `clock { day, minute, force? }` input sets the show's `schedule` value; it changes state only when the value changes, unless `force` (the first clock after a start or a reset) announces it anyway, so rules always set the scene for the hours the machine wakes into.
+- **No free text.** With `safety.noFreeText`, text moments don't open (a warning instead), `reconcile` shuts one already open, and their totals are ignored.
 - **Moment totals by source.** A moment keeps totals per source: `relay` (phones and shared tablets, as running totals that replace their own source), `sim` (pretend phones), `buttons` and `counted` (which add). Its result and live values use the sum, and the default is used only when every source is empty.
 - **Events** describe what happened: `cueFired`, `momentOpened`/`momentClosed`, `varChanged`, `trigger`, `mediaEnded`, `panic`, `cleared`, `mute`, `relaxed`, `leftOut`, `warning`, and so on.
 - **Rules** run after every input on the events it produced. A rule's actions may cause further events, up to 200 per input; past that the engine stops and emits a warning, so a looping rule cannot hang the show.
@@ -75,11 +77,12 @@ An installation runs the same host on the `/kiosk/:id` page (`routes/Kiosk.tsx`)
 - **Outputs.** It broadcasts `show` and `state` on the show's BroadcastChannel. It collects heartbeats from output windows; one silent for 2 s is marked _lost_ and offered for reopening.
 - **Journal.** It writes engine state to IndexedDB at most every 250 ms, and immediately on GO or panic. Reopening the operator view restores it.
 - **Run log.** It records cues, audience results, triggers, the rules that ran (skipped rules fold into one "N skipped" line that says what each saw) and warnings, flushed to IndexedDB every second.
-- **Audio.** Audio layers play in the operator tab (`AudioEngine`), so sound comes from the show machine even if every output is remote. Volume follows the layer's opacity, which turns fades into sound fades, and the blackout.
+- **Audio.** Audio layers play in the operator tab (`AudioEngine`), so sound comes from the show machine even if every output is remote. Volume follows the layer's opacity, which turns fades into sound fades, the blackout, the sound mute and a relaxed performance's cap (`soundLevel`).
 - **Inputs.** Keyboard (also forwarded from output and editor windows), Web MIDI and the Gamepad API all map to commands through the show's `inputs`. A second GO within 300 ms is ignored.
-- **Relay** (optional). It sends `state`, the set of open moments and the remote-control view; it turns relay totals into `momentAgg` inputs and remote triggers into `trigger` inputs.
+- **Relay** (optional). It sends `state`, the set of open moments, the remote-control view and the access view; it turns relay totals into `momentAgg` inputs, remote triggers into `trigger` inputs and, when the show allows Remote GO, remote GO, Hold and Back into commands. A room that expired is replaced by a new one, except a kept room, which is retried every minute.
+- **Clock.** For a show with opening hours it sends the wall-clock time as each minute turns, and again on waking from sleep.
 - **Media end.** It schedules `mediaEnded` from known durations, so rules fire even with no local output open.
-- **Wake lock and single instance.** It holds a screen wake lock. A Web Lock (`scrim-host-<showId>`) ensures one operator per show per machine; another tab can take over explicitly.
+- **Wake lock and single instance.** It holds a screen wake lock. A Web Lock (`scrim-host-<showId>`) ensures one operator per show per machine; another tab can take over explicitly, and the tab it was taken from stops its host.
 
 React reads a `ShowHost` through `useSyncExternalStore(host.subscribe, host.getSnapshot)`.
 

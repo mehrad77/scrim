@@ -57,10 +57,18 @@ The bundle budget checks what output windows, the audience page and the editor d
 
 ## Running a show
 
-1. **Design** in the editor: place media and text on each output's canvas, build cues in scenes, time each cue's actions on the cue dock, and define state values, audience moments, triggers and rules that read as sentences ("When the door vote closes, and door is The red door, go to Cellar"). Recipes set up common patterns. _After this cue_ shows the picture and state after any cue, following the branches you assume; **Try every outcome**, the scene map and the logic check show where each answer leads.
+1. **Design** in the editor: place media and text on each output's canvas, build cues in scenes, time each cue's actions on the cue dock, and define state values, audience moments, triggers and rules that read as sentences ("When the door vote closes, and door is The red door, go to Cellar"). Recipes and wizards set up common patterns: a vote that branches, a quiz question, a song from pasted words (kept in a song library), a photo story, notices. Scenes can be imported from another show. The **Simple** switch folds rules, values and mappings one labelled step away for teachers and volunteers. _After this cue_ shows the picture and state after any cue, following the branches you assume; **Try every outcome**, the scene map and the logic check show where each answer leads.
 2. **Rehearse** in the operator view: click a cue to put it on standby, double-click to fire it, scrub media, override state values, simulate phones, or **Rehearse from here** from the editor. Edits made in the editor apply live, and cues changed since the last run are marked. **Map keys** assigns keys, pedals and MIDI pads on the real operator view.
 3. **Go live**: press _Go live: open all_ once. With the Window Management permission, each output opens full screen on its assigned display; otherwise click each output window once. Then run the **Pre-show check** until it says READY, and switch to **Show mode** (editing locked, nothing animates; leaving takes a one-second hold).
-4. **Perform**: GO (Space by default), Hold, Back and PANIC (Esc, always) work from the operator view and from any output window; PANIC also works from the editor. Performers tap **Ready** on their phone when a cue waits for them. GO ignores a second press within 300 ms, so a bounced key or pedal can't skip a cue. See the [operator guide](docs/operator-guide.md) for the full show-night runbook.
+4. **Perform**: GO (Space by default), Hold, Back and PANIC (Esc, always) work from the operator view and from any output window; PANIC also works from the editor. Performers tap **Ready** on their phone when a cue waits for them. GO ignores a second press within 300 ms, so a bounced key or pedal can't skip a cue, and can wait for a held press. Tonight's running order can be changed live, and a **simple view** fits a tablet. See the [operator guide](docs/operator-guide.md) for the full show-night runbook.
+
+### Access, and shows beyond the theatre
+
+- **On every phone:** captions, audio description, content warnings and translations, chosen by each person (the editor's Access tab), plus open captions on stage.
+- **Without a phone:** shared tablets, buttons and pedals mapped to vote options, and counts the operator types in.
+- **Relaxed performances:** dimmer outputs, capped sound, slower fades, intense layers left out, with a flash check on cue timings.
+- **Lyrics and setlists:** cues named by section (a pedal jumps to the chorus), setlists, MIDI program changes.
+- **Unattended installations:** a kiosk page that runs the show in Show mode and recovers from power cuts, opening hours, and room codes kept for printed QR codes. See the [installation guide](docs/installation-guide.md).
 
 ### When something goes wrong
 
@@ -87,16 +95,17 @@ An output can also live on another device: copy its link from the operator view 
 
 ## Documentation
 
-| Document                                               | For                                                                                                                 |
-| ------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------- |
-| [docs/users-and-journey.md](docs/users-and-journey.md) | Who uses Scrim, what each needs, and the journey from a first idea to touring                                       |
-| [UX_PRINCIPLES.md](UX_PRINCIPLES.md)                   | How Scrim should behave: ten principles, patterns per surface, customization model, accessibility commitments       |
-| [DESIGN_SYSTEM.md](DESIGN_SYSTEM.md)                   | How Scrim looks and moves: identity, colour and type tokens, density, motion, components, layout, migration plan    |
-| [docs/architecture.md](docs/architecture.md)           | How the engine, operator tab, renderer, storage and relay fit together, and the reliability rules changes must keep |
-| [docs/show-format.md](docs/show-format.md)             | The open show document and the `.scrim` bundle: every field, action and moment type, and how versions migrate       |
-| [docs/protocol.md](docs/protocol.md)                   | BroadcastChannel and relay messages, roles and keys, limits, clock sync, close codes                                |
-| [docs/operator-guide.md](docs/operator-guide.md)       | Show-night runbook: before doors, during the show, when something goes wrong                                        |
-| [docs/research/](docs/research/README.md)              | Background research for planned features: show-control output, GPU compositor, UI/UX                                |
+| Document                                                 | For                                                                                                                 |
+| -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| [docs/users-and-journey.md](docs/users-and-journey.md)   | Who uses Scrim, what each needs, and the journey from a first idea to touring                                       |
+| [UX_PRINCIPLES.md](UX_PRINCIPLES.md)                     | How Scrim should behave: ten principles, patterns per surface, customization model, accessibility commitments       |
+| [DESIGN_SYSTEM.md](DESIGN_SYSTEM.md)                     | How Scrim looks and moves: identity, colour and type tokens, density, motion, components, layout, migration plan    |
+| [docs/architecture.md](docs/architecture.md)             | How the engine, operator tab, renderer, storage and relay fit together, and the reliability rules changes must keep |
+| [docs/show-format.md](docs/show-format.md)               | The open show document and the `.scrim` bundle: every field, action and moment type, and how versions migrate       |
+| [docs/protocol.md](docs/protocol.md)                     | BroadcastChannel and relay messages, roles and keys, limits, clock sync, close codes                                |
+| [docs/operator-guide.md](docs/operator-guide.md)         | Show-night runbook: before doors, during the show, when something goes wrong                                        |
+| [docs/installation-guide.md](docs/installation-guide.md) | Running a show unattended: the kiosk page, opening hours, kept room codes, Chrome flags and policies                |
+| [docs/research/](docs/research/README.md)                | Background research for planned features: show-control output, GPU compositor, UI/UX                                |
 
 ## Contributing
 
