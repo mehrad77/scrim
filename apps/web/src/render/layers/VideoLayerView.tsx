@@ -1,6 +1,6 @@
-import { tweenValue } from '@scrim/engine';
-import type { VideoLayer } from '@scrim/format';
-import { useEffect, useRef } from 'react';
+import { effectiveOpacity, tweenValue } from '@scrim/engine';
+import { layerTree, type VideoLayer } from '@scrim/format';
+import { useEffect, useMemo, useRef } from 'react';
 import { AUDIO_DEVICES_KEY, readLocal } from '../../lib/local.js';
 import { applySink, syncMedia } from '../sync.js';
 import { useMediaUrl } from '../useMediaUrl.js';
@@ -9,6 +9,7 @@ import type { LayerViewProps } from './LayerView.js';
 
 export function VideoLayerView({
   layer,
+  show,
   state,
   variant,
   clock,
@@ -19,6 +20,7 @@ export function VideoLayerView({
   const ref = useRef<HTMLVideoElement>(null);
   const ls = state.layers[layer.id];
   const silent = variant !== 'output';
+  const tree = useMemo(() => layerTree(show.layers), [show.layers]);
 
   // Position and play state follow the engine; re-check periodically for drift.
   useEffect(() => {
@@ -30,7 +32,7 @@ export function VideoLayerView({
     return () => clearInterval(id);
   }, [ls?.media, layer.loop, clock, variant, url, onAudioBlocked]);
 
-  // Volume follows opacity, so fades and panic also fade sound.
+  // Volume follows opacity, its frames' too, so fades and panic also fade sound.
   useEffect(() => {
     const el = ref.current;
     if (!el || silent) return;
@@ -41,13 +43,13 @@ export function VideoLayerView({
       const mute = state.mute ? tweenValue(state.mute, now) : 0;
       const v =
         layer.volume *
-        tweenValue(ls.opacity, now) *
+        effectiveOpacity(tree, state, layer.id, now) *
         (1 - tweenValue(state.blackout, now)) *
         (1 - mute);
       el.volume = Math.min(1, Math.max(0, v));
     }, 40);
     return () => clearInterval(id);
-  }, [ls, state.blackout, state.mute, layer.volume, layer.bus, clock, silent]);
+  }, [ls, tree, state, layer.id, layer.volume, layer.bus, clock, silent]);
 
   if (!url) return <Missing />;
   return (

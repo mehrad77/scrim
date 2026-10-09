@@ -1,7 +1,7 @@
 import { formatValue } from '@scrim/engine';
 import type { StateLayer } from '@scrim/format';
 import type { LayerViewProps } from './LayerView.js';
-import { textStyle } from './text.js';
+import { sizingClass, textStyle } from './text.js';
 
 export function StateLayerView({ layer, show, state }: LayerViewProps<StateLayer>) {
   const def = show.vars.find((v) => v.id === layer.varId);
@@ -31,7 +31,10 @@ export function StateLayerView({ layer, show, state }: LayerViewProps<StateLayer
     );
   }
   return (
-    <div className="flex size-full items-center whitespace-pre-wrap" style={textStyle(layer)}>
+    <div
+      className={`flex items-center ${sizingClass(layer.sizing, 'whitespace-pre-wrap')}`}
+      style={textStyle(layer)}
+    >
       <span className="w-full">{def ? formatValue(value) : ''}</span>
     </div>
   );

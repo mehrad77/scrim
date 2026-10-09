@@ -81,7 +81,8 @@ React reads a `ShowHost` through `useSyncExternalStore(host.subscribe, host.getS
 `apps/web/src/render/Stage.tsx` draws one output:
 
 - **Placement.** Layers are placed in output pixels and the whole canvas is scaled to fit its container. Optional corner-pin keystone is applied with a CSS `matrix3d` (`render/cornerPin.ts`).
-- **Fades.** Opacity and blackout are applied straight to the DOM by a `requestAnimationFrame` loop. A 250 ms timer backs it up for hidden or occluded windows, so React re-renders only when state changes.
+- **Frames.** A frame's content is nested inside its box (`render/box.ts` turns a layer into CSS), so CSS multiplies a frame's opacity into its content, lays out rows and columns with flexbox, and sizes hugging boxes with `max-content`. The DOM renderer is the reference for this layout.
+- **Fades.** Opacity and blackout are applied straight to the DOM by a `requestAnimationFrame` loop. A 250 ms timer backs it up for hidden or occluded windows, so React re-renders only when state changes. A layer's visibility is set to hidden or left to inherit, never forced visible, so a hidden frame hides its content. The blackout sits above the highest layer.
 - **Media sync.** Video follows the engine's media clock and is re-synced whenever drift exceeds 250 ms. If the browser blocks sound, the video keeps playing muted and the operator is told to click the output once.
 - **Preloading.** Every layer is mounted from the start, so media is loaded and decoded before its cue.
 

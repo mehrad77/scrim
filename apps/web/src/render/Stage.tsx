@@ -1,8 +1,24 @@
 import { tweenValue, type EngineState } from '@scrim/engine';
+import {
+  descendantsOf,
+  isFrame,
+  layerTree,
+  type FrameLayer,
+  type Layer,
+  type Show,
+} from '@scrim/format';
 import { useShowFonts } from './useShowFonts.js';
-import type { Layer, Show } from '@scrim/format';
-import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import {
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+  type ReactNode,
+} from 'react';
 import { epochNow } from '../lib/clock.js';
+import { boxStyle, editorOpacities } from './box.js';
 import { cornerPinMatrix, hasPin } from './cornerPin.js';
 import { LayerView } from './layers/LayerView.js';
 
@@ -26,9 +42,9 @@ export interface StageProps {
 }
 
 /**
- * Draws one output: layers placed in output pixels, scaled to fit the parent.
- * Opacity fades run in a frame loop straight on the DOM, so React re-renders
- * only when the show or engine state changes.
+ * Draws one output: layers placed in output pixels, scaled to fit the parent, with each frame's
+ * content nested inside it. Opacity fades run in a frame loop straight on the DOM, so React
+ * re-renders only when the show or engine state changes.
  */
 export function Stage(props: StageProps) {
   const { show, state, outputId, variant, clock = epochNow } = props;
@@ -49,12 +65,13 @@ export function Stage(props: StageProps) {
     return () => ro.disconnect();
   }, []);
 
-  const layers = useMemo(
-    () =>
-      show.layers
-        .filter((l) => l.outputId === outputId && l.kind !== 'audio')
-        .sort((a, b) => a.z - b.z),
+  const tree = useMemo(
+    () => layerTree(show.layers.filter((l) => l.outputId === outputId && l.kind !== 'audio')),
     [show.layers, outputId],
+  );
+  const layers = useMemo(
+    () => tree.roots.flatMap((r) => [r, ...descendantsOf(tree, r.id)]),
+    [tree],
   );
 
   // Frame loop for fades. requestAnimationFrame stops in hidden or occluded
@@ -69,7 +86,8 @@ export function Stage(props: StageProps) {
         if (!el || !ls) continue;
         const v = tweenValue(ls.opacity, now);
         el.style.opacity = String(v);
-        el.style.visibility = v <= 0.001 ? 'hidden' : 'visible';
+        // Never 'visible': that would show a layer inside a frame that is hidden.
+        el.style.visibility = v <= 0.001 ? 'hidden' : '';
       }
       if (blackoutEl.current) {
         const b = tweenValue(state.blackout, now);
@@ -98,7 +116,37 @@ export function Stage(props: StageProps) {
     );
   }
 
-  const topZ = layers.reduce((z, l) => Math.max(z, l.z), 0);
+  const topZ = tree.roots.reduce((z, l) => Math.max(z, l.z), 0);
+  const resting =
+    variant === 'editor' ? editorOpacities(tree, state, !!props.ghostHidden) : undefined;
+  const draw = (layer: Layer, parent?: FrameLayer): ReactNode => (
+    <LayerBox
+      key={layer.id}
+      layer={layer}
+      style={boxStyle(layer, parent, output)}
+      ref={(el) => {
+        if (el) layerEls.current.set(layer.id, el);
+        else layerEls.current.delete(layer.id);
+      }}
+      initialOpacity={resting?.get(layer.id) ?? 0}
+      onPointerDown={props.onLayerPointerDown && ((e) => props.onLayerPointerDown!(layer.id, e))}
+    >
+      {isFrame(layer) ? (
+        inDrawingOrder(tree.children(layer.id), layer).map((c) => draw(c, layer))
+      ) : (
+        <LayerView
+          layer={layer}
+          show={show}
+          state={state}
+          variant={variant}
+          clock={clock}
+          onMediaEnded={props.onMediaEnded}
+          onAudioBlocked={props.onAudioBlocked}
+        />
+      )}
+    </LayerBox>
+  );
+
   const scale = size.w && size.h ? Math.min(size.w / output.width, size.h / output.height) : 0;
   const offX = (size.w - output.width * scale) / 2;
   const offY = (size.h - output.height * scale) / 2;
@@ -127,30 +175,7 @@ export function Stage(props: StageProps) {
             if (e.target === e.currentTarget) props.onBackgroundPointerDown?.();
           }}
         >
-          {layers.map((layer) => (
-            <LayerBox
-              key={layer.id}
-              layer={layer}
-              ref={(el) => {
-                if (el) layerEls.current.set(layer.id, el);
-                else layerEls.current.delete(layer.id);
-              }}
-              initialOpacity={editorOpacity(layer, state, variant, props.ghostHidden)}
-              onPointerDown={
-                props.onLayerPointerDown && ((e) => props.onLayerPointerDown!(layer.id, e))
-              }
-            >
-              <LayerView
-                layer={layer}
-                show={show}
-                state={state}
-                variant={variant}
-                clock={clock}
-                onMediaEnded={props.onMediaEnded}
-                onAudioBlocked={props.onAudioBlocked}
-              />
-            </LayerBox>
-          ))}
+          {inDrawingOrder(tree.roots).map((l) => draw(l))}
           {variant !== 'editor' && (
             <div
               ref={blackoutEl}
@@ -166,49 +191,39 @@ export function Stage(props: StageProps) {
   );
 }
 
-function editorOpacity(
-  layer: Layer,
-  state: EngineState,
-  variant: StageVariant,
-  ghost?: boolean,
-): number {
-  if (variant !== 'editor') return 0;
-  const v = state.layers[layer.id]?.opacity.to ?? 0;
-  return ghost ? Math.max(v, 0.25) : v;
+/**
+ * Lists come front first. Rows and columns lay out in that order; everywhere else the back is
+ * drawn first, so on equal z the front of the list still wins.
+ */
+function inDrawingOrder(list: Layer[], frame?: FrameLayer): Layer[] {
+  return frame && frame.layout.mode !== 'free' ? list : [...list].reverse();
 }
 
 function LayerBox({
   layer,
+  style,
   initialOpacity,
   children,
   onPointerDown,
   ref,
 }: {
   layer: Layer;
+  style: CSSProperties;
   initialOpacity: number;
   children: ReactNode;
   onPointerDown?: ((e: React.PointerEvent) => void) | undefined;
   ref: (el: HTMLDivElement | null) => void;
 }) {
-  const { top, right, bottom, left } = layer.crop;
-  const cropped = top || right || bottom || left;
   return (
     <div
       ref={ref}
       data-layer={layer.id}
-      className="absolute"
       onPointerDown={onPointerDown}
       style={{
-        left: layer.x,
-        top: layer.y,
-        width: layer.w,
-        height: layer.h,
-        zIndex: layer.z,
+        ...style,
         opacity: initialOpacity,
-        visibility: initialOpacity <= 0.001 && !onPointerDown ? 'hidden' : 'visible',
-        clipPath: cropped
-          ? `inset(${top * 100}% ${right * 100}% ${bottom * 100}% ${left * 100}%)`
-          : undefined,
+        // Hidden or inherited, never 'visible', so a hidden frame hides what is inside it.
+        visibility: initialOpacity <= 0.001 && !onPointerDown ? 'hidden' : undefined,
       }}
     >
       {children}

@@ -19,3 +19,13 @@ export function textStyle(
     lineHeight: 1.15,
   };
 }
+
+/**
+ * Classes for a text box that may size itself. `fixed` is what a w × h box adds; an auto-sized
+ * box follows its text instead, so a background or a hugging frame grows with it.
+ */
+export function sizingClass(sizing: TextLayer['sizing'], fixed: string): string {
+  if (sizing === 'autoWidth') return 'whitespace-pre';
+  if (sizing === 'autoHeight') return 'w-full whitespace-pre-wrap';
+  return `size-full ${fixed}`;
+}

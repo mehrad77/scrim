@@ -3,7 +3,7 @@ import type { CounterLayer } from '@scrim/format';
 import { useEffect, useState } from 'react';
 import { formatClock } from '../../lib/clock.js';
 import type { LayerViewProps } from './LayerView.js';
-import { textStyle } from './text.js';
+import { sizingClass, textStyle } from './text.js';
 
 export function CounterLayerView({ layer, state, clock }: LayerViewProps<CounterLayer>) {
   const c = state.layers[layer.id]?.counter;
@@ -21,7 +21,10 @@ export function CounterLayerView({ layer, state, clock }: LayerViewProps<Counter
       ? formatClock(layer.mode === 'countdown' ? Math.ceil(value) : Math.floor(value))
       : String(Math.round(value));
   return (
-    <div className="flex size-full items-center tabular-nums" style={textStyle(layer)}>
+    <div
+      className={`flex items-center tabular-nums ${sizingClass(layer.sizing, '')}`}
+      style={textStyle(layer)}
+    >
       <span className="w-full">{shown}</span>
     </div>
   );
