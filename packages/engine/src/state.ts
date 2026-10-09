@@ -1,5 +1,6 @@
 import type { Action, Show, VarValue } from '@scrim/format';
 import { cueOrder } from '@scrim/format';
+import type { AccessState } from './access.js';
 import type { RunOrder } from './order.js';
 import { still, type Tween } from './tween.js';
 import type { ClearKind } from './types.js';
@@ -98,6 +99,8 @@ export interface EngineState {
   cleared?: Partial<Record<ClearKind, ClearPoint>>;
   /** Tonight's running order; absent or null: the show's own order. */
   order?: RunOrder | null;
+  /** The personal access channel: the caption up now, the last description. */
+  access?: AccessState;
 }
 
 export function emptyAggregate(): MomentAggregate {
@@ -171,6 +174,8 @@ export function reconcile(show: Show, prev: EngineState): EngineState {
   if (state.follow && !cueIds.has(state.follow.cueId)) state.follow = null;
   state.mute ??= still(0);
   state.cleared ??= {};
+  if (state.access?.captionCue && !cueIds.has(state.access.captionCue))
+    state.access = { ...state.access, captionCue: null };
   for (const point of Object.values(state.cleared))
     for (const id of Object.keys(point ?? {})) if (!layerIds.has(id)) delete point![id];
   return state;

@@ -15,6 +15,7 @@ import { StageTab } from './StageTab.js';
 const lazyTab = <K extends string>(load: () => Promise<Record<K, () => ReactElement>>, name: K) =>
   lazy(() => load().then((m) => ({ default: m[name] })));
 const CuesTab = lazyTab(() => import('./CuesTab.js'), 'CuesTab');
+const AccessTab = lazyTab(() => import('./AccessTab.js'), 'AccessTab');
 const InteractionTab = lazyTab(() => import('./InteractionTab.js'), 'InteractionTab');
 const InputsTab = lazyTab(() => import('./InputsTab.js'), 'InputsTab');
 const OutputsTab = lazyTab(() => import('./OutputsTab.js'), 'OutputsTab');
@@ -32,11 +33,12 @@ import { MenuButton } from '../../ui/Menu.js';
 import { MotionRoot } from '../../ui/MotionRoot.js';
 import { InfoStrip } from '../../ui/Tooltip.js';
 
-type Tab = 'stage' | 'cues' | 'interaction' | 'inputs' | 'outputs' | 'history';
+type Tab = 'stage' | 'cues' | 'access' | 'interaction' | 'inputs' | 'outputs' | 'history';
 
 const TABS: { id: Tab; label: string }[] = [
   { id: 'stage', label: 'Stage' },
   { id: 'cues', label: 'Cues' },
+  { id: 'access', label: 'Access' },
   { id: 'interaction', label: 'Interaction' },
   { id: 'inputs', label: 'Controls' },
   { id: 'outputs', label: 'Outputs & audio' },
@@ -120,6 +122,7 @@ export default function Editor() {
           <Suspense fallback={<div className="p-6 text-ui text-fg-subtle">Loading…</div>}>
             {tab === 'stage' && <StageTab />}
             {tab === 'cues' && <CuesTab />}
+            {tab === 'access' && <AccessTab />}
             {tab === 'interaction' && <InteractionTab />}
             {tab === 'inputs' && <InputsTab />}
             {tab === 'outputs' && <OutputsTab />}

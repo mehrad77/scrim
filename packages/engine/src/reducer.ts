@@ -16,6 +16,7 @@ import {
   type TallySource,
   type Timer,
 } from './state.js';
+import { accessAfter } from './access.js';
 import { resolveJump, runOrder, sceneSequence, type RunOrder } from './order.js';
 import { retarget, still } from './tween.js';
 import type { ClearKind, EngineEvent, EngineInput, InputSource } from './types.js';
@@ -432,6 +433,7 @@ function fireCue(ctx: Ctx, cueId: string, source: InputSource): void {
   state.follow =
     cue.follow.auto && next ? { cueId: next.id, at: now + cue.follow.delay * 1000 } : null;
   state.fired += 1;
+  state.access = accessAfter(state.access, cue);
   ctx.events.push({ type: 'cueFired', cueId: cue.id, name: cue.name, source });
   applyActions(ctx, cue.actions);
 }

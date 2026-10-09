@@ -222,10 +222,12 @@ The five primary users come from the [product proposal](https://claude.ai/code/a
 - Past answers are cleared when a moment closes.
 - Load-tested at 200 phones, with a p95 of about 200 ms from vote to operator.
 
+**Since added.** An **Access** menu on the phone: the show's language (the page's own words follow it, right to left for Arabic and the like), captions, text size, audio description read by the phone's own voice, vibration and content warnings. Each person's choices stay on their phone. See the [personal access channel](#1-a-personal-access-channel-on-the-audience-phone).
+
 **Gaps.**
 
-- No language switching.
-- Accessibility is partial: the page follows the phone's reduced-motion and contrast settings, but nothing is announced to screen readers and there is no access menu.
+- The page's own words ship in English, Spanish, French and Arabic; the packs need a native speaker's review.
+- No screen-reader pass on the phone yet beyond labels and live captions.
 - No custom branding.
 
 ## Supporting users
@@ -429,8 +431,8 @@ Design and rehearsal loop many times. Review feeds the next rehearsal. Touring r
   - Hold for an unexpected pause.
 - **Today:** all of the above, plus a 300 ms double-GO guard, a wake lock, and a single operator per show per machine.
 - **Risks and gaps:**
-  - The audience page has no language choice.
-  - There is no accessibility pass yet.
+  - The phone's Access menu (captions, language, description) is best effort: it stops if the network does, so access the show depends on also needs a stage version, such as open captions.
+  - The phone has no full screen-reader pass yet.
 
 ### 6. Review
 
@@ -740,6 +742,8 @@ The users above, and the theatre users before them, share five needs that no sin
   - **haptics:** a vibration for sound cues or for the start of a moment;
   - **content warnings** a minute before intense moments.
 - This is probably the most distinctive thing Scrim can offer, and it reuses the relay already built.
+
+**Built.** The editor's **Access** tab writes captions, descriptions, warnings and buzzes against the cue list, in the show's language and its translations, and translates the moments. The phone's Access menu offers them. One click adds open captions on stage (a text layer showing `{{caption}}`), and the pre-show check warns when captions reach phones only. Pre-recorded description and live description are still to come.
 
 **How it fits Scrim.**
 

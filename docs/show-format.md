@@ -50,6 +50,7 @@ Readers must:
   defaultFade?: { duration, easing },  // the fade new show/hide actions start with
   setlists?: Setlist[],                // prepared running orders
   operator?: { goHoldMs?, layout?, remoteGo? }, // how the show is run
+  languages?: { base, others[] },      // the show's language and its translations (codes)
 }
 ```
 
@@ -107,13 +108,22 @@ Older apps can't open shows that contain frames.
 
 ```ts
 Scene   { id, name, tape? }
-Cue     { id, sceneId, name, actions: Action[], follow: { auto, delay }, notes, tape?, waitFor?, section?, updatedAt }
+Cue     { id, sceneId, name, actions: Action[], follow: { auto, delay }, notes, tape?, waitFor?, section?, access?, updatedAt }
 Setlist { id, name, scenes: sceneId[] }   // show.setlists?: Setlist[]
 ```
 
 When `follow.auto` is true, the next cue fires `delay` seconds after this one; with a delay of 0 it fires at once, after the rules of the cue before it. One input fires at most 64 cues through zero-second follows and jumps that fire; past that the engine stops the loop, and the rest of that input's actions, and warns. `updatedAt` drives "changed since the last run" in rehearsal. `tape` (1–8) is an optional spike-tape colour that tags a scene, or overrides it for one cue, in the editor and on printed sheets; the operator view never shows it. `waitFor` names a trigger whose performer the cue waits for: while the cue is on standby, that trigger's remotes read "Your cue · tap Ready", and the operator sees when they are ready. It never fires anything by itself.
 
 `section` (optional) names the part of a scene a cue is, such as `Verse` or `Chorus`, so a key or a rule can jump to it. **Setlists** are prepared running orders: the listed scenes, in that order, with every other scene skipped. Tonight's running order itself is performance state, not part of the show. Older apps can't open shows whose actions or keys jump to sections.
+
+`access` is the cue's track on the personal access channel: `{ caption?, description?, warning?, buzz?, i18n? }`.
+
+- `caption` is what is said or sung from this cue on. Absent keeps the last caption; empty clears it.
+- `description` is read aloud on phones that ask for it, once, when the cue fires.
+- `warning` shows on phones while the cue is on standby.
+- `buzz` vibrates phones that ask for it.
+- `i18n` holds the same texts by language code (`{ fr: { caption } }`); a missing translation falls back to the show's own words.
+- A text layer showing `{{caption}}` puts the current caption on stage: open captions for everyone.
 
 ### Actions
 
@@ -159,6 +169,7 @@ Easing is one of `linear`, `easeIn`, `easeOut` or `easeInOut`. Durations are in 
 
 - A moment with no input closes with `defaultResult`.
 - `durationSec: 0` means the operator closes it.
+- `i18n` (optional) translates the prompt and the option labels by language code: `{ fr: { prompt, options: { [optionId]: label } } }`. Phones show the language each person picks.
 - Live values update while a moment is open, so a tally bar on stage moves as votes arrive.
 
 ### Triggers, rules and inputs

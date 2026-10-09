@@ -23,6 +23,7 @@ import {
   type RunMode,
 } from '@scrim/protocol';
 import { epochNow } from '../lib/clock.js';
+import { accessView } from '../lib/access.js';
 import { orderChangeText } from '../lib/jumps.js';
 import { conditionText, valueLabel } from '../lib/logic.js';
 import { db, setSetting, type RunLogEntry, type RunRecord } from '../storage/db.js';
@@ -167,6 +168,7 @@ export class ShowHost {
   #logTimer: ReturnType<typeof setTimeout> | null = null;
   #lastMoments = '';
   #lastRemoteView = '';
+  #lastAccess = '';
   #disposed = false;
   #lastGo = 0;
   #goDroppedAt: number | null = null;
@@ -537,6 +539,7 @@ export class ShowHost {
       if (status === 'open') {
         this.#lastMoments = '';
         this.#lastRemoteView = '';
+        this.#lastAccess = '';
         relay.send({ t: 'show', show: this.engine.show });
         this.#syncRelay(true);
         this.#log('info', `Audience room ${room!.code} connected`);
@@ -812,6 +815,7 @@ export class ShowHost {
           variants: m.variants,
           moderated: m.moderated,
           closesAt: closesAt === null || state.held ? null : Math.round(closesAt + offset),
+          ...(m.i18n ? { i18n: m.i18n } : {}),
         };
       });
     const moments = JSON.stringify(open);
@@ -837,6 +841,13 @@ export class ShowHost {
       goHoldMs: show.operator?.goHoldMs ?? 0,
     };
     const viewJson = JSON.stringify(view);
+    // The access channel goes to phones only when it changes; the relay keeps it for late joiners.
+    const access = accessView(show, state);
+    const accessJson = access ? JSON.stringify(access) : '';
+    if (access && (force || accessJson !== this.#lastAccess)) {
+      this.#lastAccess = accessJson;
+      relay.send({ t: 'access', view: access });
+    }
     if (force || viewJson !== this.#lastRemoteView) {
       this.#lastRemoteView = viewJson;
       relay.send({ t: 'remoteView', view });

@@ -2,16 +2,22 @@ import {
   CLOSE,
   ROOM_ALPHABET,
   ROOM_CODE_LENGTH,
+  type AccessView,
   type AudienceToRelay,
   type PublicMoment,
   type RelayToAudience,
 } from '@scrim/protocol';
-import { Check } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { Accessibility, Check } from 'lucide-react';
+import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import { clientId, defaultRelayUrl } from '../lib/config.js';
 import { cn } from '../lib/cn.js';
 import { SpikeMark } from '../ui/BrandMark.js';
 import { RelayClient, type RelayStatus } from '../transport/relay.js';
+import { readPrefs, showLang, speak, tr, uiLang, writePrefs, type AccessPrefs } from './access.js';
+import { EN, isRtl, loadStrings, StringsContext, useStrings, type Strings } from './strings.js';
+
+// The access choices load only when someone opens them.
+const AccessSheet = lazy(() => import('./AccessSheet.js'));
 
 type Send = (msg: AudienceToRelay) => boolean;
 
@@ -22,6 +28,15 @@ type Send = (msg: AudienceToRelay) => boolean;
  */
 export function Audience() {
   const params = new URLSearchParams(location.search);
+  const [prefs, setPrefsState] = useState<AccessPrefs>(readPrefs);
+  const setPrefs = (p: AccessPrefs) => {
+    setPrefsState(p);
+    writePrefs(p);
+  };
+  const [access, setAccess] = useState<AccessView | null>(null);
+  const [sheet, setSheet] = useState(false);
+  const lang = showLang(prefs, access);
+  const [s, setStrings] = useState<Strings>(EN);
   const [code, setCode] = useState(() => (params.get('r') ?? '').toUpperCase());
   const relayUrl = params.get('relay') || defaultRelayUrl();
   const sharedKey = params.get('s');
@@ -52,6 +67,7 @@ export function Audience() {
     });
     client.onMessage((m) => {
       if (m.t === 'welcome') setTitle(m.title);
+      if (m.t === 'access') setAccess(m.view);
       if (m.t === 'view') {
         setTitle(m.title);
         const ids = m.moments.map((x) => x.id);
@@ -73,10 +89,61 @@ export function Audience() {
   }, [code, relayUrl, sharedKey]);
 
   useEffect(() => {
-    document.title = title ? `${title} · join` : 'Join the show';
-  }, [title]);
+    document.title = title ? `${title} · ${s.joinButton}` : s.join;
+  }, [title, s]);
 
-  if (code.length !== ROOM_CODE_LENGTH) return <CodeEntry onCode={setCode} />;
+  // The page's own words follow the show's language when there's a pack for it.
+  useEffect(() => {
+    const ui = uiLang(lang);
+    document.documentElement.lang = ui;
+    document.documentElement.dir = isRtl(ui) ? 'rtl' : 'ltr';
+    let live = true;
+    void loadStrings(ui).then((loaded) => live && setStrings(loaded));
+    return () => void (live = false);
+  }, [lang]);
+
+  // Text size; a shared tablet reads in large print at least.
+  useEffect(() => {
+    const size = Math.max(prefs.size, sharedKey ? 1.25 : 1);
+    document.documentElement.style.setProperty('--ui-scale', String(size));
+  }, [prefs.size, sharedKey]);
+
+  // Each new description is read aloud once, on phones that asked for it; not one from before
+  // the phone joined.
+  const described = useRef<number | null>(null);
+  const description = access?.description;
+  useEffect(() => {
+    if (!description) return;
+    const first = described.current === null;
+    if (description.seq === described.current) return;
+    described.current = description.seq;
+    if (!first && prefs.describe) speak(tr(description, lang), lang);
+  }, [description, prefs.describe, lang]);
+
+  const buzzed = useRef<number | null>(null);
+  const buzz = access?.buzz ?? 0;
+  useEffect(() => {
+    if (buzzed.current !== null && buzz > buzzed.current && prefs.buzz) navigator.vibrate?.(200);
+    buzzed.current = buzz;
+  }, [buzz, prefs.buzz]);
+
+  // Speech stops when the screen sleeps, so keep it awake while description is on.
+  useEffect(() => {
+    if (!prefs.describe) return;
+    let lock: WakeLockSentinel | null = null;
+    void navigator.wakeLock
+      ?.request('screen')
+      .then((l) => (lock = l))
+      .catch(() => undefined);
+    return () => void lock?.release();
+  }, [prefs.describe]);
+
+  if (code.length !== ROOM_CODE_LENGTH)
+    return (
+      <StringsContext.Provider value={s}>
+        <CodeEntry onCode={setCode} />
+      </StringsContext.Provider>
+    );
 
   const send: Send = (msg) => {
     if (!sharedKey || msg.t === 'tap' || msg.t === 'ping') return relay.current?.send(msg) ?? false;
@@ -92,78 +159,121 @@ export function Audience() {
   };
   const offset = () => relay.current?.offset ?? 0;
 
+  const caption = prefs.captions ? tr(access?.caption, lang) : '';
+  const warning = prefs.warnings ? tr(access?.warning, lang) : '';
+
   return (
-    <div className="mx-auto flex min-h-full max-w-md flex-col px-5 pt-6 pb-[max(24px,env(safe-area-inset-bottom))]">
-      <header className="mb-6 flex items-center justify-between">
-        <span className="flex min-w-0 items-center gap-2 text-ui font-semibold text-fg-muted">
-          <SpikeMark className="size-4 shrink-0 text-accent" />
-          <span className="truncate">{title || 'Scrim'}</span>
-        </span>
-        <span
-          className={cn(
-            'flex items-center gap-1.5 text-caption',
-            status === 'open' ? 'text-fg-subtle' : 'text-warn',
-          )}
-        >
+    <StringsContext.Provider value={s}>
+      <div className="mx-auto flex min-h-full max-w-md flex-col px-5 pt-6 pb-[max(24px,env(safe-area-inset-bottom))]">
+        <header className="mb-6 flex items-center justify-between gap-3">
+          <span className="flex min-w-0 items-center gap-2 text-ui font-semibold text-fg-muted">
+            <SpikeMark className="size-4 shrink-0 text-accent" />
+            <span className="truncate">{title || 'Scrim'}</span>
+          </span>
           <span
-            className={cn('size-2 rounded-full', status === 'open' ? 'bg-fg-muted' : 'bg-warn')}
-          />
-          {status === 'open' ? 'Joined' : status === 'failed' ? 'Closed' : 'Connecting…'}
-        </span>
-      </header>
-      {status === 'failed' ? (
-        <Center>
-          <p className="text-lg">
-            {closeCode === CLOSE.full ? 'This room is full.' : 'This room is not open.'}
-          </p>
-          <p className="mt-2 text-ui text-fg-subtle">
-            Check the code with the front of house team.
-          </p>
-          <button className="mt-6 text-ui text-accent-text underline" onClick={() => setCode('')}>
-            Enter another code
-          </button>
-        </Center>
-      ) : moments.length === 0 ? (
-        <Center>
-          {thanks ? (
-            <span className="aud-pop mb-5 flex size-14 items-center justify-center rounded-full bg-accent text-accent-fg">
-              <Check size={28} strokeWidth={2.5} aria-hidden />
-            </span>
-          ) : (
-            <SpikeMark className="mb-5 size-14 text-accent" />
-          )}
-          <p className="font-display text-2xl font-semibold">
-            {thanks ? 'Thank you!' : 'Watch the stage'}
-          </p>
-          <p className="mt-2 text-ui text-fg-subtle">
-            {thanks
-              ? 'Your answer is on its way to the stage.'
-              : 'Keep this page open. When it is your turn, it will light up here.'}
-          </p>
-        </Center>
-      ) : passOn ? (
-        <PassOn onNext={nextPerson} onBack={() => setPassOn(false)} />
-      ) : (
-        <div className="flex flex-col gap-8">
-          {moments.map((m) => (
-            // A new person gets fresh answers: the ballot keys each moment's view.
-            <MomentView
-              key={`${m.id}:${ballot}`}
-              moment={m}
-              send={send}
-              offset={offset}
-              shared={!!sharedKey}
-              onAnswered={answered}
+            className={cn(
+              'ms-auto flex items-center gap-1.5 text-caption',
+              status === 'open' ? 'text-fg-subtle' : 'text-warn',
+            )}
+          >
+            <span
+              className={cn('size-2 rounded-full', status === 'open' ? 'bg-fg-muted' : 'bg-warn')}
             />
-          ))}
-        </div>
-      )}
-    </div>
+            {status === 'open' ? s.joined : status === 'failed' ? s.closed : s.connecting}
+          </span>
+          <button
+            className="-me-2 flex size-11 items-center justify-center rounded-control text-fg-muted"
+            aria-label={s.access}
+            aria-haspopup="dialog"
+            onClick={() => setSheet(true)}
+          >
+            <Accessibility size={22} aria-hidden />
+          </button>
+        </header>
+        {warning && (
+          <div role="note" className="mb-5 rounded-control border border-warn px-4 py-3">
+            <div className="label-caps text-warn">{s.comingUp}</div>
+            <p className="mt-1 text-lg">{warning}</p>
+            <p className="mt-1 text-ui text-fg-subtle">{s.stepOut}</p>
+          </div>
+        )}
+        {status === 'failed' ? (
+          <Center>
+            <p className="text-lg">{closeCode === CLOSE.full ? s.roomFull : s.roomNotOpen}</p>
+            <p className="mt-2 text-ui text-fg-subtle">{s.checkCode}</p>
+            <button className="mt-6 text-ui text-accent-text underline" onClick={() => setCode('')}>
+              {s.otherCode}
+            </button>
+          </Center>
+        ) : moments.length === 0 ? (
+          <Center>
+            {thanks ? (
+              <span className="aud-pop mb-5 flex size-14 items-center justify-center rounded-full bg-accent text-accent-fg">
+                <Check size={28} strokeWidth={2.5} aria-hidden />
+              </span>
+            ) : (
+              <SpikeMark className="mb-5 size-14 text-accent" />
+            )}
+            <p className="font-display text-2xl font-semibold">{thanks ? s.thanks : s.watch}</p>
+            <p className="mt-2 text-ui text-fg-subtle">{thanks ? s.onItsWay : s.keepOpen}</p>
+          </Center>
+        ) : passOn ? (
+          <PassOn onNext={nextPerson} onBack={() => setPassOn(false)} />
+        ) : (
+          <div className="flex flex-col gap-8">
+            {moments.map((m) => (
+              // A new person gets fresh answers: the ballot keys each moment's view.
+              <MomentView
+                key={`${m.id}:${ballot}`}
+                moment={translated(m, lang)}
+                send={send}
+                offset={offset}
+                shared={!!sharedKey}
+                onAnswered={answered}
+              />
+            ))}
+          </div>
+        )}
+        {caption && (
+          // Captions sit at the bottom, above everything, and are read out as they change.
+          <div
+            className="sticky bottom-0 mt-auto -mx-5 border-t border-line-control bg-app px-5 py-4 text-xl leading-snug font-semibold"
+            aria-live="polite"
+            data-testid="caption"
+          >
+            {caption}
+          </div>
+        )}
+        {sheet && (
+          <Suspense fallback={null}>
+            <AccessSheet
+              prefs={prefs}
+              lang={lang}
+              view={access}
+              onChange={setPrefs}
+              onClose={() => setSheet(false)}
+            />
+          </Suspense>
+        )}
+      </div>
+    </StringsContext.Provider>
   );
+}
+
+/** A moment's prompt and options in the chosen language, where the show has them. */
+function translated(m: PublicMoment, lang: string): PublicMoment {
+  const t = m.i18n?.[lang];
+  if (!t) return m;
+  return {
+    ...m,
+    prompt: t.prompt?.trim() || m.prompt,
+    options: m.options.map((o) => ({ ...o, label: t.options?.[o.id]?.trim() || o.label })),
+  };
 }
 
 /** Between people on a shared tablet: thanks, then the next person, on a tap or after 5 s. */
 function PassOn({ onNext, onBack }: { onNext: () => void; onBack: () => void }) {
+  const s = useStrings();
   const next = useRef(onNext);
   next.current = onNext;
   useEffect(() => {
@@ -176,16 +286,16 @@ function PassOn({ onNext, onBack }: { onNext: () => void; onBack: () => void }) 
         <Check size={28} strokeWidth={2.5} aria-hidden />
       </span>
       <p className="font-display text-2xl font-semibold" role="status">
-        Thank you — pass it on
+        {s.passOn}
       </p>
       <button
         className="mt-8 w-64 rounded-control bg-accent py-5 text-xl font-semibold text-accent-fg"
         onClick={onNext}
       >
-        Next person
+        {s.nextPerson}
       </button>
       <button className="mt-4 text-ui text-fg-muted underline" onClick={onBack}>
-        Change my answer
+        {s.changeAnswer}
       </button>
     </Center>
   );
@@ -200,6 +310,7 @@ function Center({ children }: { children: React.ReactNode }) {
 }
 
 function CodeEntry({ onCode }: { onCode: (c: string) => void }) {
+  const s = useStrings();
   const [value, setValue] = useState('');
   const clean = value
     .toUpperCase()
@@ -214,14 +325,14 @@ function CodeEntry({ onCode }: { onCode: (c: string) => void }) {
       }}
     >
       <SpikeMark className="size-12 text-accent" />
-      <h1 className="font-display text-2xl font-semibold">Join the show</h1>
-      <p className="-mt-2 text-ui text-fg-muted">Type the code on your ticket or the screen.</p>
+      <h1 className="font-display text-2xl font-semibold">{s.join}</h1>
+      <p className="-mt-2 text-ui text-fg-muted">{s.joinHint}</p>
       <input
         autoFocus
         inputMode="text"
         autoCapitalize="characters"
         autoComplete="off"
-        aria-label="Room code"
+        aria-label={s.roomCode}
         placeholder="CODE"
         value={clean}
         onChange={(e) => setValue(e.target.value)}
@@ -233,7 +344,7 @@ function CodeEntry({ onCode }: { onCode: (c: string) => void }) {
         // Disabled reads as "not yet", never as an error.
         className="w-48 rounded-control border border-transparent bg-accent py-3 font-semibold text-accent-fg disabled:border-line-control disabled:bg-control disabled:text-fg-subtle"
       >
-        Join
+        {s.joinButton}
       </button>
     </form>
   );
@@ -290,6 +401,7 @@ function MomentView({
   shared: boolean;
   onAnswered: () => void;
 }) {
+  const s = useStrings();
   return (
     <section className="aud-enter flex flex-col gap-4">
       <div className="flex items-start justify-between gap-3">
@@ -306,7 +418,7 @@ function MomentView({
         <div className="rounded-control border border-line-control bg-control p-6">
           <div className="label-caps text-fg-subtle">{m.prop.label}</div>
           <p className="mt-2 text-xl whitespace-pre-wrap">{m.prop.content}</p>
-          <p className="mt-4 text-caption text-fg-subtle">Only your phone shows this.</p>
+          <p className="mt-4 text-caption text-fg-subtle">{s.onlyYours}</p>
         </div>
       )}
     </section>
@@ -322,6 +434,7 @@ function Vote({
   send: Send;
   onAnswered: () => void;
 }) {
+  const s = useStrings();
   const [choice, setChoice] = useStored<string | null>(`vote:${m.id}`, null);
   return (
     <div className="flex flex-col gap-3">
@@ -352,16 +465,13 @@ function Vote({
           </span>
         </button>
       ))}
-      {choice && (
-        <p className="text-center text-ui text-fg-subtle">
-          Vote counted. You can change it until voting closes.
-        </p>
-      )}
+      {choice && <p className="text-center text-ui text-fg-subtle">{s.voteCounted}</p>}
     </div>
   );
 }
 
 function Tap({ moment: m, send }: { moment: PublicMoment; send: Send }) {
+  const s = useStrings();
   const [count, setCount] = useState(0);
   const pending = useRef(0);
   const [shake, setShake] = useState(false);
@@ -408,7 +518,7 @@ function Tap({ moment: m, send }: { moment: PublicMoment; send: Send }) {
         }}
         className="flex size-60 touch-manipulation items-center justify-center rounded-full bg-accent text-4xl font-black text-accent-fg select-none active:scale-95"
       >
-        TAP
+        {s.tap}
       </button>
       <div className="font-mono text-3xl">{count}</div>
       {!shake && 'DeviceMotionEvent' in window && (
@@ -422,7 +532,7 @@ function Tap({ moment: m, send }: { moment: PublicMoment; send: Send }) {
             setShake(true);
           }}
         >
-          Or shake your phone
+          {s.shake}
         </button>
       )}
     </div>
@@ -439,6 +549,7 @@ function Slider({
   /** A shared tablet: the person says when they're done, since a slider can keep moving. */
   onDone?: (() => void) | undefined;
 }) {
+  const s = useStrings();
   const [value, setValue] = useStored<number>(`slider:${m.id}`, Math.round((m.min + m.max) / 2));
   const [sent, setSent] = useState(false);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -463,7 +574,7 @@ function Slider({
       />
       <div className="flex justify-between text-caption text-fg-subtle">
         <span>{m.min}</span>
-        <span>{sent ? 'Sent' : ' '}</span>
+        <span>{sent ? s.sent : ' '}</span>
         <span>{m.max}</span>
       </div>
       {onDone && sent && (
@@ -471,7 +582,7 @@ function Slider({
           className="mt-2 rounded-control bg-accent py-4 text-lg font-semibold text-accent-fg"
           onClick={onDone}
         >
-          Done
+          {s.done}
         </button>
       )}
     </div>
@@ -487,9 +598,10 @@ function TextEntry({
   send: Send;
   onAnswered: () => void;
 }) {
+  const s = useStrings();
   const [text, setText] = useState('');
   const [sent, setSent] = useStored<number>(`text:${m.id}`, 0);
-  if (sent >= 3) return <p className="text-fg-muted">Thanks — you've sent the maximum of three.</p>;
+  if (sent >= 3) return <p className="text-fg-muted">{s.maxSent}</p>;
   return (
     <form
       className="flex flex-col gap-3"
@@ -507,7 +619,7 @@ function TextEntry({
         value={text}
         maxLength={280}
         onChange={(e) => setText(e.target.value)}
-        placeholder="Type here"
+        placeholder={s.typeHere}
         className="rounded-control border border-line-control bg-panel px-4 py-3 text-lg"
         aria-label={m.prompt}
       />
@@ -516,13 +628,9 @@ function TextEntry({
         disabled={!text.trim()}
         className="rounded-control bg-accent py-3 font-semibold text-accent-fg disabled:opacity-40"
       >
-        Send
+        {s.send}
       </button>
-      {sent > 0 && (
-        <p className="text-center text-ui text-fg-subtle">
-          Sent. The team may pick it to appear on stage.
-        </p>
-      )}
+      {sent > 0 && <p className="text-center text-ui text-fg-subtle">{s.sentPicked}</p>}
     </form>
   );
 }

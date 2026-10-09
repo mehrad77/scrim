@@ -7,6 +7,7 @@ import {
   RemoteToRelaySchema,
   type CreateRoomResponse,
   type HostToRelay,
+  type AccessView,
   type Presence,
   type RelayToAudience,
   type RelayToHost,
@@ -54,6 +55,7 @@ export class Room extends DurableObject<Env> {
   #show: Show | null = null;
   #state: StateMsg | null = null;
   #remoteView: Omit<RemoteView, 'connected'> | null = null;
+  #access: AccessView | null = null;
   #flushTimer: ReturnType<typeof setTimeout> | null = null;
   #statePersistedAt = 0;
   #rates = new Map<string, { n: number; second: number }>();
@@ -61,13 +63,21 @@ export class Room extends DurableObject<Env> {
   constructor(ctx: DurableObjectState, env: Env) {
     super(ctx, env);
     void ctx.blockConcurrencyWhile(async () => {
-      const stored = await ctx.storage.get<unknown>(['keys', 'agg', 'show', 'state', 'remoteView']);
+      const stored = await ctx.storage.get<unknown>([
+        'keys',
+        'agg',
+        'show',
+        'state',
+        'remoteView',
+        'access',
+      ]);
       this.#keys = (stored.get('keys') as Keys | undefined) ?? null;
       const agg = stored.get('agg') as AggregatorSnapshot | undefined;
       if (agg) this.#agg = new Aggregator(agg);
       this.#show = (stored.get('show') as Show | undefined) ?? null;
       this.#state = (stored.get('state') as StateMsg | undefined) ?? null;
       this.#remoteView = (stored.get('remoteView') as RemoteView | undefined) ?? null;
+      this.#access = (stored.get('access') as AccessView | undefined) ?? null;
     });
   }
 
@@ -93,6 +103,7 @@ export class Room extends DurableObject<Env> {
     this.#show = null;
     this.#state = null;
     this.#remoteView = null;
+    this.#access = null;
     this.#keys = {
       hostKey: secret(),
       deviceKey: secret(),
@@ -174,6 +185,8 @@ export class Room extends DurableObject<Env> {
       case 'audience':
         send<RelayToAudience>(server, { t: 'welcome', role: 'audience', title: this.#agg.title });
         this.#sendAudienceView(server, client);
+        // A phone that joins late, or reloads, catches up with the caption and the warning.
+        if (this.#access) send<RelayToAudience>(server, { t: 'access', view: this.#access });
         break;
     }
     // A socket accepted in this call is not yet listed by getWebSockets in every runtime.
@@ -324,6 +337,13 @@ export class Room extends DurableObject<Env> {
         void this.ctx.storage.put('remoteView', msg.view);
         this.#broadcastRemoteView(true);
         return;
+      case 'access': {
+        this.#access = msg.view;
+        void this.ctx.storage.put('access', msg.view);
+        const text = JSON.stringify({ t: 'access', view: msg.view } satisfies RelayToAudience);
+        for (const a of this.ctx.getWebSockets('audience')) safeSend(a, text);
+        return;
+      }
     }
   }
 

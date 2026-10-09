@@ -1,4 +1,3 @@
-import { z } from 'zod';
 import type { EngineState } from '@scrim/engine';
 import type { Moment, Show } from '@scrim/format';
 import type { OutputStatus, RunMode } from './local.js';
@@ -9,10 +8,6 @@ export type Role = 'host' | 'output' | 'remote' | 'audience';
 /** Room code alphabet: no 0/O, 1/I/L. */
 export const ROOM_ALPHABET = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
 export const ROOM_CODE_LENGTH = 5;
-export const RoomCodeSchema = z
-  .string()
-  .regex(new RegExp(`^[${ROOM_ALPHABET}]{${ROOM_CODE_LENGTH}}$`));
-
 export interface CreateRoomResponse {
   code: string;
   hostKey: string;
@@ -28,7 +23,7 @@ export interface CreateRoomResponse {
 /** What the relay needs to run an audience moment; sent by the host. */
 export type MomentSpec = Pick<
   Moment,
-  'id' | 'type' | 'prompt' | 'options' | 'min' | 'max' | 'variants' | 'moderated'
+  'id' | 'type' | 'prompt' | 'options' | 'min' | 'max' | 'variants' | 'moderated' | 'i18n'
 > & {
   /** Server-clock epoch ms, or null if the operator closes it. */
   closesAt: number | null;
@@ -45,6 +40,30 @@ export interface PublicMoment {
   closesAt: number | null;
   /** This phone's personal prop, for prop moments. */
   prop?: { label: string; content: string };
+  /** The prompt and option labels in other languages; the phone picks one. */
+  i18n?: Moment['i18n'];
+}
+
+/** A text in the show's own language, and its translations by language code. */
+export interface Translated {
+  text: string;
+  i18n: Record<string, string>;
+}
+
+/**
+ * The personal access channel as phones see it. Every language goes to every phone, so each
+ * person's choices (captions, language, description) stay on their phone.
+ */
+export interface AccessView {
+  languages: { base: string; others: string[] };
+  /** The caption up now. */
+  caption: Translated | null;
+  /** The latest description; a phone reads it aloud once per `seq`. */
+  description: (Translated & { seq: number }) | null;
+  /** The warning of the cue on standby, shown before it comes. */
+  warning: Translated | null;
+  /** Counts up for each cue that buzzes. */
+  buzz: number;
 }
 
 export interface RemoteTrigger {
@@ -99,6 +118,7 @@ export type HostToRelay =
   | { t: 'state'; state: EngineState; mode: RunMode; offset: number }
   | { t: 'moments'; title: string; open: MomentSpec[] }
   | { t: 'remoteView'; view: Omit<RemoteView, 'connected'> }
+  | { t: 'access'; view: AccessView }
   | { t: 'ping'; c: number };
 
 // ---- relay -> host ----
@@ -115,66 +135,14 @@ export type RelayToHost =
   | { t: 'pong'; c: number; s: number }
   | { t: 'error'; message: string };
 
-// ---- audience / remote / output -> relay (untrusted: validated) ----
-/** A shared tablet's person number; ignored from phones joined without the shared key. */
-const Ballot = z.number().int().min(0).max(100_000).optional();
-
-export const AudienceToRelaySchema = z.discriminatedUnion('t', [
-  z.object({
-    t: z.literal('vote'),
-    momentId: z.string().max(64),
-    optionId: z.string().max(64),
-    ballot: Ballot,
-  }),
-  z.object({
-    t: z.literal('tap'),
-    momentId: z.string().max(64),
-    count: z.number().int().min(1).max(50),
-  }),
-  z.object({
-    t: z.literal('slider'),
-    momentId: z.string().max(64),
-    value: z.number().finite(),
-    ballot: Ballot,
-  }),
-  z.object({
-    t: z.literal('text'),
-    momentId: z.string().max(64),
-    text: z.string().trim().min(1).max(280),
-    ballot: Ballot,
-  }),
-  z.object({ t: z.literal('ping'), c: z.number() }),
-]);
-export type AudienceToRelay = z.infer<typeof AudienceToRelaySchema>;
-
-export const RemoteToRelaySchema = z.discriminatedUnion('t', [
-  z.object({ t: z.literal('trigger'), triggerId: z.string().max(64) }),
-  z.object({ t: z.literal('ready'), cueId: z.string().max(64) }),
-  z.object({ t: z.literal('command'), command: z.enum(['go', 'hold', 'back']) }),
-  z.object({ t: z.literal('ping'), c: z.number() }),
-]);
-export type RemoteToRelay = z.infer<typeof RemoteToRelaySchema>;
-
-export const OutputToRelaySchema = z.discriminatedUnion('t', [
-  z.object({
-    t: z.literal('outputBeat'),
-    outputId: z.string().max(64),
-    status: z.object({
-      fullscreen: z.boolean(),
-      width: z.number(),
-      height: z.number(),
-      screen: z.string().max(200).nullable(),
-      errors: z.array(z.string().max(500)).max(20),
-    }),
-  }),
-  z.object({ t: z.literal('ping'), c: z.number() }),
-]);
-export type OutputToRelay = z.infer<typeof OutputToRelaySchema>;
+// ---- audience / remote / output -> relay: shapes in validate.ts (the relay checks them) ----
+export type { AudienceToRelay, OutputToRelay, RemoteToRelay } from './validate.js';
 
 // ---- relay -> audience / remote / output ----
 export type RelayToAudience =
   | { t: 'welcome'; role: 'audience'; title: string }
   | { t: 'view'; title: string; moments: PublicMoment[]; mine: Record<string, unknown> }
+  | { t: 'access'; view: AccessView }
   | { t: 'pong'; c: number; s: number }
   | { t: 'error'; message: string };
 

@@ -44,6 +44,7 @@ step(show, state, input, now) → { state, events }
 ```
 
 - **Inputs** are what can happen: `go`, `fireCue`, `standby*`, `jump`, `setOrder`, `hold`, `panic`/`release`, `trigger`, `tick`, audience totals (`momentAgg`), counts from the room (`countVote`), moment control, `mediaEnded`, `setVar`, `seek`, a direct `action`, `back`, the secondary clears, `mute`, and `reset`.
+- **Access channel.** `access: { captionCue, describeCue, seq, buzz }` is engine state, set when a cue fires, so a jump, Back or a crash resume restores the right caption. The host turns it into an access view for phones (`lib/access.ts`).
 - **Moment totals by source.** A moment keeps totals per source: `relay` (phones and shared tablets, as running totals that replace their own source), `sim` (pretend phones), `buttons` and `counted` (which add). Its result and live values use the sum, and the default is used only when every source is empty.
 - **Events** describe what happened: `cueFired`, `momentOpened`/`momentClosed`, `varChanged`, `trigger`, `mediaEnded`, `panic`, `cleared`, `mute`, `warning`, and so on.
 - **Rules** run after every input on the events it produced. A rule's actions may cause further events, up to 200 per input; past that the engine stops and emits a warning, so a looping rule cannot hang the show.

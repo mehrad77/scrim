@@ -8,7 +8,9 @@ import {
 } from '@scrim/format';
 import { describe, expect, it } from 'vitest';
 import {
+  accessText,
   counterValue,
+  currentCaption,
   effectiveOpacity,
   Engine,
   formatValue,
@@ -18,6 +20,7 @@ import {
   mediaPosition,
   nextWakeup,
   optionLabels,
+  reconcile,
   runOrder,
   sceneSequence,
   step,
@@ -1216,5 +1219,62 @@ describe('counts from every source', () => {
     delete older.moments.vote!.sources;
     const after = run(show, [[20, { type: 'countVote', option: 1 }]], older);
     expect(after.moments.vote!.tally).toEqual({ left: 4, right: 2 });
+  });
+});
+
+describe('the personal access channel', () => {
+  function captioned(): Show {
+    const show = demo();
+    show.cues[0]!.access = {
+      caption: 'Welcome, everyone.',
+      description: 'A door glows red.',
+      buzz: true,
+      i18n: { fr: { caption: 'Bienvenue à tous.' } },
+    };
+    show.cues[0]!.follow = { auto: false, delay: 0 };
+    // No caption field: the caption stays up.
+    show.cues[1]!.access = { warning: 'Loud bang' };
+    // An empty caption takes it down.
+    show.cues[2]!.access = { caption: '' };
+    return show;
+  }
+
+  it('keeps the caption until a cue changes or clears it, and counts descriptions and buzzes', () => {
+    const show = captioned();
+    let s = run(show, [[0, { type: 'go' }]]);
+    expect(s.access).toEqual({ captionCue: 'c1', describeCue: 'c1', seq: 1, buzz: 1 });
+    expect(currentCaption(show, s.access)).toBe('Welcome, everyone.');
+    expect(accessText(show.cues[0], 'caption', 'fr')).toBe('Bienvenue à tous.');
+    // A language with no translation falls back to the show's own.
+    expect(accessText(show.cues[0], 'description', 'fr')).toBe('A door glows red.');
+    s = run(show, [[10, { type: 'go' }]], s);
+    expect(s.access?.captionCue).toBe('c1');
+    s = run(show, [[20, { type: 'go' }]], s);
+    expect(s.access).toMatchObject({ captionCue: null, seq: 1 });
+  });
+
+  it('Back puts the caption back; {{caption}} shows it on stage; reset clears it', () => {
+    const show = captioned();
+    const two = run(show, [
+      [0, { type: 'go' }],
+      [10, { type: 'fireCue', cueId: 'c3' }],
+    ]);
+    expect(two.access?.captionCue).toBeNull();
+    const back = step(show, two, { type: 'back' }, 20).state;
+    expect(back.access?.captionCue).toBe('c1');
+    expect(
+      interpolate('» {{caption}}', show, back.vars, { caption: currentCaption(show, back.access) }),
+    ).toBe('» Welcome, everyone.');
+    // A state value named caption keeps its meaning.
+    show.vars.push({ id: 'cap', name: 'caption', type: 'text', initial: 'mine' });
+    expect(interpolate('{{caption}}', show, { cap: 'mine' }, { caption: 'x' })).toBe('mine');
+    expect(step(show, back, { type: 'reset' }, 30).state.access).toBeUndefined();
+  });
+
+  it('forgets a caption whose cue was deleted', () => {
+    const show = captioned();
+    const s = run(show, [[0, { type: 'go' }]]);
+    const edited = { ...show, cues: show.cues.slice(1) };
+    expect(reconcile(edited, s).access?.captionCue).toBeNull();
   });
 });

@@ -178,6 +178,24 @@ export function PreshowCheck({ onClose }: { onClose: () => void }) {
         ]
       : []),
     capItem,
+    ...(show.cues.some((c) => c.access?.caption?.trim())
+      ? [
+          {
+            id: 'openCaptions',
+            title: 'Captions also on stage',
+            status: (show.layers.some(
+              (l) => l.kind === 'text' && /\{\{\s*caption\s*\}\}/.test(l.text),
+            )
+              ? 'ok'
+              : 'warn') as Status,
+            detail: show.layers.some(
+              (l) => l.kind === 'text' && /\{\{\s*caption\s*\}\}/.test(l.text),
+            )
+              ? 'A text layer shows {{caption}}, so captions reach people without a phone too.'
+              : 'Captions reach only the phones that ask for them, and stop if the Wi-Fi does. Access the show depends on needs a stage version: Access tab › Add open captions on stage.',
+          },
+        ]
+      : []),
     ...(show.operator?.remoteGo
       ? [
           {

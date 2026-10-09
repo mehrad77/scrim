@@ -19,8 +19,9 @@ A runbook for the stage manager or operator running a show in Scrim.
 4. Press **Identify** to flash each output's name on its screen.
 5. For audience or performer moments, choose **Open audience room**. Project or print the audience QR code, and give performers the performer QR code. Scan both with a phone to test.
 6. Map pedals, presenter clickers or MIDI pads: choose **Map keys** (the keyboard button in the header), pick GO, Hold, Back, standby, PANIC or a trigger, then press the key or pad. If it already does something else, choose **Replace**, **Swap** or **Cancel**. **Preset** offers Scrim and QLab-style keys. Esc is always PANIC.
-7. Open **Pre-show check** and work down the list until it says **READY**. It includes the show's logic check: unhandled vote options, scenes nothing leads to, and anything pointing at a deleted item.
-8. Switch to **Show** mode (the lock in the header). Editing, panel layouts, the palette and help sheets are locked away in every window, and nothing animates. Leaving Show mode takes a one-second hold on **Hold to unlock**.
+7. If the show has captions or translations, tell front of house about the phone's **Access** menu (captions, language, text size, audio description), and check the open captions on stage.
+8. Open **Pre-show check** and work down the list until it says **READY**. It includes the show's logic check: unhandled vote options, scenes nothing leads to, and anything pointing at a deleted item.
+9. Switch to **Show** mode (the lock in the header). Editing, panel layouts, the palette and help sheets are locked away in every window, and nothing animates. Leaving Show mode takes a one-second hold on **Hold to unlock**.
 
 ## During the show
 

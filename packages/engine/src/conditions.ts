@@ -48,15 +48,21 @@ export function explain(conds: Condition[], vars: Record<string, VarValue>): Con
   }));
 }
 
-/** Replace {{varName}} placeholders with current values, vote options by their labels. */
+/**
+ * Replace {{varName}} placeholders with current values, vote options by their labels.
+ * `builtins` are placeholders the show doesn't declare, such as {{caption}}; a state value of
+ * the same name wins, so older shows read as they did.
+ */
 export function interpolate(
   text: string,
   show: Pick<Show, 'vars' | 'moments'>,
   vars: Record<string, VarValue>,
+  builtins: Record<string, string> = {},
 ): string {
   if (!text.includes('{{')) return text;
   return text.replace(/\{\{\s*([A-Za-z_][A-Za-z0-9_]*)\s*\}\}/g, (whole, name: string) => {
     const def = show.vars.find((v) => v.name === name);
-    return def ? formatVar(show, def.id, vars[def.id]) : whole;
+    if (def) return formatVar(show, def.id, vars[def.id]);
+    return Object.hasOwn(builtins, name) ? builtins[name]! : whole;
   });
 }

@@ -16,5 +16,6 @@
     "@scrim/engine": "workspace:*",
     "@scrim/format": "workspace:*",
     "zod": "^4.6.5"
-  }
+  },
+  "sideEffects": false
 }

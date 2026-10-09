@@ -314,6 +314,26 @@ export const ActionSchema: z.ZodType<ActionShape, unknown> = z.lazy(() =>
 export type Action = ActionShape;
 export type ActionType = Action['type'];
 
+/** What a cue says to people who need it, in one language. */
+export const AccessTextSchema = z.object({
+  /** What is said or sung from this cue on. Empty clears the caption; absent keeps the last. */
+  caption: z.string().optional(),
+  /** What is seen, read aloud on phones that ask for it, once when the cue fires. */
+  description: z.string().optional(),
+  /** Shown on phones while this cue is on standby: loud bangs, flashing light, a scare. */
+  warning: z.string().optional(),
+});
+export type AccessText = z.infer<typeof AccessTextSchema>;
+
+/** A cue's access track (the personal access channel): the show's own language, then others. */
+export const CueAccessSchema = AccessTextSchema.extend({
+  /** Phones that ask for it vibrate when the cue fires: a sound cue, a moment opening. */
+  buzz: z.boolean().optional(),
+  /** The same texts in other languages, by language code (fr, es, ar…). */
+  i18n: z.record(z.string(), AccessTextSchema).optional(),
+});
+export type CueAccess = z.infer<typeof CueAccessSchema>;
+
 /** A spike-tape colour (1–8) that tags a scene or cue in the editor and on printed sheets. */
 export const TapeSchema = z.number().int().min(1).max(8);
 
@@ -338,6 +358,7 @@ export const CueSchema = z.object({
   tape: TapeSchema.optional(),
   /** The part of a song or scene this cue is (Verse, Chorus), so a key can jump to it. */
   section: z.string().optional(),
+  access: CueAccessSchema.optional(),
   /**
    * A performer trigger this cue waits for. While the cue is on standby, that trigger's remotes
    * show "Your cue · tap Ready" and the operator sees when the performer is ready.
@@ -376,6 +397,17 @@ export const MomentSchema = z.object({
   defaultResult: z.union([z.string(), z.number()]).default(''),
   /** Text entries need operator approval before they reach state. */
   moderated: z.boolean().default(true),
+  /** The prompt and option labels in other languages, by language code. */
+  i18n: z
+    .record(
+      z.string(),
+      z.object({
+        prompt: z.string().optional(),
+        /** By option id. */
+        options: z.record(z.string(), z.string()).optional(),
+      }),
+    )
+    .optional(),
 });
 export type Moment = z.infer<typeof MomentSchema>;
 export type MomentType = Moment['type'];
@@ -503,6 +535,11 @@ export const ShowSchema = z.object({
   /** Prepared running orders the operator can switch to; the show order is the default. */
   setlists: z.array(SetlistSchema).optional(),
   operator: OperatorSettingsSchema.optional(),
+  /**
+   * The language the show is written in, and the others its captions, descriptions, warnings
+   * and moments are translated into, as language codes (en, fr, ar…).
+   */
+  languages: z.object({ base: z.string(), others: z.array(z.string()) }).optional(),
   /** The fade new show/hide actions start with (the editor's default; 1 s ease in-out if unset). */
   defaultFade: z.object({ duration: z.number().nonnegative(), easing: EasingSchema }).optional(),
 });

@@ -155,6 +155,7 @@ export class Aggregator {
         min: spec.min,
         max: spec.max,
         closesAt: spec.closesAt,
+        ...(spec.i18n ? { i18n: spec.i18n } : {}),
       };
       const prop = this.propFor(client, spec.id);
       if (prop) view.prop = prop;
