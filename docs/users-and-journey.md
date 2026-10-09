@@ -544,7 +544,7 @@ For each user, **Ideas** links to the cross-cutting ideas in [Accessible to all]
 - **Gaps:**
   - Templates and a simple mode.
   - Merging work from several groups into one show.
-- **Since added:** the pre-show check says when the browser or the school's administrator blocks window management, pop-ups, full screen or MIDI, and names the Chrome policy where there is one.
+- **Since added:** the pre-show check says when the browser or the school's administrator blocks window management, pop-ups, full screen or MIDI, and names the Chrome policy where there is one. A relaxed performance for school audiences, and a flash check on cue timings.
 - **Ideas:** [3 inclusive operation](#3-inclusive-operation), [5 simple modes and templates](#5-simple-modes-and-templates), [2 relaxed mode](#2-relaxed-mode-and-a-flash-safety-check) for relaxed school performances.
 
 ### Museum or gallery curator (installations)
@@ -575,6 +575,7 @@ For each user, **Ideas** links to the cross-cutting ideas in [Accessible to all]
   - A scheduler, and an attract or idle mode.
   - A kiosk-mode setup guide.
   - Remote monitoring.
+- **Since added:** captions, description and translations on visitors' phones; a physical button for visitors without one; relaxed performances for quiet visiting hours.
 - **Ideas:** [1 personal access channel](#1-a-personal-access-channel-on-the-audience-phone), [4 no-phone participation](#4-no-phone-participation), [2 relaxed mode](#2-relaxed-mode-and-a-flash-safety-check) for quiet or sensory-friendly visiting hours.
 
 ### Faith or community group volunteer (lyrics, notices)
@@ -633,7 +634,7 @@ For each user, **Ideas** links to the cross-cutting ideas in [Accessible to all]
   - Moments with a default result.
 - **Gaps:**
   - Session templates.
-- **Since added:** the simple operator view for tablets, and Remote GO for a leader whose tablet isn't the show machine; a shared tablet passed around the group (each answer counts as one person, in large print), large buttons mapped to vote options, and counts the leader types in.
+- **Since added:** the simple operator view for tablets, and Remote GO for a leader whose tablet isn't the show machine; a shared tablet passed around the group (each answer counts as one person, in large print), large buttons mapped to vote options, and counts the leader types in. Calm by default: a show can start every session relaxed, with soft fades, limited brightness and capped sound.
 - **Ideas:** [2 relaxed mode](#2-relaxed-mode-and-a-flash-safety-check) as the default, [4 no-phone participation](#4-no-phone-participation), [3 inclusive operation](#3-inclusive-operation), [5 simple modes and templates](#5-simple-modes-and-templates).
 
 ### Street or festival performer
@@ -791,6 +792,8 @@ How it fits:
   - **Video:** frames are sampled on import to find sudden swings in brightness and saturated red.
   - **Mitigation:** Scrim offers either a warning to show before that moment or a relaxed alternative.
 - **Limits:** this is a design aid, not a certified test such as the Harding test used for broadcast. The docs and UI must say so.
+
+**Built.** The operator's **Relaxed** switch (a one-second hold in Show mode) dims every output, caps every sound, makes every fade take at least a set time, leaves out layers marked **Intense**, and plays each cue's gentler version where it has one. Phones say it's OK to step out and come back. The Access tab sets the limits and whether performances start relaxed; the pre-show check asks the operator to confirm tonight's choice. The **flash check** plays each cue the way the engine would and flags any that flash an output more than three times a second, in the Cues tab and the pre-show check. It reads cue fades, follows and delays only; checking inside video, and red flashes, are still to come. Volume is capped for the whole show, not per bus.
 
 ### 3. Inclusive operation
 

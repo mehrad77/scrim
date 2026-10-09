@@ -33,13 +33,17 @@ const ACTION_LABELS: Record<ActionType, string> = {
   openMoment: 'Open audience moment',
   closeMoment: 'Close audience moment',
   stopAll: 'Stop everything',
+  relaxed: 'Relaxed performance',
   branch: 'If… then… else',
 };
 
 const GROUPS: { label: string; types: ActionType[] }[] = [
   { label: 'Layers', types: ['show', 'hide', 'fade', 'setText'] },
   { label: 'Media & timers', types: ['play', 'pause', 'seek', 'counter'] },
-  { label: 'Show flow', types: ['jumpScene', 'goToCue', 'jumpSection', 'branch', 'stopAll'] },
+  {
+    label: 'Show flow',
+    types: ['jumpScene', 'goToCue', 'jumpSection', 'branch', 'stopAll', 'relaxed'],
+  },
   { label: 'State & audience', types: ['setVar', 'addVar', 'openMoment', 'closeMoment'] },
 ];
 
@@ -86,6 +90,8 @@ export function defaultAction(type: ActionType, show: Show): Action {
       return { type, momentId: show.moments[0]?.id ?? '' };
     case 'stopAll':
       return { type, duration: 2 };
+    case 'relaxed':
+      return { type, on: true };
     case 'branch':
       return {
         type,
@@ -487,6 +493,23 @@ function ActionFields({
             suffix="s"
             onCommit={(duration) => onChange({ ...a, duration })}
           />
+        </>
+      );
+    case 'relaxed':
+      return (
+        <>
+          <Select
+            aria-label="Relaxed performance"
+            className="w-32"
+            value={a.on ? 'on' : 'off'}
+            onChange={(e) => onChange({ ...a, on: e.target.value === 'on' })}
+          >
+            <option value="on">Turn on</option>
+            <option value="off">Turn off</option>
+          </Select>
+          <span className="text-caption text-fg-subtle">
+            dim the outputs, cap the sound, slow every fade
+          </span>
         </>
       );
     case 'branch':

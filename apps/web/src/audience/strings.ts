@@ -52,6 +52,8 @@ export const EN = {
   warningsHint: 'A note before intense moments.',
   comingUp: 'Coming up',
   stepOut: 'It’s OK to step out and come back.',
+  relaxed: 'Relaxed performance',
+  relaxedHint: 'Lights and sound are softer, and nothing changes suddenly.',
 };
 
 export type Strings = typeof EN;

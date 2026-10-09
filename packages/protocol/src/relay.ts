@@ -64,6 +64,8 @@ export interface AccessView {
   warning: Translated | null;
   /** Counts up for each cue that buzzes. */
   buzz: number;
+  /** A relaxed performance is on: phones say so, and that it's OK to step out and come back. */
+  relaxed?: boolean;
 }
 
 export interface RemoteTrigger {
@@ -118,7 +120,8 @@ export type HostToRelay =
   | { t: 'state'; state: EngineState; mode: RunMode; offset: number }
   | { t: 'moments'; title: string; open: MomentSpec[] }
   | { t: 'remoteView'; view: Omit<RemoteView, 'connected'> }
-  | { t: 'access'; view: AccessView }
+  /** Null: the show has no access channel now (nothing to caption, not relaxed). */
+  | { t: 'access'; view: AccessView | null }
   | { t: 'ping'; c: number };
 
 // ---- relay -> host ----
@@ -142,7 +145,7 @@ export type { AudienceToRelay, OutputToRelay, RemoteToRelay } from './validate.j
 export type RelayToAudience =
   | { t: 'welcome'; role: 'audience'; title: string }
   | { t: 'view'; title: string; moments: PublicMoment[]; mine: Record<string, unknown> }
-  | { t: 'access'; view: AccessView }
+  | { t: 'access'; view: AccessView | null }
   | { t: 'pong'; c: number; s: number }
   | { t: 'error'; message: string };
 

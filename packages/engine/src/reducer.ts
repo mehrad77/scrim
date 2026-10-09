@@ -18,6 +18,7 @@ import {
 } from './state.js';
 import { accessAfter } from './access.js';
 import { resolveJump, runOrder, sceneSequence, type RunOrder } from './order.js';
+import { cueActions, isIntense, isRelaxed, RELAXED_FADE, relaxedSettings } from './relaxed.js';
 import { retarget, still } from './tween.js';
 import type { ClearKind, EngineEvent, EngineInput, InputSource } from './types.js';
 
@@ -219,9 +220,11 @@ function applyInput(ctx: Ctx, input: EngineInput): void {
       applyAction(ctx, input.action);
       return;
     case 'reset': {
-      // Tonight's running order is the plan for the night, so it outlives a reset.
+      // Tonight's running order and a relaxed performance are plans for the night, so they
+      // outlive a reset.
       const order = ctx.state.order ?? null;
-      ctx.state = { ...initialState(ctx.show), order };
+      const relaxed = ctx.state.relaxed ?? initialState(ctx.show).relaxed!;
+      ctx.state = { ...initialState(ctx.show, relaxed.to === 1), order, relaxed };
       ctx.order = runOrder(ctx.show, order);
       ctx.state.standby = ctx.order[0]?.id ?? null;
       ctx.events.push({ type: 'reset' });
@@ -235,6 +238,9 @@ function applyInput(ctx: Ctx, input: EngineInput): void {
       return;
     case 'unclear':
       unclear(ctx, input.what, input.fade ?? CLEAR_FADE);
+      return;
+    case 'relaxed':
+      setRelaxed(ctx, input.on, input.fade);
       return;
     case 'mute': {
       const muted = (state.mute ?? still(0)).to === 1;
@@ -331,6 +337,12 @@ function unclear(ctx: Ctx, what: ClearKind, fade: number): void {
   for (const [id, was] of Object.entries(point)) {
     const ls = state.layers[id];
     if (!ls) continue;
+    // A relaxed performance that began since the clear keeps intense layers out.
+    if (isRelaxed(state) && isIntense(ctx.show, id)) {
+      const name = ctx.show.layers.find((l) => l.id === id)?.name ?? '';
+      if (!was.inner) ctx.events.push({ type: 'leftOut', layerId: id, name });
+      continue;
+    }
     ls.opacity = retarget(ls.opacity, was.opacity, now, fade, 'easeIn');
     if (was.playing && ls.media) Object.assign(ls.media, { playing: true, anchor: now });
   }
@@ -351,7 +363,7 @@ function back(ctx: Ctx): void {
   if (!point) return warn(ctx, 'Nothing to go back to');
   const target = reconcile(ctx.show, point.state);
   const cue = ctx.order.find((c) => c.id === point.cueId);
-  const fade = cueFade(cue);
+  const fade = slowed(ctx, cue ? cueFade(cueActions(cue, state)) : 1);
   for (const [id, layer] of Object.entries(target.layers)) {
     const current = state.layers[id];
     if (current)
@@ -359,6 +371,7 @@ function back(ctx: Ctx): void {
   }
   target.blackout = state.blackout;
   target.mute = state.mute ?? still(0);
+  if (state.relaxed) target.relaxed = state.relaxed;
   target.cleared = {};
   target.held = state.held;
   target.heldAt = state.heldAt;
@@ -373,11 +386,13 @@ function back(ctx: Ctx): void {
   if (!ctx.order.some((c) => c.id === target.standby))
     target.standby = nextAfter(ctx.order, target.lastFired);
   ctx.events.push({ type: 'back', cueId: point.cueId, name: cue?.name ?? '' });
+  // Going back to before a relaxed performance began must not bring intense layers back.
+  if (isRelaxed(target)) leaveOutIntense(ctx);
 }
 
 /** The longest fade among a cue's show, hide and fade actions; 1 s when it has none. */
-function cueFade(cue: Cue | undefined): number {
-  const fades = (cue?.actions ?? []).flatMap((a) =>
+function cueFade(actions: Action[]): number {
+  const fades = actions.flatMap((a) =>
     a.type === 'show' || a.type === 'hide' || a.type === 'fade' ? [a.duration] : [],
   );
   return fades.length ? Math.max(...fades) : 1;
@@ -435,7 +450,68 @@ function fireCue(ctx: Ctx, cueId: string, source: InputSource): void {
   state.fired += 1;
   state.access = accessAfter(state.access, cue);
   ctx.events.push({ type: 'cueFired', cueId: cue.id, name: cue.name, source });
-  applyActions(ctx, cue.actions);
+  applyActions(ctx, cueActions(cue, state));
+}
+
+/** A fade as long as a relaxed performance allows: never under its minimum fade. */
+function slowed(ctx: Ctx, seconds: number): number {
+  return isRelaxed(ctx.state) ? Math.max(seconds, relaxedSettings(ctx.show).minFade) : seconds;
+}
+
+/**
+ * A relaxed performance never shows or plays an intense layer; it notes each one it leaves out.
+ * True when the action may run.
+ */
+function allowed(ctx: Ctx, action: Action): boolean {
+  const brings =
+    action.type === 'show' ||
+    action.type === 'play' ||
+    (action.type === 'fade' && action.opacity > 0);
+  if (!brings || !isRelaxed(ctx.state) || !isIntense(ctx.show, action.layerId)) return true;
+  const layer = ctx.show.layers.find((l) => l.id === action.layerId);
+  ctx.events.push({ type: 'leftOut', layerId: action.layerId, name: layer?.name ?? '' });
+  return false;
+}
+
+/**
+ * Turn a relaxed performance on or off. On, every intense layer on stage fades off over the
+ * minimum fade and its media stops; off, they stay off until a cue brings them.
+ */
+function setRelaxed(ctx: Ctx, on: boolean | undefined, fade = RELAXED_FADE): void {
+  const { state, now } = ctx;
+  const was = isRelaxed(state);
+  const next = on ?? !was;
+  if (next === was) return;
+  state.relaxed = retarget(state.relaxed ?? still(0), next ? 1 : 0, now, fade, 'easeInOut');
+  ctx.events.push({ type: 'relaxed', on: next });
+  if (next) leaveOutIntense(ctx);
+}
+
+/**
+ * Take every intense layer off stage: pictures and video fade out over the minimum fade and
+ * their video stops at the end, as does video inside an intense frame. Sound stops at once and
+ * keeps its level, so a cue that plays it after the relaxed performance is heard.
+ */
+function leaveOutIntense(ctx: Ctx): void {
+  const { state, now, show } = ctx;
+  const { minFade } = relaxedSettings(show);
+  const tree = layerTree(show.layers);
+  for (const layer of show.layers) {
+    const ls = state.layers[layer.id];
+    if (!ls || !isIntense(show, layer.id, tree)) continue;
+    const sound = layer.kind === 'audio';
+    const showing = !sound && !!layer.intense && ls.opacity.to > 0;
+    const media = ls.media?.playing ? ls.media : null;
+    if (!showing && !media) continue;
+    if (showing) ls.opacity = retarget(ls.opacity, 0, now, minFade, 'easeOut');
+    if (media) {
+      state.timers = state.timers.filter((t) => t.kind !== 'pause' || t.layerId !== layer.id);
+      if (sound)
+        Object.assign(media, { playing: false, position: mediaPosition(media, now), anchor: now });
+      else state.timers.push({ at: now + minFade * 1000, kind: 'pause', layerId: layer.id });
+    }
+    if (layer.intense) ctx.events.push({ type: 'leftOut', layerId: layer.id, name: layer.name });
+  }
 }
 
 /** "Cues stopped: “A” and “B” fire each other with no time between (loop?)" */
@@ -475,14 +551,16 @@ function applyAction(ctx: Ctx, action: Action): void {
       const ls = state.layers[action.layerId];
       const layer = show.layers.find((l) => l.id === action.layerId);
       if (!ls || !layer) return warn(ctx, `Layer ${action.layerId} not found`);
+      if (!allowed(ctx, action)) return;
       const to =
         action.type === 'show' ? layer.opacity : action.type === 'hide' ? 0 : action.opacity;
-      ls.opacity = retarget(ls.opacity, to, now, action.duration, action.easing);
+      ls.opacity = retarget(ls.opacity, to, now, slowed(ctx, action.duration), action.easing);
       return;
     }
     case 'play': {
       const media = state.layers[action.layerId]?.media;
       if (!media) return warn(ctx, `Layer ${action.layerId} has no media to play`);
+      if (!allowed(ctx, action)) return;
       const position = action.restart ? 0 : mediaPosition(media, now);
       Object.assign(media, { playing: true, position, anchor: now });
       state.timers = state.timers.filter((t) => t.kind !== 'pause' || t.layerId !== action.layerId);
@@ -563,11 +641,12 @@ function applyAction(ctx: Ctx, action: Action): void {
       // Frames fade their content with them and keep it for the next time they are shown, so
       // only what sits on the output fades. Every video still stops when the fade ends.
       const tree = layerTree(show.layers);
+      const duration = slowed(ctx, action.duration);
       for (const [id, ls] of Object.entries(state.layers)) {
-        if (!tree.parent(id)) ls.opacity = retarget(ls.opacity, 0, now, action.duration, 'linear');
+        if (!tree.parent(id)) ls.opacity = retarget(ls.opacity, 0, now, duration, 'linear');
         if (ls.media?.playing) {
           state.timers = state.timers.filter((t) => t.kind !== 'pause' || t.layerId !== id);
-          state.timers.push({ at: now + action.duration * 1000, kind: 'pause', layerId: id });
+          state.timers.push({ at: now + duration * 1000, kind: 'pause', layerId: id });
         }
       }
       // Delayed actions from earlier cues would bring layers back after the fade; the ones this
@@ -576,6 +655,9 @@ function applyAction(ctx: Ctx, action: Action): void {
       state.follow = null;
       return;
     }
+    case 'relaxed':
+      setRelaxed(ctx, action.on);
+      return;
     case 'branch':
       applyActions(ctx, evaluateAll(action.if, state.vars) ? action.then : action.else);
       return;

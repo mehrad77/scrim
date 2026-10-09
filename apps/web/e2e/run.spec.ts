@@ -25,7 +25,7 @@ test('GO drives an output window; panic blacks out; a reload resumes', async ({
   await expect.poll(() => brightest(output)).toBeGreaterThan(200);
   await page.keyboard.press('Escape');
   await expect(page.getByRole('button', { name: /Blacked out/ })).toBeVisible();
-  const blackout = output.locator('.bg-black.pointer-events-none');
+  const blackout = output.locator('[data-blackout]');
   await expect.poll(() => blackout.evaluate((el) => (el as HTMLElement).style.opacity)).toBe('1');
   // Every pixel is black: the blackout covers layers above the bottom of the stack too.
   await expect.poll(() => brightest(output)).toBeLessThanOrEqual(2);

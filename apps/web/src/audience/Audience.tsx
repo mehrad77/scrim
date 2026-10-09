@@ -190,6 +190,14 @@ export function Audience() {
             <Accessibility size={22} aria-hidden />
           </button>
         </header>
+        {access?.relaxed && (
+          <div role="status" className="mb-5 rounded-control border border-line-control px-4 py-3">
+            <div className="label-caps text-fg-subtle">{s.relaxed}</div>
+            <p className="mt-1 text-ui">
+              {s.relaxedHint} {s.stepOut}
+            </p>
+          </div>
+        )}
         {warning && (
           <div role="note" className="mb-5 rounded-control border border-warn px-4 py-3">
             <div className="label-caps text-warn">{s.comingUp}</div>

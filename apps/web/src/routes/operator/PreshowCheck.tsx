@@ -1,3 +1,4 @@
+import { isRelaxed, relaxedSettings } from '@scrim/engine';
 import { AlertTriangle, CheckCircle2, Circle, Loader2, XCircle } from 'lucide-react';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { testTone } from '../../host/audio.js';
@@ -64,7 +65,14 @@ export function PreshowCheck({ onClose }: { onClose: () => void }) {
   const needsRoom = show.moments.length > 0;
   const needsRemotes = show.triggers.length > 0;
   const usesMidi = show.inputs.midi.length > 0;
-  const logic = checkLogic(show);
+  // Flashing gets its own line, with what the check can and can't see.
+  const issues = checkLogic(show);
+  const logic = issues.filter((i) => !i.id.startsWith('flash:'));
+  const flashes = issues.filter((i) => i.id.startsWith('flash:'));
+  const relaxed = isRelaxed(snap.state);
+  const intense = show.layers.filter((l) => l.intense).length;
+  const gentle = show.cues.filter((c) => c.gentle).length;
+  const r = relaxedSettings(show);
 
   // MIDI the show maps but can't reach fails; a blocked window or full screen only slows tech.
   const blocked = (caps ?? []).filter((c) => c.state === 'blocked' || c.state === 'unsupported');
@@ -102,6 +110,41 @@ export function PreshowCheck({ onClose }: { onClose: () => void }) {
         'Every option is handled, every scene can be reached, and nothing points at a deleted item.'
       ),
     },
+    {
+      id: 'flash',
+      title: 'Nothing flashes more than three times a second',
+      status: flashes.length ? 'warn' : 'ok',
+      detail: (
+        <>
+          {flashes.length > 0 && (
+            <ul className="mb-1 list-disc pl-4">
+              {flashes.map((i) => (
+                <li key={i.id}>{i.text}</li>
+              ))}
+            </ul>
+          )}
+          {flashes.length
+            ? 'Slow the fades or space the cues out. If it must flash, warn people (Access tab) and mark the layers Intense so relaxed performances leave them out. '
+            : ''}
+          A design aid, not a certified test: it checks cue fades, follows and delays, not what
+          plays inside video or pictures.
+        </>
+      ),
+    },
+    ...(relaxed || show.relaxed || intense || gentle
+      ? [
+          {
+            // Changing tonight's choice asks for a fresh confirmation.
+            id: relaxed ? 'relaxed-on' : 'relaxed-off',
+            title: relaxed ? 'Relaxed performance is on' : 'Relaxed performance is off',
+            status: 'manual' as Status,
+            confirm: true,
+            detail: relaxed
+              ? `Outputs at ${Math.round(r.brightness * 100)}%, sound at most ${Math.round(r.volume * 100)}%, fades at least ${r.minFade} s; phones say it’s OK to step out. Confirm that tonight is relaxed.`
+              : `This show has a relaxed version${intense || gentle ? ` (${[intense && `${intense} intense layer${intense > 1 ? 's' : ''}`, gentle && `${gentle} gentler cue${gentle > 1 ? 's' : ''}`].filter(Boolean).join(', ')})` : ''}. Confirm that tonight is not relaxed, or turn it on in the header.`,
+          },
+        ]
+      : []),
     {
       id: 'media',
       title: 'All media is on this machine and decodes',

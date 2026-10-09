@@ -1,4 +1,4 @@
-import { createCue, uid, type Cue } from '@scrim/format';
+import { createCue, uid, type Cue, type Show } from '@scrim/format';
 import { Copy, Plus, Trash2 } from 'lucide-react';
 import { removeCue } from '../../lib/refs.js';
 import { useEditor, useShow } from '../../state/editor.js';
@@ -6,7 +6,7 @@ import { Button, IconButton } from '../../ui/Button.js';
 import { CommitInput, Field, NumberInput, Select, TextArea, Toggle } from '../../ui/Field.js';
 import { Columns, Divider, Pane } from '../../ui/Layout.js';
 import { Empty, Panel } from '../../ui/Panel.js';
-import { ActionList } from './ActionEditor.js';
+import { ActionList, defaultAction } from './ActionEditor.js';
 import { AfterThisCue } from './AfterThisCue.js';
 import { CueList } from './CueList.js';
 import { SectionInput } from './SectionInput.js';
@@ -150,6 +150,7 @@ function CueEditor() {
             </div>
           )}
         </div>
+        <RelaxedVersion show={show} cue={cue} set={set} />
         {show.triggers.length > 0 && (
           <Field
             label="Wait for a performer"
@@ -187,5 +188,52 @@ function CueEditor() {
         </Field>
       </div>
     </Panel>
+  );
+}
+
+/**
+ * What the cue does in a relaxed performance: the same with relaxed's limits (slower fades,
+ * intense layers left out), a gentler version of its own, or none of its actions.
+ */
+function RelaxedVersion({
+  show,
+  cue,
+  set,
+}: {
+  show: Show;
+  cue: Cue;
+  set: (fn: (c: Cue) => void) => void;
+}) {
+  const mode = !cue.gentle ? 'same' : cue.gentle.length ? 'gentle' : 'skip';
+  return (
+    <div className="flex flex-col gap-2 rounded-control border border-line-subtle p-2">
+      <Field label="In a relaxed performance">
+        <Select
+          value={mode}
+          onChange={(e) =>
+            set((c) => {
+              if (e.target.value === 'same') delete c.gentle;
+              // A gentler version starts from what the cue does now, or one action to edit.
+              else if (e.target.value === 'skip') c.gentle = [];
+              else
+                c.gentle = c.actions.length
+                  ? structuredClone(c.actions)
+                  : [defaultAction('show', show)];
+            })
+          }
+        >
+          <option value="same">The same, softened: slower fades, intense layers left out</option>
+          <option value="gentle">Something gentler instead…</option>
+          <option value="skip">Nothing: leave this cue’s actions out</option>
+        </Select>
+      </Field>
+      {mode === 'gentle' && (
+        <ActionList
+          show={show}
+          actions={cue.gentle!}
+          onChange={(gentle) => set((c) => void (c.gentle = gentle))}
+        />
+      )}
+    </div>
   );
 }

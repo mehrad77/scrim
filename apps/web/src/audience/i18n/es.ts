@@ -48,5 +48,7 @@ const es: Partial<Strings> = {
   warningsHint: 'Una nota antes de los momentos intensos.',
   comingUp: 'A continuación',
   stepOut: 'Puedes salir y volver cuando quieras.',
+  relaxed: 'Función relajada',
+  relaxedHint: 'Las luces y el sonido son más suaves, y nada cambia de golpe.',
 };
 export default es;

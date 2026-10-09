@@ -6,5 +6,6 @@ export * from './labels.js';
 export * from './access.js';
 export * from './order.js';
 export * from './opacity.js';
+export * from './relaxed.js';
 export { step, nextWakeup } from './reducer.js';
 export * from './engine.js';

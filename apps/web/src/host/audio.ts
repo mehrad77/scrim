@@ -1,4 +1,4 @@
-import { tweenValue, type EngineState } from '@scrim/engine';
+import { soundLevel, tweenValue, type EngineState } from '@scrim/engine';
 import type { AudioLayer, Show } from '@scrim/format';
 import { epochNow } from '../lib/clock.js';
 import { AUDIO_DEVICES_KEY, readLocal } from '../lib/local.js';
@@ -8,7 +8,7 @@ import { mediaUrl } from '../storage/media.js';
 /**
  * Plays audio layers in the operator's tab, so sound comes from the show
  * machine even when every output is on another device. Volume follows the
- * layer's opacity (fades), the panic blackout and the sound mute.
+ * layer's opacity (fades), the panic blackout, the sound mute and a relaxed performance's cap.
  */
 export class AudioEngine {
   #els = new Map<string, { el: HTMLAudioElement; layer: AudioLayer }>();
@@ -72,13 +72,11 @@ export class AudioEngine {
     const state = this.#state;
     if (!state || !this.#show) return;
     const now = epochNow();
-    // PANIC's blackout and the sound mute both silence everything.
-    const black =
-      (1 - tweenValue(state.blackout, now)) * (1 - (state.mute ? tweenValue(state.mute, now) : 0));
+    const level = soundLevel(this.#show, state, now);
     for (const [id, { el, layer }] of this.#els) {
       const ls = state.layers[id];
       if (!ls) continue;
-      el.volume = Math.min(1, Math.max(0, layer.volume * tweenValue(ls.opacity, now) * black));
+      el.volume = Math.min(1, Math.max(0, layer.volume * tweenValue(ls.opacity, now) * level));
       if (Math.floor(now / 250) !== Math.floor((now - 40) / 250))
         syncMedia(el, ls.media, now, layer.loop);
     }

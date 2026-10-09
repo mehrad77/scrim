@@ -48,5 +48,7 @@ const ar: Partial<Strings> = {
   warningsHint: 'ملاحظة قبل اللحظات الشديدة.',
   comingUp: 'قريبًا',
   stepOut: 'لا بأس أن تخرج ثم تعود.',
+  relaxed: 'عرض هادئ',
+  relaxedHint: 'الإضاءة والصوت أهدأ، ولا شيء يتغير فجأة.',
 };
 export default ar;

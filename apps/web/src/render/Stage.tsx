@@ -1,4 +1,4 @@
-import { tweenValue, type EngineState } from '@scrim/engine';
+import { relaxedBrightness, tweenValue, type EngineState } from '@scrim/engine';
 import {
   descendantsOf,
   isFrame,
@@ -54,6 +54,7 @@ export function Stage(props: StageProps) {
   const layerEls = useRef(new Map<string, HTMLDivElement>());
   useShowFonts(show);
   const blackoutEl = useRef<HTMLDivElement>(null);
+  const dimEl = useRef<HTMLDivElement>(null);
 
   useLayoutEffect(() => {
     const el = box.current;
@@ -94,6 +95,11 @@ export function Stage(props: StageProps) {
         blackoutEl.current.style.opacity = String(b);
         blackoutEl.current.style.visibility = b <= 0.001 ? 'hidden' : 'visible';
       }
+      if (dimEl.current) {
+        const d = 1 - relaxedBrightness(show, state, now);
+        dimEl.current.style.opacity = String(d);
+        dimEl.current.style.visibility = d <= 0.001 ? 'hidden' : 'visible';
+      }
     };
     let raf = 0;
     const loop = () => {
@@ -106,7 +112,7 @@ export function Stage(props: StageProps) {
       cancelAnimationFrame(raf);
       clearInterval(backup);
     };
-  }, [variant, layers, state, clock]);
+  }, [variant, layers, state, show, clock]);
 
   if (!output) {
     return (
@@ -183,10 +189,20 @@ export function Stage(props: StageProps) {
           {inDrawingOrder(tree.roots).map((l) => draw(l))}
           {variant !== 'editor' && (
             <div
+              ref={dimEl}
+              data-relaxed-dim
+              className="pointer-events-none absolute inset-0 bg-black"
+              // A relaxed performance dims everything on the output, its background too.
+              style={{ opacity: 0, visibility: 'hidden', zIndex: topZ + 1 }}
+            />
+          )}
+          {variant !== 'editor' && (
+            <div
               ref={blackoutEl}
+              data-blackout
               className="pointer-events-none absolute inset-0 bg-black"
               // Above every layer, since layers carry their own z-index: PANIC covers everything.
-              style={{ opacity: 0, visibility: 'hidden', zIndex: topZ + 1 }}
+              style={{ opacity: 0, visibility: 'hidden', zIndex: topZ + 2 }}
             />
           )}
           {props.overlay?.(scale)}

@@ -1,12 +1,19 @@
-import { cueOrder, type AccessText, type Cue, type Show } from '@scrim/format';
-import { Captions, Eraser, Plus, X } from 'lucide-react';
+import { relaxedSettings } from '@scrim/engine';
+import {
+  cueOrder,
+  type AccessText,
+  type Cue,
+  type RelaxedSettings,
+  type Show,
+} from '@scrim/format';
+import { Captions, Eraser, Feather, Plus, X } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { usesAccess } from '../../lib/access.js';
 import { cn } from '../../lib/cn.js';
 import { syntheticLayer } from '../../lib/layers.js';
 import { useEditor, useShow } from '../../state/editor.js';
 import { Button, IconButton } from '../../ui/Button.js';
-import { CommitInput, Select, TextArea, Toggle } from '../../ui/Field.js';
+import { CommitInput, NumberInput, Select, TextArea, Toggle } from '../../ui/Field.js';
 import { Empty, Panel } from '../../ui/Panel.js';
 import { toast } from '../../ui/toast.js';
 
@@ -102,7 +109,7 @@ export function AccessTab() {
   };
 
   return (
-    <div className="grid h-full min-h-0 grid-rows-[auto_1fr] gap-px bg-line-subtle">
+    <div className="grid h-full min-h-0 grid-rows-[auto_auto_1fr] gap-px bg-line-subtle">
       <section className="flex flex-wrap items-center gap-x-6 gap-y-2 bg-panel px-3 py-2 text-caption text-fg-muted">
         <label className="flex items-center gap-2">
           The show is written in
@@ -190,6 +197,7 @@ export function AccessTab() {
           )}
         </div>
       </section>
+      <RelaxedBar show={show} />
 
       <div
         className={cn(
@@ -221,6 +229,91 @@ export function AccessTab() {
         )}
       </div>
     </div>
+  );
+}
+
+/**
+ * A relaxed performance's limits, in one row: whether performances start relaxed, how bright
+ * and loud they may be, and the shortest fade. The operator turns it on per performance.
+ */
+function RelaxedBar({ show }: { show: Show }) {
+  const update = useEditor((s) => s.update);
+  const r = relaxedSettings(show);
+  const intense = show.layers.filter((l) => l.intense).length;
+  const gentle = show.cues.filter((c) => c.gentle).length;
+  const set = (patch: Partial<RelaxedSettings>, coalesce?: string) =>
+    update(
+      (d) => {
+        const next = { ...d.relaxed, ...patch };
+        for (const k of Object.keys(next) as (keyof RelaxedSettings)[])
+          if (next[k] === undefined) delete next[k];
+        if (Object.keys(next).length) d.relaxed = next;
+        else delete d.relaxed;
+      },
+      coalesce ? { coalesce: `relaxed:${coalesce}` } : undefined,
+    );
+  const pct = (n: number) => `${Math.round(n * 100)}%`;
+  return (
+    <section
+      aria-label="Relaxed performance"
+      className="flex flex-wrap items-center gap-x-6 gap-y-2 bg-panel px-3 py-2 text-caption text-fg-muted"
+    >
+      <span className="label-caps flex items-center gap-1.5 text-fg">
+        <Feather size={13} aria-hidden /> Relaxed performance
+      </span>
+      <Toggle
+        checked={!!show.relaxed?.default}
+        onChange={(on) => set({ default: on || undefined })}
+        label="Every performance starts relaxed"
+      />
+      <label className="flex items-center gap-2">
+        Outputs at {pct(r.brightness)}
+        <input
+          type="range"
+          min={0.2}
+          max={1}
+          step={0.05}
+          value={r.brightness}
+          className="w-24 accent-accent"
+          onChange={(e) => set({ brightness: Number(e.target.value) }, 'brightness')}
+        />
+      </label>
+      <label className="flex items-center gap-2">
+        Sound at most {pct(r.volume)}
+        <input
+          type="range"
+          min={0}
+          max={1}
+          step={0.05}
+          value={r.volume}
+          className="w-24 accent-accent"
+          onChange={(e) => set({ volume: Number(e.target.value) }, 'volume')}
+        />
+      </label>
+      <label className="flex items-center gap-2">
+        Fades take at least
+        <NumberInput
+          className="w-20"
+          aria-label="Shortest fade"
+          value={r.minFade}
+          min={0}
+          max={10}
+          step={0.5}
+          suffix="s"
+          onCommit={(minFade) => set({ minFade })}
+        />
+      </label>
+      <span className="text-fg-subtle">
+        {intense || gentle
+          ? [
+              intense && `${intense} intense layer${intense > 1 ? 's' : ''} left out`,
+              gentle && `${gentle} cue${gentle > 1 ? 's' : ''} with a gentler version`,
+            ]
+              .filter(Boolean)
+              .join(' · ')
+          : 'Mark layers Intense in Stage, and give cues a gentler version in Cues.'}
+      </span>
+    </section>
   );
 }
 

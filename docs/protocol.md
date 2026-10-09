@@ -59,14 +59,14 @@ A **shared tablet** joins with `sharedKey`. Its `vote`, `slider` and `text` mess
 
 ### Host → relay
 
-| `t`          | Fields                                                                                                                                                                 |
-| ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `show`       | `show` (forwarded to remote outputs)                                                                                                                                   |
-| `state`      | `state, mode, offset` (forwarded to remote outputs)                                                                                                                    |
-| `moments`    | `title, open: MomentSpec[]`: the full set of open moments (with their translations)                                                                                    |
-| `access`     | `view: AccessView`: the caption up now, the latest description (with `seq`), the standby cue's warning, a buzz count, and every language of each. Sent when it changes |
-| `remoteView` | `view: { showName, triggers, standby, lastFired, standbyId?, waitFor?, ready?, firedFor?, cueTriggers?, canGo?, held?, goHoldMs? }`                                    |
-| `ping`       | `c` (client time)                                                                                                                                                      |
+| `t`          | Fields                                                                                                                                                                                                                                                                                                                                                    |
+| ------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `show`       | `show` (forwarded to remote outputs)                                                                                                                                                                                                                                                                                                                      |
+| `state`      | `state, mode, offset` (forwarded to remote outputs)                                                                                                                                                                                                                                                                                                       |
+| `moments`    | `title, open: MomentSpec[]`: the full set of open moments (with their translations)                                                                                                                                                                                                                                                                       |
+| `access`     | `view: AccessView \| null`: the caption up now, the latest description (with `seq`), the standby cue's warning, a buzz count, every language of each, and `relaxed` during a relaxed performance. Sent when it changes; null when the show has no access channel and isn't relaxed (sent on connect too, so phones hear that a relaxed performance ended) |
+| `remoteView` | `view: { showName, triggers, standby, lastFired, standbyId?, waitFor?, ready?, firedFor?, cueTriggers?, canGo?, held?, goHoldMs? }`                                                                                                                                                                                                                       |
+| `ping`       | `c` (client time)                                                                                                                                                                                                                                                                                                                                         |
 
 ### Relay → host
 
@@ -104,14 +104,14 @@ Every non-host socket is limited to 30 messages per second and 4 KB per message.
 
 ### Relay → audience, remote, output
 
-| Role     | `t`             | Fields                                                                                                                                                                                                                      |
-| -------- | --------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| audience | `view`          | `title, moments: PublicMoment[]`; each phone sees only its own prop variant                                                                                                                                                 |
-| audience | `access`        | `view: AccessView`, as the host sent it. The relay keeps the latest and sends it to every phone that joins, so late joiners catch up. Every language goes to every phone, so the relay never learns anyone's access choices |
-| remote   | `remoteView`    | `view` plus `connected`. A trigger in `cueTriggers` waits for its cue: it reads "Your cue" when it is `waitFor`, lit when `ready`, and done when it is `firedFor`                                                           |
-| remote   | `ack`           | `triggerId`                                                                                                                                                                                                                 |
-| output   | `show`, `state` | As sent by the host                                                                                                                                                                                                         |
-| output   | `hostGone`      | The host disconnected; keep the last picture                                                                                                                                                                                |
+| Role     | `t`             | Fields                                                                                                                                                                                                                              |
+| -------- | --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| audience | `view`          | `title, moments: PublicMoment[]`; each phone sees only its own prop variant                                                                                                                                                         |
+| audience | `access`        | `view: AccessView \| null`, as the host sent it. The relay keeps the latest and sends it to every phone that joins, so late joiners catch up. Every language goes to every phone, so the relay never learns anyone's access choices |
+| remote   | `remoteView`    | `view` plus `connected`. A trigger in `cueTriggers` waits for its cue: it reads "Your cue" when it is `waitFor`, lit when `ready`, and done when it is `firedFor`                                                                   |
+| remote   | `ack`           | `triggerId`                                                                                                                                                                                                                         |
+| output   | `show`, `state` | As sent by the host                                                                                                                                                                                                                 |
+| output   | `hostGone`      | The host disconnected; keep the last picture                                                                                                                                                                                        |
 
 ### Clocks
 

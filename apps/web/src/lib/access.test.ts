@@ -51,4 +51,13 @@ describe('access view', () => {
       buzz: 1,
     });
   });
+
+  it('tells phones about a relaxed performance, even in a show with nothing else to say', () => {
+    const show = createShow('Plain');
+    const on = step(show, initialState(show), { type: 'relaxed', on: true }, 0).state;
+    expect(accessView(show, on)).toMatchObject({ relaxed: true, caption: null });
+    const off = step(show, on, { type: 'relaxed', on: false }, 10).state;
+    // Null goes to phones too, so they hear that it ended.
+    expect(accessView(show, off)).toBeNull();
+  });
 });

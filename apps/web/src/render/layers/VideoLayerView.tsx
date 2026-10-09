@@ -1,4 +1,4 @@
-import { effectiveOpacity, tweenValue } from '@scrim/engine';
+import { effectiveOpacity, soundLevel } from '@scrim/engine';
 import { layerTree, type VideoLayer } from '@scrim/format';
 import { useEffect, useMemo, useRef } from 'react';
 import { AUDIO_DEVICES_KEY, readLocal } from '../../lib/local.js';
@@ -32,7 +32,8 @@ export function VideoLayerView({
     return () => clearInterval(id);
   }, [ls?.media, layer.loop, clock, variant, url, onAudioBlocked]);
 
-  // Volume follows opacity, its frames' too, so fades and panic also fade sound.
+  // Volume follows opacity, its frames' too, so fades and panic also fade sound; mute silences it
+  // and a relaxed performance caps it.
   useEffect(() => {
     const el = ref.current;
     if (!el || silent) return;
@@ -40,16 +41,12 @@ export function VideoLayerView({
     const id = setInterval(() => {
       if (!ls) return;
       const now = clock();
-      const mute = state.mute ? tweenValue(state.mute, now) : 0;
       const v =
-        layer.volume *
-        effectiveOpacity(tree, state, layer.id, now) *
-        (1 - tweenValue(state.blackout, now)) *
-        (1 - mute);
+        layer.volume * effectiveOpacity(tree, state, layer.id, now) * soundLevel(show, state, now);
       el.volume = Math.min(1, Math.max(0, v));
     }, 40);
     return () => clearInterval(id);
-  }, [ls, tree, state, layer.id, layer.volume, layer.bus, clock, silent]);
+  }, [ls, tree, state, show, layer.id, layer.volume, layer.bus, clock, silent]);
 
   if (!url) return <Missing />;
   return (

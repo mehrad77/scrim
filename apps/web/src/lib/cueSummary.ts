@@ -50,6 +50,8 @@ function describe(show: Show, a: Action): string {
       return `Closes ${name(show.moments, a.momentId)}`;
     case 'stopAll':
       return 'Stops everything';
+    case 'relaxed':
+      return a.on ? 'Turns relaxed on' : 'Turns relaxed off';
     case 'branch':
       return 'Branches';
   }

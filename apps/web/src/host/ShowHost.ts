@@ -1,6 +1,7 @@
 import {
   Engine,
   mediaPosition,
+  relaxedSettings,
   runOrder,
   type EngineEvent,
   type EngineInput,
@@ -46,6 +47,8 @@ const LOST_AFTER_MS = 2000;
 const JOURNAL_MS = 250;
 const LOG_LIMIT = 500;
 const DOUBLE_GO_MS = 300;
+/** A looping cue that keeps leaving out the same intense layer logs it once in this long. */
+const LEFT_OUT_QUIET_MS = 10_000;
 
 const SOURCE_NAMES: Record<TallySource, string> = {
   relay: 'phones',
@@ -179,6 +182,8 @@ export class ShowHost {
   #goHoldShortAt: number | null = null;
   /** When each button last counted a vote, so a bouncing contact counts once. */
   #lastCount = new Map<string, number>();
+  /** When each intense layer was last noted as left out, so a looping cue logs it once. */
+  #leftOut = new Map<string, number>();
 
   constructor(
     show: Show,
@@ -842,9 +847,10 @@ export class ShowHost {
     };
     const viewJson = JSON.stringify(view);
     // The access channel goes to phones only when it changes; the relay keeps it for late joiners.
+    // None goes too, so phones hear that a relaxed performance ended, even after a reconnect.
     const access = accessView(show, state);
     const accessJson = access ? JSON.stringify(access) : '';
-    if (access && (force || accessJson !== this.#lastAccess)) {
+    if (force || accessJson !== this.#lastAccess) {
       this.#lastAccess = accessJson;
       relay.send({ t: 'access', view: access });
     }
@@ -999,6 +1005,22 @@ export class ShowHost {
         );
       case 'mute':
         return this.#log('panic', e.on ? 'Sound muted' : 'Sound back on');
+      case 'relaxed': {
+        const r = relaxedSettings(show);
+        const pct = (n: number) => `${Math.round(n * 100)}%`;
+        return this.#log(
+          'info',
+          e.on
+            ? `Relaxed performance: outputs at ${pct(r.brightness)}, sound at ${pct(r.volume)}, fades at least ${r.minFade} s`
+            : 'Relaxed performance off',
+        );
+      }
+      case 'leftOut': {
+        const now = Date.now();
+        if (now - (this.#leftOut.get(e.layerId) ?? 0) < LEFT_OUT_QUIET_MS) return;
+        this.#leftOut.set(e.layerId, now);
+        return this.#log('info', `Relaxed: left out “${e.name}”`);
+      }
       case 'orderChanged':
         return this.#log('info', orderChangeText(show, e.prev, e.order));
       case 'warning':

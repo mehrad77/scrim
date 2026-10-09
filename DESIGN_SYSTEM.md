@@ -165,6 +165,7 @@ A lamp is the one way state is shown: in the operator, the status roll-up, the R
 | Blacked out                | fault, lit               | BLACKED OUT · Release (steady)                                                     | PANIC button                  |
 | Hold on                    | none                     | `Pause` HOLD in `fg`                                                               | GO panel                      |
 | Show mode                  | none                     | `Lock` SHOW in `fg-muted`                                                          | Operator header               |
+| Relaxed performance        | none                     | `Feather` RELAXED in `fg`                                                          | Operator header (Show mode)   |
 | Rehearsal                  | none                     | Inverted bar (`bg-fg text-app`): REHEARSAL · EDITING UNLOCKED · DOUBLE-CLICK FIRES | Operator header               |
 | Performer: your cue        | standby ring (steady)    | YOUR CUE · Tap ready                                                               | Remote                        |
 

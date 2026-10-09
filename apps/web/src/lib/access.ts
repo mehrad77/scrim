@@ -1,4 +1,4 @@
-import { accessText, type EngineState } from '@scrim/engine';
+import { accessText, isRelaxed, type EngineState } from '@scrim/engine';
 import type { AccessText, Cue, Show } from '@scrim/format';
 import type { AccessView, Translated } from '@scrim/protocol';
 
@@ -27,10 +27,12 @@ function translated(show: Show, cue: Cue | undefined, kind: keyof AccessText): T
 
 /**
  * What phones need for the access channel now: the caption up, the latest description, the
- * standby cue's warning, every language of each. Null when the show doesn't use the channel.
+ * standby cue's warning, every language of each, and whether the performance is relaxed. Null
+ * when the show doesn't use the channel and isn't relaxed.
  */
 export function accessView(show: Show, state: EngineState): AccessView | null {
-  if (!usesAccess(show)) return null;
+  const relaxed = isRelaxed(state);
+  if (!usesAccess(show) && !relaxed) return null;
   const find = (id: string | null | undefined) => show.cues.find((c) => c.id === id);
   const access = state.access;
   const description = translated(show, find(access?.describeCue), 'description');
@@ -40,5 +42,6 @@ export function accessView(show: Show, state: EngineState): AccessView | null {
     description: description && { ...description, seq: access?.seq ?? 0 },
     warning: translated(show, find(state.standby), 'warning'),
     buzz: access?.buzz ?? 0,
+    ...(relaxed ? { relaxed } : {}),
   };
 }

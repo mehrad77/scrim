@@ -198,6 +198,20 @@ describe('logic', () => {
     expect(names()).toEqual([['Attic']]);
   });
 
+  it('reads a cue’s gentler version too, and finds loops only a relaxed performance has', () => {
+    const show = doors();
+    // In a relaxed performance Ask opens the vote; the ordinary version does something else.
+    show.cues[1]!.gentle = show.cues[1]!.actions;
+    show.cues[1]!.actions = [];
+    expect(checkLogic(show).map((i) => i.id)).not.toContain('unopened:vote');
+    show.cues[4]!.gentle = [{ type: 'goToCue', cueId: 'c5', fire: true }];
+    expect(zeroTimeLoops(show).map((l) => l.map((c) => c.name))).toEqual([]);
+    expect(zeroTimeLoops(show, true).map((l) => l.map((c) => c.name))).toEqual([['Attic']]);
+    expect(checkLogic(show).map((i) => i.text)).toContain(
+      'Cue “Attic” fires itself with no time between in a relaxed performance, so the show stops it',
+    );
+  });
+
   it('counts uses', () => {
     const u = usage(doors());
     expect(u.reads('door')).toBe(3); // two rules and the sign's {{door}}

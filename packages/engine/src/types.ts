@@ -59,6 +59,11 @@ export type EngineInput =
   | { type: 'unclear'; what: ClearKind; fade?: number }
   /** Mute every sound, like a blackout for audio; toggles when `on` is left out. */
   | { type: 'mute'; on?: boolean; fade?: number }
+  /**
+   * A relaxed performance: outputs dim, sound is capped, fades slow down, intense layers stay off
+   * and cues play their gentler version. Toggles when `on` is left out.
+   */
+  | { type: 'relaxed'; on?: boolean; fade?: number }
   /** Put a scene, cue or section on standby, or fire it. */
   | { type: 'jump'; target: JumpTarget; fire?: boolean; source?: InputSource }
   /** Change tonight's running order; null goes back to the show's order. */
@@ -82,6 +87,9 @@ export type EngineEvent =
   | { type: 'cleared'; what: ClearKind; layers: number }
   | { type: 'uncleared'; what: ClearKind; layers: number }
   | { type: 'mute'; on: boolean }
+  | { type: 'relaxed'; on: boolean }
+  /** A relaxed performance kept an intense layer off stage. */
+  | { type: 'leftOut'; layerId: string; name: string }
   /** The running order changed: set by the operator, or a jump brought a skipped scene back. */
   | { type: 'orderChanged'; prev: RunOrder | null; order: RunOrder | null }
   /** A rule's trigger matched: whether it ran, and each check with the value it saw. */

@@ -25,7 +25,10 @@ export function pruneActions(actions: Action[], drop: (a: Action) => boolean): A
 }
 
 function pruneEverywhere(show: Show, drop: (a: Action) => boolean): void {
-  for (const c of show.cues) c.actions = pruneActions(c.actions, drop);
+  for (const c of show.cues) {
+    c.actions = pruneActions(c.actions, drop);
+    if (c.gentle) c.gentle = pruneActions(c.gentle, drop);
+  }
   for (const r of show.rules) r.then = pruneActions(r.then, drop);
 }
 
@@ -122,7 +125,7 @@ export function layerUsage(show: Show, layerId: string): number {
       0,
     );
   return (
-    show.cues.reduce((n, c) => n + uses(c.actions), 0) +
+    show.cues.reduce((n, c) => n + uses(c.actions) + uses(c.gentle ?? []), 0) +
     show.rules.reduce((n, r) => n + uses(r.then), 0)
   );
 }

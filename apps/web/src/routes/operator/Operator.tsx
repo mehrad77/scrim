@@ -50,6 +50,7 @@ import { MediaPanel, StatePanel } from './LivePanels.js';
 import { OutputsPanel } from './OutputsPanel.js';
 import { usePins } from './pins.js';
 import { PreshowCheck } from './PreshowCheck.js';
+import { RelaxedSwitch } from './RelaxedSwitch.js';
 import { SimpleOperator } from './SimpleOperator.js';
 import { SetlistPanel } from './SetlistPanel.js';
 import { StatusChips } from './StatusChips.js';
@@ -321,6 +322,7 @@ function OperatorView() {
           )}
           <StatusChips />
           <div className="ml-auto flex items-center gap-2">
+            <RelaxedSwitch />
             {!showMode && !narrow && (
               <Button
                 size="sm"

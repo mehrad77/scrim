@@ -9,6 +9,7 @@ import {
   type RuleWhen,
   type Show,
 } from '@scrim/format';
+import { checkFlashes, MAX_FLASHES } from './flash.js';
 
 /**
  * The show's logic, made visible (UX principle 7): rule sentences, the scene map, cue exits,
@@ -21,6 +22,9 @@ export function flatActions(actions: Action[]): Action[] {
     a.type === 'branch' ? [a, ...flatActions(a.then), ...flatActions(a.else)] : [a],
   );
 }
+
+/** A cue's actions and its gentler version for relaxed performances, for counting what it uses. */
+const everyAction = (cue: Cue): Action[] => [...cue.actions, ...(cue.gentle ?? [])];
 
 const nameOf = (list: { id: string; name: string }[], id: string) =>
   list.find((x) => x.id === id)?.name;
@@ -103,7 +107,7 @@ export interface SceneGraph {
 /** The cues that open a moment. */
 export function openersOf(show: Show, momentId: string): Cue[] {
   return cueOrder(show).filter((c) =>
-    flatActions(c.actions).some((a) => a.type === 'openMoment' && a.momentId === momentId),
+    flatActions(everyAction(c)).some((a) => a.type === 'openMoment' && a.momentId === momentId),
   );
 }
 
@@ -128,7 +132,7 @@ export function sceneGraph(show: Show): SceneGraph {
   scenes.forEach((s, i) => {
     const cues = order.filter((c) => c.sceneId === s.id);
     for (const cue of cues) {
-      for (const a of flatActions(cue.actions)) {
+      for (const a of flatActions(everyAction(cue))) {
         const to = jumpTarget(show, a);
         if (to && to !== s.id)
           edges.push({ from: s.id, to, kind: 'jump', label: cue.name, cueId: cue.id });
@@ -172,12 +176,12 @@ export function sceneGraph(show: Show): SceneGraph {
 /** Where the show can go after this cue, besides the next cue: "→ Cellar | Attic". */
 export function cueExits(show: Show, cue: Cue): string[] {
   const to = new Set<string>();
-  for (const a of flatActions(cue.actions)) {
+  for (const a of flatActions(everyAction(cue))) {
     const t = jumpTarget(show, a);
     if (t) to.add(t);
   }
   const opens = new Set(
-    flatActions(cue.actions).flatMap((a) => (a.type === 'openMoment' ? [a.momentId] : [])),
+    flatActions(everyAction(cue)).flatMap((a) => (a.type === 'openMoment' ? [a.momentId] : [])),
   );
   for (const rule of show.rules) {
     if (!rule.enabled) continue;
@@ -220,7 +224,7 @@ export function usage(show: Show) {
       if (a.type === 'openMoment' || a.type === 'closeMoment') bump(uses, a.momentId);
     }
   };
-  for (const c of show.cues) walk(flatActions(c.actions));
+  for (const c of show.cues) walk(flatActions(everyAction(c)));
   for (const r of show.rules) {
     walk(flatActions(r.then));
     for (const c of r.if) bump(reads, c.varId);
@@ -270,7 +274,7 @@ export interface LogicIssue {
 function handledOptions(show: Show, varId: string): Set<string> | null {
   const conds = [
     ...show.rules.filter((r) => r.enabled).flatMap((r) => r.if),
-    ...[...show.cues.flatMap((c) => c.actions), ...show.rules.flatMap((r) => r.then)]
+    ...[...show.cues.flatMap(everyAction), ...show.rules.flatMap((r) => r.then)]
       .flatMap((a) => flatActions([a]))
       .flatMap((a) => (a.type === 'branch' ? a.if : [])),
   ].filter((c) => c.varId === varId && c.op === 'eq');
@@ -365,7 +369,8 @@ function loopingRules(show: Show): Set<string> {
  * Groups of cues that can fire each other with no time between: jumps that fire, zero-second
  * follows, and rules on a cue firing that jump. The engine stops such a loop, but it is a mistake.
  */
-export function zeroTimeLoops(show: Show): Cue[][] {
+/** Cues that fire each other with no time between; `relaxed`: as a relaxed performance plays. */
+export function zeroTimeLoops(show: Show, relaxed = false): Cue[][] {
   const order = cueOrder(show);
   const index = new Map(order.map((c, i) => [c.id, i]));
   const fires = (actions: Action[]) =>
@@ -379,9 +384,10 @@ export function zeroTimeLoops(show: Show): Cue[][] {
     });
   const next = new Map<string, string[]>();
   order.forEach((cue, i) => {
-    const out = fires(cue.actions);
+    const actions = relaxed ? (cue.gentle ?? cue.actions) : cue.actions;
+    const out = fires(actions);
     // A jump or Fade all at the top of the cue cancels its follow.
-    const cancels = cue.actions.some(
+    const cancels = actions.some(
       (a) => a.type === 'jumpScene' || a.type === 'goToCue' || a.type === 'stopAll',
     );
     const after = order[i + 1];
@@ -456,7 +462,7 @@ function frameIssues(show: Show): LogicIssue[] {
         text: `“${l.name}” is drawn straight on the output: ${problem}`,
       });
   }
-  const actions = [...show.cues.flatMap((c) => c.actions), ...show.rules.flatMap((r) => r.then)];
+  const actions = [...show.cues.flatMap(everyAction), ...show.rules.flatMap((r) => r.then)];
   const shown = new Set(
     flatActions(actions).flatMap((a) =>
       a.type === 'show' || (a.type === 'fade' && a.opacity > 0) ? [a.layerId] : [],
@@ -492,7 +498,7 @@ export function checkLogic(show: Show): LogicIssue[] {
       });
     if (
       !show.cues.some((c) =>
-        flatActions(c.actions).some((a) => a.type === 'openMoment' && a.momentId === m.id),
+        flatActions(everyAction(c)).some((a) => a.type === 'openMoment' && a.momentId === m.id),
       ) &&
       !show.rules.some((r) =>
         flatActions(r.then).some((a) => a.type === 'openMoment' && a.momentId === m.id),
@@ -517,7 +523,7 @@ export function checkLogic(show: Show): LogicIssue[] {
       });
 
   for (const cue of show.cues)
-    for (const what of brokenRefs(show, cue.actions))
+    for (const what of brokenRefs(show, everyAction(cue)))
       issues.push({
         id: `broken:${cue.id}:${what}`,
         area: 'cues',
@@ -566,20 +572,41 @@ export function checkLogic(show: Show): LogicIssue[] {
       });
   }
 
-  for (const loop of zeroTimeLoops(show)) {
+  const loopKey = (loop: Cue[]) => `cueloop:${loop.map((c) => c.id).join(':')}`;
+  const cueLoops = zeroTimeLoops(show);
+  const known = new Set(cueLoops.map(loopKey));
+  // Gentler versions can loop too, in a relaxed performance only.
+  const relaxedLoops = show.cues.some((c) => c.gentle)
+    ? zeroTimeLoops(show, true).filter((l) => !known.has(loopKey(l)))
+    : [];
+  for (const [loop, when] of [
+    ...cueLoops.map((l) => [l, ''] as const),
+    ...relaxedLoops.map((l) => [l, ' in a relaxed performance'] as const),
+  ]) {
     const names = loop.map((c) => `“${c.name}”`);
     issues.push({
-      id: `cueloop:${loop.map((c) => c.id).join(':')}`,
+      id: `${loopKey(loop)}${when ? ':relaxed' : ''}`,
       area: 'cues',
       cueId: loop[0]!.id,
       text:
         names.length === 1
-          ? `Cue ${names[0]} fires itself with no time between, so the show stops it`
-          : `Cues ${names.slice(0, -1).join(', ')} and ${names.at(-1)} fire each other with no time between, so the show stops them`,
+          ? `Cue ${names[0]} fires itself with no time between${when}, so the show stops it`
+          : `Cues ${names.slice(0, -1).join(', ')} and ${names.at(-1)} fire each other with no time between${when}, so the show stops them`,
     });
   }
 
   issues.push(...frameIssues(show));
+
+  for (const f of checkFlashes(show)) {
+    const name = nameOf(show.cues, f.cueId);
+    const where = show.outputs.length > 1 ? ` “${nameOf(show.outputs, f.outputId)}”` : '';
+    issues.push({
+      id: `flash:${f.cueId}:${f.outputId}`,
+      area: 'cues',
+      cueId: f.cueId,
+      text: `Cue “${name}” flashes${where} ${f.flashes} times a second; more than ${MAX_FLASHES} can trigger seizures`,
+    });
+  }
 
   const tallies = new Set(show.moments.flatMap((m) => (m.tallyVarId ? [m.tallyVarId] : [])));
   for (const v of show.vars)

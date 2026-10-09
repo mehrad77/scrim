@@ -48,5 +48,7 @@ const fr: Partial<Strings> = {
   warningsHint: 'Un mot avant les moments intenses.',
   comingUp: 'À venir',
   stepOut: 'Vous pouvez sortir et revenir quand vous voulez.',
+  relaxed: 'Représentation adaptée',
+  relaxedHint: 'Lumières et son sont plus doux, et rien ne change brusquement.',
 };
 export default fr;

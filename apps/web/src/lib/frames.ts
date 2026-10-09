@@ -351,6 +351,8 @@ export function ungroupFrame(show: Show, frameId: string, measure: Measure): str
     }
     c.visible = c.visible && frame.visible;
     c.opacity *= frame.opacity;
+    // An intense frame's content stays intense once it is out of the frame.
+    if (frame.intense) c.intense = true;
   }
   restack(
     show,

@@ -51,6 +51,7 @@ Readers must:
   setlists?: Setlist[],                // prepared running orders
   operator?: { goHoldMs?, layout?, remoteGo? }, // how the show is run
   languages?: { base, others[] },      // the show's language and its translations (codes)
+  relaxed?: { default?, brightness?, volume?, minFade? }, // a relaxed performance's limits
 }
 ```
 
@@ -73,13 +74,14 @@ A `font` file (WOFF2, WOFF, TTF or OTF) is registered under its file name withou
 
 ### Layer
 
-Common fields: `id, name, kind, outputId (null for audio), x, y, w, h, z, opacity, visible, crop, parentId?, pin?, locked?`.
+Common fields: `id, name, kind, outputId (null for audio), x, y, w, h, z, opacity, visible, crop, parentId?, pin?, locked?, intense?`.
 
 - `opacity` is the opacity when shown. `visible` says whether the layer is shown when the show starts.
 - `crop` holds fractions from 0 to 1 per edge.
 - `parentId` puts the layer inside a frame on the same output. Its `x` and `y` are then relative to the frame, and `z` orders it among the frame's children only. A link that can't hold (the frame is missing, is not a frame, sits on another output or inside the layer itself, or the layer is audio) is ignored: the layer is drawn on the output, and the logic check reports it.
 - `pin` (`{ x: left · center · right, y: top · center · bottom }`, default left and top) is the output edge a top-level layer keeps its distance to when the output is resized or the layer moves to another output. A layer that hugs its content grows away from its pin: one pinned right grows to the left. It is ignored inside a frame.
 - `locked` (optional) is an editor aid: the canvas can't select or move the layer, or anything inside it. It changes nothing on stage.
+- `intense` (optional) marks a layer as loud, flashing or startling: a [relaxed performance](#relaxed-performances) leaves it out. Marking a frame marks everything inside it.
 
 | `kind`    | Extra fields                                                                                   |
 | --------- | ---------------------------------------------------------------------------------------------- |
@@ -108,7 +110,7 @@ Older apps can't open shows that contain frames.
 
 ```ts
 Scene   { id, name, tape? }
-Cue     { id, sceneId, name, actions: Action[], follow: { auto, delay }, notes, tape?, waitFor?, section?, access?, updatedAt }
+Cue     { id, sceneId, name, actions: Action[], follow: { auto, delay }, notes, tape?, waitFor?, section?, access?, gentle?, updatedAt }
 Setlist { id, name, scenes: sceneId[] }   // show.setlists?: Setlist[]
 ```
 
@@ -124,6 +126,20 @@ When `follow.auto` is true, the next cue fires `delay` seconds after this one; w
 - `buzz` vibrates phones that ask for it.
 - `i18n` holds the same texts by language code (`{ fr: { caption } }`); a missing translation falls back to the show's own words.
 - A text layer showing `{{caption}}` puts the current caption on stage: open captions for everyone.
+
+`gentle` (optional) is what the cue does instead in a [relaxed performance](#relaxed-performances): a softer version of its actions, or an empty list to leave them out. Absent, the cue does the same as always, within relaxed's limits.
+
+### Relaxed performances
+
+A relaxed performance is for sensory-sensitive audiences, care homes and schools. The operator turns it on per performance (the `relaxed` input, or the `relaxed` action), and it eases in and out over 2 seconds. While it is on:
+
+- every output dims to `relaxed.brightness` (default 0.7), and every sound is capped at `relaxed.volume` (default 0.6);
+- `show`, `hide`, `fade` and Fade all take at least `relaxed.minFade` seconds (default 1), and so does Back;
+- `show`, `play` and `fade` above 0 skip `intense` layers, and the run log notes each one. Turning relaxed on fades intense pictures and video already on stage out over the minimum fade and stops their video; intense sound stops at once and keeps its level for later. Back, bringing back a clear, Reset and a show that starts relaxed keep them off too;
+- cues with a `gentle` version run it instead of their actions;
+- phones say so, and that it's OK to step out and come back.
+
+PANIC, Release and the secondary clears are unchanged. `relaxed.default: true` starts every performance relaxed. The choice is performance state: Back and Reset keep it, and a crash resume restores it. Older apps can't open shows that use the `relaxed` action; they open shows with the other fields and ignore them.
 
 ### Actions
 
@@ -142,6 +158,7 @@ Layer and media actions (`show`, `hide`, `fade`, `play`, `pause`, `seek`, `setTe
 | `jumpSection`                | `section`, `fire`                                             | The live scene's next cue with that section, or the last one again          |
 | `openMoment` · `closeMoment` | `momentId`                                                    | Control an audience moment                                                  |
 | `stopAll`                    | `duration`                                                    | Fade everything out, cancel earlier cues' delayed actions, then pause media |
+| `relaxed`                    | `on`                                                          | Turn the [relaxed performance](#relaxed-performances) on or off             |
 | `branch`                     | `if: Condition[], then: Action[], else: Action[]`             | Conditional actions (nestable)                                              |
 
 Easing is one of `linear`, `easeIn`, `easeOut` or `easeInOut`. Durations are in seconds.

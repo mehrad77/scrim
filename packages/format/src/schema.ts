@@ -89,6 +89,11 @@ const LayerBase = {
   pin: PinSchema.optional(),
   /** Editor only: the canvas can't select or move it, or anything inside it. */
   locked: z.boolean().optional(),
+  /**
+   * Loud, flashing or startling: a relaxed performance leaves it out (never shows or plays it),
+   * and takes it off stage when relaxed is turned on.
+   */
+  intense: z.boolean().optional(),
 };
 
 const TextStyle = {
@@ -261,6 +266,7 @@ type ActionShape =
   | { type: 'openMoment'; momentId: string }
   | { type: 'closeMoment'; momentId: string }
   | { type: 'stopAll'; duration: number }
+  | { type: 'relaxed'; on: boolean }
   | { type: 'branch'; if: Condition[]; then: ActionShape[]; else: ActionShape[] };
 
 export const ActionSchema: z.ZodType<ActionShape, unknown> = z.lazy(() =>
@@ -303,6 +309,8 @@ export const ActionSchema: z.ZodType<ActionShape, unknown> = z.lazy(() =>
     z.object({ type: z.literal('openMoment'), momentId: Ref }),
     z.object({ type: z.literal('closeMoment'), momentId: Ref }),
     z.object({ type: z.literal('stopAll'), duration: z.number().nonnegative().default(1) }),
+    /** Turn the relaxed performance on or off, as the operator's switch does. */
+    z.object({ type: z.literal('relaxed'), on: z.boolean() }),
     z.object({
       type: z.literal('branch'),
       if: z.array(ConditionSchema),
@@ -359,6 +367,11 @@ export const CueSchema = z.object({
   /** The part of a song or scene this cue is (Verse, Chorus), so a key can jump to it. */
   section: z.string().optional(),
   access: CueAccessSchema.optional(),
+  /**
+   * What the cue does instead in a relaxed performance: softer, slower, or nothing (empty).
+   * Absent: the same actions, with relaxed's limits.
+   */
+  gentle: z.array(ActionSchema).optional(),
   /**
    * A performer trigger this cue waits for. While the cue is on standby, that trigger's remotes
    * show "Your cue · tap Ready" and the operator sees when the performer is ready.
@@ -514,6 +527,23 @@ export const OperatorSettingsSchema = z.object({
 });
 export type OperatorSettings = z.infer<typeof OperatorSettingsSchema>;
 
+/**
+ * A relaxed performance (for sensory-sensitive audiences, care homes, schools): outputs dimmed,
+ * sound capped, nothing faster than the minimum fade, intense layers left out. The operator turns
+ * it on per performance; these are its limits, and whether the show starts relaxed.
+ */
+export const RelaxedSettingsSchema = z.object({
+  /** Performances start relaxed: a care-home session, a quiet visiting hour. */
+  default: z.boolean().optional(),
+  /** How bright outputs are while relaxed, from 0.2 to 1. Absent: 0.7. */
+  brightness: z.number().min(0.2).max(1).optional(),
+  /** The loudest any sound plays while relaxed, from 0 to 1. Absent: 0.6. */
+  volume: z.number().min(0).max(1).optional(),
+  /** Shows, hides and fades take at least this long, in seconds. Absent: 1. */
+  minFade: z.number().min(0).max(10).optional(),
+});
+export type RelaxedSettings = z.infer<typeof RelaxedSettingsSchema>;
+
 export const ShowSchema = z.object({
   format: z.literal('scrim-show'),
   version: z.literal(SHOW_FORMAT_VERSION),
@@ -540,6 +570,7 @@ export const ShowSchema = z.object({
    * and moments are translated into, as language codes (en, fr, ar…).
    */
   languages: z.object({ base: z.string(), others: z.array(z.string()) }).optional(),
+  relaxed: RelaxedSettingsSchema.optional(),
   /** The fade new show/hide actions start with (the editor's default; 1 s ease in-out if unset). */
   defaultFade: z.object({ duration: z.number().nonnegative(), easing: EasingSchema }).optional(),
 });

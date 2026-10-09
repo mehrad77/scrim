@@ -101,6 +101,11 @@ export interface EngineState {
   order?: RunOrder | null;
   /** The personal access channel: the caption up now, the last description. */
   access?: AccessState;
+  /**
+   * A relaxed performance on (1) or off (0), easing between: outputs dim and sound is capped as
+   * it does. Optional for older journals.
+   */
+  relaxed?: Tween;
 }
 
 export function emptyAggregate(): MomentAggregate {
@@ -119,10 +124,12 @@ export function idleMoment(): MomentState {
   };
 }
 
-export function initialLayerState(show: Show, layerId: string): LayerState {
+/** A layer as the show starts. A relaxed start keeps intense pictures off; sound keeps its level. */
+export function initialLayerState(show: Show, layerId: string, relaxed = false): LayerState {
   const layer = show.layers.find((l) => l.id === layerId);
   if (!layer) return { opacity: still(0) };
-  const state: LayerState = { opacity: still(layer.visible ? layer.opacity : 0) };
+  const left = relaxed && !!layer.intense && layer.kind !== 'audio';
+  const state: LayerState = { opacity: still(layer.visible && !left ? layer.opacity : 0) };
   if (layer.kind === 'video' || layer.kind === 'audio') {
     state.media = { playing: false, position: 0, anchor: 0 };
   }
@@ -130,14 +137,17 @@ export function initialLayerState(show: Show, layerId: string): LayerState {
   return state;
 }
 
-export function initialState(show: Show): EngineState {
+/** The state at the top of the show; relaxed or not, as the show starts unless told. */
+export function initialState(show: Show, relaxed = !!show.relaxed?.default): EngineState {
   return {
     standby: cueOrder(show)[0]?.id ?? null,
     lastFired: null,
     held: false,
     heldAt: null,
     blackout: still(0),
-    layers: Object.fromEntries(show.layers.map((l) => [l.id, initialLayerState(show, l.id)])),
+    layers: Object.fromEntries(
+      show.layers.map((l) => [l.id, initialLayerState(show, l.id, relaxed)]),
+    ),
     vars: Object.fromEntries(show.vars.map((v) => [v.id, structuredClone(v.initial)])),
     moments: Object.fromEntries(show.moments.map((m) => [m.id, idleMoment()])),
     follow: null,
@@ -147,6 +157,7 @@ export function initialState(show: Show): EngineState {
     mute: still(0),
     cleared: {},
     order: null,
+    relaxed: still(relaxed ? 1 : 0),
   };
 }
 
@@ -155,7 +166,9 @@ export function reconcile(show: Show, prev: EngineState): EngineState {
   const state = structuredClone(prev);
   const layerIds = new Set(show.layers.map((l) => l.id));
   for (const id of Object.keys(state.layers)) if (!layerIds.has(id)) delete state.layers[id];
-  for (const l of show.layers) state.layers[l.id] ??= initialLayerState(show, l.id);
+  state.relaxed ??= still(show.relaxed?.default ? 1 : 0);
+  for (const l of show.layers)
+    state.layers[l.id] ??= initialLayerState(show, l.id, state.relaxed.to === 1);
   const varIds = new Set(show.vars.map((v) => v.id));
   for (const id of Object.keys(state.vars)) if (!varIds.has(id)) delete state.vars[id];
   for (const v of show.vars)

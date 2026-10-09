@@ -243,6 +243,15 @@ function Inspector({ show, layer }: { show: Show; layer: Layer }) {
           onChange={(visible) => set({ visible })}
           label={visual ? 'Visible when the show starts' : 'Faded in when the show starts'}
         />
+        <Toggle
+          checked={!!layer.intense}
+          onChange={(intense) => set({ intense: intense || undefined })}
+          label={
+            visual
+              ? 'Intense: flashing or startling, left out of relaxed performances'
+              : 'Intense: loud or startling, left out of relaxed performances'
+          }
+        />
         {(layer.kind === 'image' || layer.kind === 'video') && (
           <Field label="Fit">
             <Select

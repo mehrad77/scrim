@@ -21,8 +21,10 @@ import {
   nextWakeup,
   optionLabels,
   reconcile,
+  relaxedBrightness,
   runOrder,
   sceneSequence,
+  soundLevel,
   step,
   tweenValue,
   valueLines,
@@ -1276,5 +1278,190 @@ describe('the personal access channel', () => {
     const s = run(show, [[0, { type: 'go' }]]);
     const edited = { ...show, cues: show.cues.slice(1) };
     expect(reconcile(edited, s).access?.captionCue).toBeNull();
+  });
+});
+
+describe('relaxed performances', () => {
+  const evs = (show: Show, state: EngineState, input: EngineInput, t: number) =>
+    step(show, state, input, t);
+
+  it('eases in, dims outputs, caps sound and slows every fade to the minimum', () => {
+    const show = demo();
+    show.relaxed = { brightness: 0.5 };
+    const on = evs(show, initialState(show), { type: 'relaxed' }, 0);
+    expect(on.events).toContainEqual({ type: 'relaxed', on: true });
+    expect(relaxedBrightness(show, on.state, 0)).toBe(1);
+    expect(relaxedBrightness(show, on.state, 2000)).toBeCloseTo(0.5);
+    // Volume falls back to the default cap of 0.6.
+    expect(soundLevel(show, on.state, 2000)).toBeCloseTo(0.6);
+    // Cellar hides the title in 0 s; relaxed takes 1 s, and a 2 s fade stays 2 s.
+    let s = run(show, [[10_000, { type: 'go' }]], on.state);
+    expect(s.layers.title!.opacity.dur).toBe(2000);
+    s = run(show, [[20_000, { type: 'fireCue', cueId: 'c3' }]], s);
+    expect(s.layers.title!.opacity.dur).toBe(1000);
+    // Off again: back to full brightness, and cuts are cuts.
+    s = run(show, [[30_000, { type: 'relaxed', on: false }]], s);
+    expect(relaxedBrightness(show, s, 32_000)).toBe(1);
+    s = run(
+      show,
+      [
+        [40_000, { type: 'fireCue', cueId: 'c1' }],
+        [41_000, { type: 'fireCue', cueId: 'c3' }],
+      ],
+      s,
+    );
+    expect(s.layers.title!.opacity.dur).toBe(0);
+  });
+
+  it('leaves intense layers out, and takes them off stage when it turns on', () => {
+    const show = demo();
+    show.layers.find((l) => l.id === 'vid')!.intense = true;
+    show.cues[1]!.actions.push({ type: 'show', layerId: 'vid', duration: 0, easing: 'linear' });
+    let s = run(show, [
+      [0, { type: 'go' }],
+      [1000, { type: 'go' }],
+    ]);
+    expect(s.layers.vid!.opacity.to).toBe(1);
+    const on = evs(show, s, { type: 'relaxed', on: true }, 2000);
+    expect(on.events).toContainEqual({ type: 'leftOut', layerId: 'vid', name: 'Video' });
+    expect(on.state.layers.vid!.opacity).toMatchObject({ to: 0, dur: 1000 });
+    s = run(show, [[4000, { type: 'tick' }]], on.state);
+    expect(s.layers.vid!.media!.playing).toBe(false);
+    // Fired again while relaxed, the cue plays everything but the intense video.
+    const again = evs(show, s, { type: 'fireCue', cueId: 'c2' }, 5000);
+    expect(again.events.filter((e) => e.type === 'leftOut')).toHaveLength(2);
+    expect(again.state.layers.vid!.opacity.to).toBe(0);
+    expect(again.state.layers.vid!.media!.playing).toBe(false);
+    expect(again.state.moments.vote!.status).toBe('open');
+  });
+
+  it('plays a cue’s gentler version, and an empty one does nothing', () => {
+    const show = demo();
+    show.cues[0]!.gentle = [{ type: 'show', layerId: 'title', duration: 4, easing: 'linear' }];
+    show.cues[2]!.gentle = [];
+    let s = run(show, [
+      [0, { type: 'relaxed', on: true }],
+      [10, { type: 'go' }],
+    ]);
+    expect(s.layers.title!.opacity.dur).toBe(4000);
+    expect(s.layers.clock!.counter!.running).toBe(false);
+    s = run(show, [[10_000, { type: 'fireCue', cueId: 'c3' }]], s);
+    expect(s.layers.title!.opacity.to).toBe(0.8);
+    expect(s.lastFired).toBe('c3');
+  });
+
+  it('keeps intense layers out through Back, unclear, Reset and a relaxed start', () => {
+    const show = demo();
+    show.layers.find((l) => l.id === 'vid')!.intense = true;
+    show.layers.find((l) => l.id === 'vid')!.visible = true;
+    show.cues[1]!.actions.push({ type: 'show', layerId: 'vid', duration: 0, easing: 'linear' });
+    let s = run(show, [
+      [0, { type: 'go' }],
+      [1000, { type: 'go' }],
+      [2000, { type: 'relaxed', on: true }],
+    ]);
+    // Back to before Open vote, which was before relaxed: the video stays off.
+    const back = step(show, s, { type: 'back' }, 3000);
+    expect(back.state.layers.vid!.opacity.to).toBe(0);
+    expect(back.events).toContainEqual({ type: 'leftOut', layerId: 'vid', name: 'Video' });
+    // Cleared before relaxed began, then brought back: still left out.
+    s = run(show, [
+      [0, { type: 'go' }],
+      [1000, { type: 'go' }],
+      [2000, { type: 'clear', what: 'media' }],
+      [3000, { type: 'relaxed', on: true }],
+      [4000, { type: 'unclear', what: 'media' }],
+    ]);
+    expect(s.layers.vid!.opacity.to).toBe(0);
+    // Reset while relaxed, and a show that starts relaxed, begin with it off.
+    expect(step(show, s, { type: 'reset' }, 5000).state.layers.vid!.opacity.to).toBe(0);
+    show.relaxed = { default: true };
+    expect(initialState(show).layers.vid!.opacity.to).toBe(0);
+    show.relaxed = {};
+    expect(initialState(show).layers.vid!.opacity.to).toBe(1);
+  });
+
+  it('stops intense sound at once, keeping its level, and video inside an intense frame', () => {
+    const show = demo();
+    const out = show.outputs[0]!.id;
+    show.layers.push(
+      {
+        ...show.layers[1]!,
+        id: 'bang',
+        name: 'Bang',
+        kind: 'audio',
+        outputId: null,
+        visible: true,
+        intense: true,
+      } as Layer,
+      {
+        ...show.layers[1]!,
+        id: 'box',
+        name: 'Box',
+        kind: 'frame',
+        outputId: out,
+        intense: true,
+        fill: '#fff',
+        radius: 0,
+        clip: false,
+        layout: {
+          mode: 'free',
+          gap: 0,
+          padX: 0,
+          padY: 0,
+          align: 'center',
+          justify: 'start',
+          hugW: false,
+          hugH: false,
+        },
+      } as Layer,
+    );
+    show.layers.find((l) => l.id === 'vid')!.parentId = 'box';
+    show.cues[0]!.actions.push(
+      { type: 'play', layerId: 'bang', restart: true },
+      { type: 'show', layerId: 'box', duration: 0, easing: 'linear' },
+      { type: 'show', layerId: 'vid', duration: 0, easing: 'linear' },
+      { type: 'play', layerId: 'vid', restart: true },
+    );
+    let s = run(show, [
+      [0, { type: 'go' }],
+      [1000, { type: 'relaxed', on: true }],
+    ]);
+    expect(s.layers.bang!.media!.playing).toBe(false);
+    expect(s.layers.bang!.opacity.to).toBe(1);
+    expect(s.layers.box!.opacity.to).toBe(0);
+    s = run(show, [[2000, { type: 'tick' }]], s);
+    expect(s.layers.vid!.media!.playing).toBe(false);
+    // After the relaxed performance, a cue that only plays the sound is heard.
+    s = run(
+      show,
+      [
+        [3000, { type: 'relaxed', on: false }],
+        [4000, { type: 'fireCue', cueId: 'c1' }],
+      ],
+      s,
+    );
+    expect(s.layers.bang!.media!.playing).toBe(true);
+    expect(s.layers.bang!.opacity.to).toBe(1);
+  });
+
+  it('outlives Back and Reset, starts on when the show says so, and loads older journals', () => {
+    const show = demo();
+    let s = run(show, [
+      [0, { type: 'go' }],
+      [100, { type: 'relaxed', on: true }],
+    ]);
+    expect(step(show, s, { type: 'back' }, 200).state.relaxed?.to).toBe(1);
+    expect(step(show, s, { type: 'reset' }, 200).state.relaxed?.to).toBe(1);
+    show.relaxed = { default: true };
+    expect(initialState(show).relaxed?.to).toBe(1);
+    const old = { ...initialState(show) };
+    delete old.relaxed;
+    expect(reconcile(show, old).relaxed?.to).toBe(1);
+    // A cue can turn it on or off, for a show that changes mood.
+    show.relaxed = {};
+    show.cues[0]!.actions.push({ type: 'relaxed', on: true });
+    s = run(show, [[0, { type: 'go' }]]);
+    expect(s.relaxed?.to).toBe(1);
   });
 });
