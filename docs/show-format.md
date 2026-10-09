@@ -54,10 +54,12 @@ Readers must:
   relaxed?: { default?, brightness?, volume?, minFade? }, // a relaxed performance's limits
   editor?: { mode?: 'simple' | 'full' },  // the editor this show opens in
   safety?: { noFreeText? },               // safeguarding
+  schedule?: { varId, periods: { days, from, to, value }[], otherwise }, // opening hours
 }
 ```
 
 - `editor.mode: 'simple'` opens the show in the simple editor: rules, values, control mappings and exact positions fold behind a labelled step. Only a person changes it, and it travels with the show, so a teacher's starter opens simply for the class. It changes nothing on stage.
+- `schedule` gives an installation opening hours. The host tells the engine the time of day as each minute turns (input `clock { day, minute }`), and the engine sets `varId` to the value of the first period covering it, else `otherwise`. `days` are the days a period starts on (0 Sunday to 6 Saturday); `from` and `to` are minutes after midnight; a period that ends before it starts runs past midnight, and one that ends when it starts lasts all day. Rules react to the value changing, so a machine that starts mid-period is set at once. Times are the machine's own.
 - `safety.noFreeText` is for shows with children or vulnerable people: phones can vote and tap but never send words. Text moments don't open (the engine warns instead), the editor won't add one, and the logic check flags any left.
 
 Ids are opaque, non-empty strings, for example `cue_k3f9x2ab`. **References** to other objects (an action's `layerId`, a rule's `triggerId`, a state layer's `varId`, and so on) may be the empty string while the designer has not picked a target yet; the engine skips such actions and reports a warning.

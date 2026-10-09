@@ -31,6 +31,20 @@ export default {
       return new Response('No free room code, try again', { status: 503, headers: cors });
     }
 
+    // Keeping a code needs the room's host key: anyone may open a room, but only its host may
+    // hold its code for months.
+    const keep = /^\/api\/rooms\/([^/]+)\/keep$/.exec(url.pathname);
+    if (keep && request.method === 'POST') {
+      const code = keep[1]!.toUpperCase();
+      if (!RoomCodeSchema.safeParse(code).success)
+        return new Response('Bad room code', { status: 400, headers: cors });
+      const res = await stub(env, code).fetch('https://room/keep', {
+        method: 'POST',
+        body: await request.text(),
+      });
+      return new Response(res.body, { status: res.status, headers: cors });
+    }
+
     const match = /^\/api\/rooms\/([^/]+)(\/ws)?$/.exec(url.pathname);
     if (match) {
       const code = match[1]!.toUpperCase();

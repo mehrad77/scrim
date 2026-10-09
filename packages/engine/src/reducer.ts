@@ -18,6 +18,7 @@ import {
 } from './state.js';
 import { accessAfter } from './access.js';
 import { resolveJump, runOrder, sceneSequence, type RunOrder } from './order.js';
+import { scheduleValue } from './schedule.js';
 import { cueActions, isIntense, isRelaxed, RELAXED_FADE, relaxedSettings } from './relaxed.js';
 import { retarget, still } from './tween.js';
 import type { ClearKind, EngineEvent, EngineInput, InputSource } from './types.js';
@@ -117,6 +118,18 @@ function applyInput(ctx: Ctx, input: EngineInput): void {
     case 'setOrder':
       setRunOrder(ctx, input.order);
       return;
+    case 'clock': {
+      const schedule = ctx.show.schedule;
+      if (!schedule?.varId) return;
+      const value = scheduleValue(schedule, input.day, input.minute);
+      if (input.force && JSON.stringify(state.vars[schedule.varId]) === JSON.stringify(value)) {
+        if (ctx.show.vars.some((v) => v.id === schedule.varId))
+          ctx.events.push({ type: 'varChanged', varId: schedule.varId, value });
+        return;
+      }
+      setVar(ctx, schedule.varId, value);
+      return;
+    }
     case 'standbyNext':
     case 'standbyPrev': {
       const i = ctx.order.findIndex((c) => c.id === state.standby);

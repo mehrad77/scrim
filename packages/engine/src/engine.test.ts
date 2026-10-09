@@ -24,6 +24,7 @@ import {
   relaxedBrightness,
   runOrder,
   sceneSequence,
+  scheduleValue,
   soundLevel,
   step,
   tweenValue,
@@ -1506,5 +1507,44 @@ describe('safeguarding', () => {
       s,
     );
     expect(s.moments.names!.entries).toEqual([]);
+  });
+});
+
+describe('opening hours', () => {
+  const schedule = {
+    varId: 'door',
+    // Weekdays 10:00 to 17:00; Friday and Saturday nights 20:00 to 01:00.
+    periods: [
+      { days: [1, 2, 3, 4, 5], from: 600, to: 1020, value: 'left' },
+      { days: [5, 6], from: 1200, to: 60, value: 'right' },
+    ],
+    otherwise: '',
+  };
+
+  it('finds the period that covers a time, past midnight too', () => {
+    expect(scheduleValue(schedule, 1, 600)).toBe('left');
+    expect(scheduleValue(schedule, 1, 1020)).toBe('');
+    expect(scheduleValue(schedule, 0, 700)).toBe('');
+    expect(scheduleValue(schedule, 6, 1300)).toBe('right');
+    // Sunday 00:30 is still Saturday night; Sunday 01:00 is not.
+    expect(scheduleValue(schedule, 0, 30)).toBe('right');
+    expect(scheduleValue(schedule, 0, 60)).toBe('');
+  });
+
+  it('sets the value from the clock, once, so rules react to a change only', () => {
+    const show = demo();
+    show.schedule = schedule;
+    const first = step(show, initialState(show), { type: 'clock', day: 2, minute: 615 }, 0);
+    expect(first.state.vars.door).toBe('left');
+    expect(first.events).toContainEqual({ type: 'varChanged', varId: 'door', value: 'left' });
+    const same = step(show, first.state, { type: 'clock', day: 2, minute: 616 }, 60_000);
+    expect(same.events).toEqual([]);
+    // A fresh start announces the value it wakes into, even when it is already right.
+    const woke = step(show, same.state, { type: 'clock', day: 2, minute: 700, force: true }, 0);
+    expect(woke.events).toContainEqual({ type: 'varChanged', varId: 'door', value: 'left' });
+    // The same start and end is all day.
+    expect(
+      scheduleValue({ ...schedule, periods: [{ days: [0], from: 0, to: 0, value: 'x' }] }, 0, 1439),
+    ).toBe('x');
   });
 });

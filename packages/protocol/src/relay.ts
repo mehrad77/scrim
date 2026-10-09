@@ -122,6 +122,8 @@ export type HostToRelay =
   | { t: 'remoteView'; view: Omit<RemoteView, 'connected'> }
   /** Null: the show has no access channel now (nothing to caption, not relaxed). */
   | { t: 'access'; view: AccessView | null }
+  /** Keep this room's code for an installation (90 days after its last use), or let it go. */
+  | { t: 'keep'; keep: boolean }
   | { t: 'ping'; c: number };
 
 // ---- relay -> host ----

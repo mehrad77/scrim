@@ -10,6 +10,7 @@ import { Button, IconButton } from '../../ui/Button.js';
 import { confirmDialog } from '../../ui/dialog.js';
 import { CommitInput, Field, NumberInput, Select } from '../../ui/Field.js';
 import { Panel } from '../../ui/Panel.js';
+import { InstallationPanel } from './InstallationPanel.js';
 import { errorToast } from '../../ui/toast.js';
 
 const PRESETS: [number, number, string][] = [
@@ -25,7 +26,10 @@ export function OutputsTab() {
   return (
     <div className="grid h-full grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)] gap-px bg-line-subtle">
       <OutputsPanel />
-      <AudioPanel />
+      <div className="grid min-h-0 min-w-0 grid-cols-[minmax(0,1fr)] grid-rows-[minmax(0,auto)_minmax(0,1fr)] gap-px">
+        <AudioPanel />
+        <InstallationPanel />
+      </div>
     </div>
   );
 }

@@ -242,6 +242,8 @@ export function usage(show: Show) {
     if (l.kind === 'text') readText(l.text);
     if (l.kind === 'state' && l.varId) bump(reads, l.varId);
   }
+  // Opening hours write their value as the clock turns.
+  if (show.schedule?.varId) bump(writes, show.schedule.varId);
   for (const m of show.moments) {
     if (m.resultVarId) bump(writes, m.resultVarId);
     if (m.tallyVarId) bump(writes, m.tallyVarId);
@@ -515,6 +517,34 @@ export function checkLogic(show: Show): LogicIssue[] {
         momentId: m.id,
         text: `${m.name}: no cue opens it`,
       });
+  }
+
+  const hours = show.schedule;
+  if (hours) {
+    const v = show.vars.find((x) => x.id === hours.varId);
+    if (!v)
+      issues.push({
+        id: 'hours:var',
+        area: 'interaction',
+        text: 'Opening hours set no value: choose one in Outputs & audio › Installation',
+      });
+    hours.periods.forEach((p, i) => {
+      if (!p.days.length)
+        issues.push({
+          id: `hours:days:${i}`,
+          area: 'interaction',
+          text: `Opening hours: period ${i + 1} has no days, so it never applies`,
+        });
+    });
+    if (v?.type === 'choice' && v.options?.length)
+      for (const value of new Set([...hours.periods.map((p) => p.value), hours.otherwise]))
+        if (!v.options.includes(value))
+          issues.push({
+            id: `hours:${value}`,
+            area: 'interaction',
+            varId: v.id,
+            text: `Opening hours set “${v.name}” to “${value}”, which isn't one of its choices`,
+          });
   }
 
   if (show.safety?.noFreeText)

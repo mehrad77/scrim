@@ -52,6 +52,7 @@ export function removeVar(show: Show, varId: string): void {
     if (m.tallyVarId === varId) m.tallyVarId = null;
   }
   for (const l of show.layers) if (l.kind === 'state' && l.varId === varId) l.varId = '';
+  if (show.schedule?.varId === varId) delete show.schedule;
 }
 
 export function removeMoment(show: Show, momentId: string): void {

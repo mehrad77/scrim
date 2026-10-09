@@ -572,10 +572,8 @@ For each user, **Ideas** links to the cross-cutting ideas in [Accessible to all]
   - Fully offline running.
   - Auto-follow and rules that can loop scenes.
 - **Gaps:**
-  - A scheduler, and an attract or idle mode.
-  - A kiosk-mode setup guide.
-  - Remote monitoring.
-- **Since added:** captions, description and translations on visitors' phones; a physical button for visitors without one; relaxed performances for quiet visiting hours.
+  - Remote monitoring and alerts.
+- **Since added:** captions, description and translations on visitors' phones; a physical button for visitors without one; relaxed performances for quiet visiting hours. An **installation page** that runs the show unattended in Show mode and carries on after a power cut; **opening hours** that set a value rules react to (the attract loop is a rule, not a feature); **kept room codes** for printed QR codes, with a room pass for a replacement machine; and an [installation guide](installation-guide.md) for kiosk mode, policies and autostart.
 - **Ideas:** [1 personal access channel](#1-a-personal-access-channel-on-the-audience-phone), [4 no-phone participation](#4-no-phone-participation), [2 relaxed mode](#2-relaxed-mode-and-a-flash-safety-check) for quiet or sensory-friendly visiting hours.
 
 ### Faith or community group volunteer (lyrics, notices)

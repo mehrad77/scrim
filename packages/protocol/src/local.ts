@@ -34,7 +34,9 @@ export type ClientMessage =
   | { t: 'keyUp'; v: number; key: string; code?: string }
   /** An output window could not start sound until clicked. */
   | { t: 'audioBlocked'; v: number; outputId: string }
-  | { t: 'bye'; v: number; clientId: string };
+  | { t: 'bye'; v: number; clientId: string }
+  /** The show's stored room changed (kept, a new code, a room pass): a running show reconnects. */
+  | { t: 'roomChanged'; v: number };
 
 export type LocalMessage = HostMessage | ClientMessage;
 

@@ -36,12 +36,13 @@ Two transports carry the same ideas: the operator tab is authoritative and broad
 
 ### HTTP
 
-| Request                                         | Response                                                                                                    |
-| ----------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
-| `POST /api/rooms`                               | `{ code, hostKey, deviceKey, sharedKey }`; `code` is five characters from `ABCDEFGHJKMNPQRSTUVWXYZ23456789` |
-| `GET /api/rooms/:code`                          | `{ exists, title }`                                                                                         |
-| `GET /api/rooms/:code/ws?role=…&client=…&key=…` | WebSocket upgrade                                                                                           |
-| `GET /health`                                   | `ok`                                                                                                        |
+| Request                                                | Response                                                                                                    |
+| ------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------- |
+| `POST /api/rooms`                                      | `{ code, hostKey, deviceKey, sharedKey }`; `code` is five characters from `ABCDEFGHJKMNPQRSTUVWXYZ23456789` |
+| `POST /api/rooms/:code/keep`, body `{ hostKey, keep }` | Keep the room's code, or let it go. 401 without the right host key, 404 when the room has ended             |
+| `GET /api/rooms/:code`                                 | `{ exists, title }`                                                                                         |
+| `GET /api/rooms/:code/ws?role=…&client=…&key=…`        | WebSocket upgrade                                                                                           |
+| `GET /health`                                          | `ok`                                                                                                        |
 
 ### Roles and keys
 
@@ -64,6 +65,7 @@ A **shared tablet** joins with `sharedKey`. Its `vote`, `slider` and `text` mess
 | `show`       | `show` (forwarded to remote outputs)                                                                                                                                                                                                                                                                                                                      |
 | `state`      | `state, mode, offset` (forwarded to remote outputs)                                                                                                                                                                                                                                                                                                       |
 | `moments`    | `title, open: MomentSpec[]`: the full set of open moments (with their translations)                                                                                                                                                                                                                                                                       |
+| `keep`       | `keep: boolean`: hold this room's code for an installation, or let it go                                                                                                                                                                                                                                                                                  |
 | `access`     | `view: AccessView \| null`: the caption up now, the latest description (with `seq`), the standby cue's warning, a buzz count, every language of each, and `relaxed` during a relaxed performance. Sent when it changes; null when the show has no access channel and isn't relaxed (sent on connect too, so phones hear that a relaxed performance ended) |
 | `remoteView` | `view: { showName, triggers, standby, lastFired, standbyId?, waitFor?, ready?, firedFor?, cueTriggers?, canGo?, held?, goHoldMs? }`                                                                                                                                                                                                                       |
 | `ping`       | `c` (client time)                                                                                                                                                                                                                                                                                                                                         |
@@ -130,4 +132,10 @@ Clients estimate `offset = serverTime - localTime` from the lowest-latency of th
 | 4409 | Room full (`MAX_AUDIENCE`, default 2000) |
 | 4410 | Replaced by another host connection      |
 
-Rooms expire after 24 hours with no connections. A host that gets 4401 or 4404 opens a new room automatically.
+Rooms expire a day after their last use (the last connection, not their creation; a code is never given to a new room while it is connected, kept or used in the last day).
+
+**Kept rooms** are for installations whose QR codes are printed. Only the room's host may keep it: with its host key on `POST /api/rooms/:code/keep`, or by sending `{ t: 'keep', keep }` on its socket. A host sends its stored room's setting on every connect, so a room kept or let go in the editor, or loaded from a room pass, follows. When a kept room is idle, the relay clears what the last show left (votes, state, the access view) but holds the code and keys until 90 days after its last use.
+
+A host that gets 4401 or 4404 opens a new room automatically, except for a kept room: then it logs a warning and tries the same code again every minute, since a new code would break the printed ones.
+
+On the local channel, the editor sends `{ t: 'roomChanged' }` when it changes a show's stored room (kept, a new kept code, a room pass loaded); a running host with its room open reconnects with the stored room.

@@ -49,6 +49,7 @@ import { MapBar, MapProvider, useMapApi, useMapMode } from './MapMode.js';
 import { MediaPanel, StatePanel } from './LivePanels.js';
 import { OutputsPanel } from './OutputsPanel.js';
 import { usePins } from './pins.js';
+import { acquireLock, lockName } from '../../host/lock.js';
 import { PreshowCheck } from './PreshowCheck.js';
 import { RelaxedSwitch } from './RelaxedSwitch.js';
 import { SimpleOperator } from './SimpleOperator.js';
@@ -66,7 +67,7 @@ export function useHost(): [ShowHost, HostSnapshot] {
 type Phase =
   | { kind: 'loading' }
   | { kind: 'missing' }
-  | { kind: 'busy'; show: Show }
+  | { kind: 'busy'; show: Show; taken?: boolean }
   | { kind: 'ready'; host: ShowHost };
 
 export default function Operator() {
@@ -82,7 +83,14 @@ export default function Operator() {
       const show = await getShow(id);
       if (!show) return setPhase({ kind: 'missing' });
       // One operator view per show on this machine: two would fight over the outputs.
-      const lock = await acquireLock(`scrim-host-${id}`, takeover > 0);
+      // Taken over from another tab or window: stop driving the outputs and say so.
+      const lost = () => {
+        host?.dispose();
+        host = null;
+        release = null;
+        if (!cancelled) setPhase({ kind: 'busy', show, taken: true });
+      };
+      const lock = await acquireLock(lockName(id), takeover > 0, lost);
       if (cancelled) return lock?.();
       if (!lock) return setPhase({ kind: 'busy', show });
       release = lock;
@@ -137,7 +145,9 @@ export default function Operator() {
     return (
       <div className="mx-auto max-w-lg p-8">
         <h1 className="mb-2 text-lg font-semibold">
-          “{phase.show.name}” is already running in another tab
+          {phase.taken
+            ? `“${phase.show.name}” was taken over in another tab`
+            : `“${phase.show.name}” is already running in another tab`}
         </h1>
         <p className="mb-4 text-ui text-fg-muted">
           Only one operator view can drive the outputs. Switch to that tab, or take over here; the
@@ -160,38 +170,6 @@ export default function Operator() {
       </HelpMode>
     </HostContext.Provider>
   );
-}
-
-/**
- * Web Locks keep a single operator per show; `steal` takes it from another
- * tab. A lock being released (a reload, a remount) gets a moment to clear.
- */
-async function acquireLock(name: string, steal: boolean): Promise<(() => void) | null> {
-  for (let attempt = 0; attempt < 4; attempt++) {
-    const release = await tryLock(name, steal);
-    if (release) return release;
-    await new Promise((r) => setTimeout(r, 250));
-  }
-  return null;
-}
-
-function tryLock(name: string, steal: boolean): Promise<(() => void) | null> {
-  if (!navigator.locks) return Promise.resolve(() => undefined);
-  return new Promise((resolve) => {
-    let done = false;
-    void navigator.locks
-      .request(name, steal ? { steal: true } : { ifAvailable: true }, (lock) => {
-        if (!lock) {
-          resolve(null);
-          return;
-        }
-        return new Promise<void>((release) => {
-          done = true;
-          resolve(release);
-        });
-      })
-      .catch(() => !done && resolve(null));
-  });
 }
 
 function OperatorView() {

@@ -66,6 +66,20 @@ export type EngineInput =
   | { type: 'relaxed'; on?: boolean; fade?: number }
   /** Put a scene, cue or section on standby, or fire it. */
   | { type: 'jump'; target: JumpTarget; fire?: boolean; source?: InputSource }
+  /**
+   * The time of day, from the host every minute: opening hours set their value from it, and
+   * rules react to the change. Nothing happens when the value is already right.
+   */
+  | {
+      type: 'clock';
+      day: number;
+      minute: number;
+      /**
+       * Announce the value even if it is already right: the first clock after a start or a
+       * reset, so rules set the scene for the hours the machine wakes into.
+       */
+      force?: boolean;
+    }
   /** Change tonight's running order; null goes back to the show's order. */
   | { type: 'setOrder'; order: RunOrder | null };
 

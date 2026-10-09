@@ -43,7 +43,7 @@ Scrim runs a show from one browser tab, the **operator view**. Everything else e
 step(show, state, input, now) → { state, events }
 ```
 
-- **Inputs** are what can happen: `go`, `fireCue`, `standby*`, `jump`, `setOrder`, `hold`, `panic`/`release`, `trigger`, `tick`, audience totals (`momentAgg`), counts from the room (`countVote`), moment control, `mediaEnded`, `setVar`, `seek`, a direct `action`, `back`, the secondary clears, `mute`, `relaxed`, and `reset`.
+- **Inputs** are what can happen: `go`, `fireCue`, `standby*`, `jump`, `setOrder`, `hold`, `panic`/`release`, `trigger`, `tick`, audience totals (`momentAgg`), counts from the room (`countVote`), moment control, `mediaEnded`, `setVar`, `seek`, a direct `action`, `back`, the secondary clears, `mute`, `relaxed`, the time of day (`clock`, for opening hours), and `reset`.
 - **Access channel.** `access: { captionCue, describeCue, seq, buzz }` is engine state, set when a cue fires, so a jump, Back or a crash resume restores the right caption. The host turns it into an access view for phones (`lib/access.ts`).
 - **Relaxed performances.** `relaxed` is a tween like `mute`, so outputs dim and sound eases down over 2 seconds; renderers read it through `relaxedBrightness` and `soundLevel`. While it is on, the reducer lengthens fades to the show's minimum, skips `show`, `play` and `fade` on intense layers (emitting `leftOut`), and fires a cue's `gentle` actions instead of its own. Back and Reset keep it.
 - **Moment totals by source.** A moment keeps totals per source: `relay` (phones and shared tablets, as running totals that replace their own source), `sim` (pretend phones), `buttons` and `counted` (which add). Its result and live values use the sum, and the default is used only when every source is empty.
@@ -67,6 +67,8 @@ When a show is edited mid-run, `reconcile(show, state)` adapts the running state
 Frames are ordinary layers to the engine: each has its own opacity tween, and nothing in the state is nested. `layerTree` (in `@scrim/format`) derives the nesting and repairs broken links, and `effectiveOpacity` multiplies a layer's opacity by its frames'. Fade all fades only top-level layers, so frames keep their content; the secondary clears take a frame as one when everything in it matches.
 
 ## The operator tab (`ShowHost`)
+
+An installation runs the same host on the `/kiosk/:id` page (`routes/Kiosk.tsx`): always in Show mode, carrying on from the journal, drawing one output in its own tab from the host's state, opening the others where policy allows, and holding the same Web Lock as the operator view, so staff can take over. See [the installation guide](installation-guide.md).
 
 `apps/web/src/host/ShowHost.ts` owns one `Engine` and wires it to the world:
 

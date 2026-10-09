@@ -18,6 +18,7 @@ import {
 } from '@scrim/protocol';
 import { Aggregator, type AggregatorSnapshot } from './aggregate.js';
 import type { Env } from './env.js';
+import { codeInUse, expiryDecision, IDLE_EXPIRY_MS, type RoomLife } from './expiry.js';
 
 interface Attachment {
   role: Role;
@@ -26,12 +27,11 @@ interface Attachment {
   shared?: boolean;
 }
 
-interface Keys {
+interface Keys extends RoomLife {
   hostKey: string;
   deviceKey: string;
   /** Absent in rooms made before shared tablets. */
   sharedKey?: string;
-  createdAt: number;
 }
 
 type StateMsg = Extract<HostToRelay, { t: 'state' }>;
@@ -39,7 +39,6 @@ type StateMsg = Extract<HostToRelay, { t: 'state' }>;
 const ROLES: Role[] = ['host', 'output', 'remote', 'audience'];
 const FLUSH_MS = 200;
 const STATE_PERSIST_MS = 2000;
-const IDLE_EXPIRY_MS = 24 * 60 * 60 * 1000;
 const MAX_HOST_MESSAGE = 4 * 1024 * 1024;
 const MAX_CLIENT_MESSAGE = 4 * 1024;
 const MAX_MESSAGES_PER_SECOND = 30;
@@ -84,6 +83,17 @@ export class Room extends DurableObject<Env> {
   override async fetch(request: Request): Promise<Response> {
     const url = new URL(request.url);
     if (url.pathname === '/init' && request.method === 'POST') return this.#init();
+    if (url.pathname === '/keep' && request.method === 'POST') {
+      const body = (await request.json().catch(() => ({}))) as {
+        hostKey?: unknown;
+        keep?: unknown;
+      };
+      if (!this.#keys) return new Response('No such room', { status: 404 });
+      if (body.hostKey !== this.#keys.hostKey)
+        return new Response('Wrong host key', { status: 401 });
+      this.#keep(body.keep === true);
+      return Response.json({ keep: body.keep === true });
+    }
     if (url.pathname === '/info') {
       return Response.json({
         exists: !!this.#keys,
@@ -95,7 +105,7 @@ export class Room extends DurableObject<Env> {
   }
 
   async #init(): Promise<Response> {
-    if (this.#keys && Date.now() - this.#keys.createdAt < IDLE_EXPIRY_MS) {
+    if (codeInUse(this.#keys, Date.now(), this.ctx.getWebSockets().length)) {
       return new Response('Room code in use', { status: 409 });
     }
     await this.ctx.storage.deleteAll();
@@ -109,6 +119,7 @@ export class Room extends DurableObject<Env> {
       deviceKey: secret(),
       sharedKey: secret(),
       createdAt: Date.now(),
+      lastSeenAt: Date.now(),
     };
     await this.ctx.storage.put('keys', this.#keys);
     await this.ctx.storage.setAlarm(Date.now() + IDLE_EXPIRY_MS);
@@ -162,6 +173,7 @@ export class Room extends DurableObject<Env> {
       ...(shared ? { shared } : {}),
     } satisfies Attachment);
     void this.ctx.storage.setAlarm(Date.now() + IDLE_EXPIRY_MS);
+    this.#seen();
 
     switch (role) {
       case 'host':
@@ -295,12 +307,41 @@ export class Room extends DurableObject<Env> {
   }
 
   override async alarm(): Promise<void> {
-    if (this.ctx.getWebSockets().length > 0) {
-      await this.ctx.storage.setAlarm(Date.now() + IDLE_EXPIRY_MS);
+    if (!this.#keys) return;
+    const connected = this.ctx.getWebSockets().length;
+    if (connected) this.#seen();
+    const { action, next } = expiryDecision(this.#keys, Date.now(), connected);
+    if (action === 'delete') {
+      await this.ctx.storage.deleteAll();
+      this.#keys = null;
       return;
     }
-    await this.ctx.storage.deleteAll();
-    this.#keys = null;
+    if (action === 'clear') {
+      // A kept room's code waits for the next visitor; the last show's votes and state don't.
+      await this.ctx.storage.delete(['agg', 'show', 'state', 'remoteView', 'access']);
+      this.#agg = new Aggregator();
+      this.#show = null;
+      this.#state = null;
+      this.#remoteView = null;
+      this.#access = null;
+    }
+    if (next) await this.ctx.storage.setAlarm(next);
+  }
+
+  /** Keep this code for an installation's printed QR codes, or let it go back to a day. */
+  #keep(keep: boolean): void {
+    if (!this.#keys) return;
+    this.#keys = { ...this.#keys, lastSeenAt: Date.now() };
+    if (keep) this.#keys.keep = true;
+    else delete this.#keys.keep;
+    void this.ctx.storage.put('keys', this.#keys);
+  }
+
+  /** Note that the room is in use now, for its expiry. */
+  #seen(): void {
+    if (!this.#keys) return;
+    this.#keys = { ...this.#keys, lastSeenAt: Date.now() };
+    void this.ctx.storage.put('keys', this.#keys);
   }
 
   #fromHost(ws: WebSocket, msg: HostToRelay): void {
@@ -331,6 +372,9 @@ export class Room extends DurableObject<Env> {
           }
         }
         this.#scheduleFlush();
+        return;
+      case 'keep':
+        this.#keep(msg.keep);
         return;
       case 'remoteView':
         this.#remoteView = msg.view;

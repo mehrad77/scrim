@@ -552,6 +552,28 @@ export type RelaxedSettings = z.infer<typeof RelaxedSettingsSchema>;
 export const EditorSettingsSchema = z.object({ mode: z.enum(['simple', 'full']).optional() });
 export type EditorSettings = z.infer<typeof EditorSettingsSchema>;
 
+/**
+ * Opening hours for an installation: a choice value the clock sets, so ordinary rules (when it
+ * changes) switch scenes. A period that ends before it starts runs past midnight.
+ */
+export const SchedulePeriodSchema = z.object({
+  /** Days it starts on: 0 Sunday to 6 Saturday. */
+  days: z.array(z.number().int().min(0).max(6)),
+  /** Minutes after midnight it starts and ends. */
+  from: z.number().int().min(0).max(1440),
+  to: z.number().int().min(0).max(1440),
+  value: z.string(),
+});
+export type SchedulePeriod = z.infer<typeof SchedulePeriodSchema>;
+
+export const ScheduleSchema = z.object({
+  varId: Ref,
+  periods: z.array(SchedulePeriodSchema),
+  /** The value outside every period. */
+  otherwise: z.string(),
+});
+export type Schedule = z.infer<typeof ScheduleSchema>;
+
 /** Safeguarding for shows with children or vulnerable people. */
 export const SafetySchema = z.object({
   /** Phones can't send words: text moments don't open, and the editor won't add one. */
@@ -588,6 +610,7 @@ export const ShowSchema = z.object({
   relaxed: RelaxedSettingsSchema.optional(),
   editor: EditorSettingsSchema.optional(),
   safety: SafetySchema.optional(),
+  schedule: ScheduleSchema.optional(),
   /** The fade new show/hide actions start with (the editor's default; 1 s ease in-out if unset). */
   defaultFade: z.object({ duration: z.number().nonnegative(), easing: EasingSchema }).optional(),
 });

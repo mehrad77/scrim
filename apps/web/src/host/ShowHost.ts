@@ -1,5 +1,6 @@
 import {
   Engine,
+  clockOf,
   mediaPosition,
   relaxedSettings,
   runOrder,
@@ -47,6 +48,9 @@ const LOST_AFTER_MS = 2000;
 const JOURNAL_MS = 250;
 const LOG_LIMIT = 500;
 const DOUBLE_GO_MS = 300;
+const KEPT_RETRY_MS = 60_000;
+/** How often the host looks at the clock for opening hours; the minute is what counts. */
+const CLOCK_CHECK_MS = 5_000;
 /** A looping cue that keeps leaving out the same intense layer logs it once in this long. */
 const LEFT_OUT_QUIET_MS = 10_000;
 
@@ -184,6 +188,10 @@ export class ShowHost {
   #lastCount = new Map<string, number>();
   /** When each intense layer was last noted as left out, so a looping cue logs it once. */
   #leftOut = new Map<string, number>();
+  #keptRetry: ReturnType<typeof setTimeout> | null = null;
+  #relayCalls = 0;
+  /** The minute last sent to the engine, for opening hours. */
+  #minute = -1;
 
   constructor(
     show: Show,
@@ -194,6 +202,8 @@ export class ShowHost {
       resumed?: boolean;
       /** Started by "Rehearse from here" at this cue. */
       from?: string;
+      /** An unattended installation (the /kiosk page). */
+      kiosk?: boolean;
     } = {},
   ) {
     this.engine = new Engine(show, epochNow, opts.state);
@@ -216,13 +226,18 @@ export class ShowHost {
     this.engine.subscribe((state, events) => this.#onEngine(state, events));
     this.#audio.onEnded = (layerId) => this.dispatch({ type: 'mediaEnded', layerId });
     this.#timers.push(setInterval(() => this.#beat(), BEAT_MS));
+    // Opening hours: the time of day, as each minute turns (and at once).
+    this.#timers.push(setInterval(() => this.#clock(), CLOCK_CHECK_MS));
+    this.#clock();
     this.#log(
       'info',
-      opts.from
-        ? `Rehearsing from “${opts.from}”`
-        : opts.resumed
-          ? `Resumed after reload at ${this.#resumedAt}`
-          : 'Operator view opened',
+      opts.kiosk
+        ? `Installation started${opts.resumed ? ` at ${this.#resumedAt}` : ''}`
+        : opts.from
+          ? `Rehearsing from “${opts.from}”`
+          : opts.resumed
+            ? `Resumed after reload at ${this.#resumedAt}`
+            : 'Operator view opened',
     );
     this.#build();
     this.#broadcastShow();
@@ -230,7 +245,12 @@ export class ShowHost {
     this.#audio.update(show, this.engine.state);
     this.#scheduleMediaEnds();
     void this.#acquireWakeLock();
-    const onVisible = () => document.visibilityState === 'visible' && void this.#acquireWakeLock();
+    const onVisible = () => {
+      if (document.visibilityState !== 'visible') return;
+      void this.#acquireWakeLock();
+      // Waking from sleep: the opening hours may have changed while timers were paused.
+      this.#clock();
+    };
     document.addEventListener('visibilitychange', onVisible);
     this.#cleanups.push(() => document.removeEventListener('visibilitychange', onVisible));
     this.#cleanups.push(
@@ -260,6 +280,8 @@ export class ShowHost {
     if (input.type === 'reset') this.#offScript = [];
     else if (off) this.#offScript = [...this.#offScript, { at: Date.now(), label: off }].slice(-50);
     this.engine.dispatch(input);
+    // Back at the top, the opening hours set the scene again.
+    if (input.type === 'reset') this.#clock(true);
   }
 
   /** Clear the deviations and put the next cue in tonight's running order on standby. */
@@ -509,7 +531,12 @@ export class ShowHost {
 
   // ---- relay ----
 
-  async connectRelay(opts: { fresh?: boolean } = {}): Promise<void> {
+  async connectRelay(opts: { fresh?: boolean; keep?: boolean } = {}): Promise<void> {
+    if (this.#disposed) return;
+    if (this.#keptRetry) clearTimeout(this.#keptRetry);
+    this.#keptRetry = null;
+    // Only the latest call may build a client: one awaiting storage when another starts gives up.
+    const call = ++this.#relayCalls;
     this.#relay?.close();
     this.#relay = null;
     const showId = this.engine.show.id;
@@ -517,8 +544,9 @@ export class ShowHost {
     void setSetting(`roomActive:${showId}`, true);
     let room = opts.fresh ? undefined : await storedRoom(showId);
     try {
-      room ??= await createRoom(showId);
+      room ??= await createRoom(showId, undefined, opts.keep);
     } catch (e) {
+      if (call !== this.#relayCalls || this.#disposed) return;
       this.#set(
         () =>
           (this.#relayInfo = { ...this.#relayInfo, status: 'failed', error: (e as Error).message }),
@@ -526,6 +554,7 @@ export class ShowHost {
       this.#log('warning', `Audience room unavailable: ${(e as Error).message}`);
       return;
     }
+    if (call !== this.#relayCalls || this.#disposed) return;
     const relay = new RelayClient<RelayToHost, HostToRelay>({
       relay: room.relay,
       code: room.code,
@@ -546,15 +575,28 @@ export class ShowHost {
         this.#lastRemoteView = '';
         this.#lastAccess = '';
         relay.send({ t: 'show', show: this.engine.show });
+        // Whether the room is kept is the stored room's to say: kept from the editor or a room
+        // pass, or let go.
+        relay.send({ t: 'keep', keep: !!room!.keep });
         this.#syncRelay(true);
         this.#log('info', `Audience room ${room!.code} connected`);
       }
       if (status === 'failed') {
         const code = relay.lastClose?.code;
         if (code === CLOSE.notFound || code === CLOSE.unauthorized) {
-          // The room expired; open a fresh one.
-          void this.connectRelay({ fresh: true });
-          return;
+          // A kept code is printed on QR codes in the room: never swap it silently. Say so and
+          // keep trying; staff can open a new code from the installation panel.
+          if (room!.keep) {
+            this.#log(
+              'warning',
+              `The kept room code ${room!.code} isn't answering; trying again every minute`,
+            );
+            this.#keptRetry = setTimeout(() => void this.connectRelay(), KEPT_RETRY_MS);
+          } else {
+            // The room expired; open a fresh one.
+            void this.connectRelay({ fresh: true });
+            return;
+          }
         }
         this.#log('warning', relay.lastClose?.reason || 'Audience room closed');
       }
@@ -579,6 +621,10 @@ export class ShowHost {
   }
 
   disconnectRelay(): void {
+    // A connect still waiting on storage must not bring the room back.
+    this.#relayCalls++;
+    if (this.#keptRetry) clearTimeout(this.#keptRetry);
+    this.#keptRetry = null;
     void setSetting(`roomActive:${this.engine.show.id}`, false);
     this.#relay?.close();
     this.#relay = null;
@@ -602,6 +648,7 @@ export class ShowHost {
     this.#mediaTimers.forEach(clearTimeout);
     for (const h of this.#holds.values()) if (h.timer) clearTimeout(h.timer);
     this.#cleanups.forEach((c) => c());
+    if (this.#keptRetry) clearTimeout(this.#keptRetry);
     this.#audio.dispose();
     this.#relay?.close();
     this.engine.dispose();
@@ -613,6 +660,19 @@ export class ShowHost {
   }
 
   // ---- internals ----
+
+  /** Tell the engine the time of day when the minute changes; it sets the opening hours. */
+  #clock(force = false): void {
+    if (!this.engine.show.schedule) return;
+    // The wall clock: opening hours follow the venue's time, not the show's.
+    const now = new Date();
+    const minute = Math.floor(now.getTime() / 60_000);
+    if (minute === this.#minute && !force) return;
+    // The first look at the clock announces the hours even if the value is already right.
+    const first = this.#minute === -1;
+    this.#minute = minute;
+    this.dispatch({ type: 'clock', ...clockOf(now), force: force || first });
+  }
 
   #onEngine(state: EngineState, events: EngineEvent[]): void {
     this.#logEvents(events);
@@ -640,6 +700,10 @@ export class ShowHost {
         return;
       case 'mediaEnded':
         this.dispatch({ type: 'mediaEnded', layerId: msg.layerId });
+        return;
+      case 'roomChanged':
+        // Only a show that has its room open follows; it picks the stored room up again.
+        if (this.#relay) void this.connectRelay();
         return;
       case 'showSaved':
         this.setShow(msg.show);
