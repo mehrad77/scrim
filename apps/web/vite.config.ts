@@ -33,7 +33,14 @@ export default defineConfig({
         icons: [{ src: '/favicon.svg', sizes: 'any', type: 'image/svg+xml', purpose: 'any' }],
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,svg,woff2}'],
+        // Template media downloads only when a template is chosen; its gallery thumbnails are
+        // cached so the gallery looks right offline.
+        globPatterns: [
+          '**/*.{js,css,html,svg,woff2}',
+          'templates/index.json',
+          'templates/*/thumb.webp',
+        ],
+        globIgnores: ['templates/fonts/**'],
         navigateFallback: '/index.html',
         navigateFallbackDenylist: [/^\/audience/],
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,

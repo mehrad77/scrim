@@ -7,3 +7,4 @@ playwright-report
 test-results
 *.log
 .DS_Store
+apps/web/scripts/template-media/.cache

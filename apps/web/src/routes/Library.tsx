@@ -14,17 +14,22 @@ import {
   Trash2,
   X,
 } from 'lucide-react';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { formatBytes, timeAgo } from '../lib/clock.js';
 import { openShortcutSheet, useCommands } from '../lib/commands.js';
 import { createDemoShow } from '../lib/demo.js';
 import {
   demoRecord,
+  forgetTemplate,
   learnSteps,
   rememberDemo,
   setDemoRecord,
+  templateRecord,
+  templateSteps,
   type DemoRecord,
+  type LearnStep,
+  type TemplateRecord,
 } from '../lib/learn.js';
 import { readLocal, writeLocal } from '../lib/local.js';
 import { blankShow, STARTERS } from '../lib/starters.js';
@@ -53,6 +58,8 @@ import { ShortcutSheet } from '../ui/ShortcutSheet.js';
 import { errorToast, toast } from '../ui/toast.js';
 import { FirstRun, WELCOMED_KEY } from './library/FirstRun.js';
 import { StartGallery } from './library/StartGallery.js';
+import { templateById } from '../templates/index.js';
+import type { TemplateSeed } from '../templates/types.js';
 
 /** A run newer than this is offered on the Library's front page. */
 const RESUME_WITHIN_MS = 12 * 60 * 60 * 1000;
@@ -425,6 +432,9 @@ function ShowCard({
 }) {
   const size = show.media.reduce((n, m) => n + m.size, 0);
   const run = () => window.open(`/show/${show.id}/run`, `scrim-run-${show.id}`);
+  const record = demo ? null : templateRecord(show.id);
+  const seed = record && templateById(record.template);
+  const made = record && seed ? { record, seed } : null;
   return (
     <li className="group flex flex-col rounded-control border border-line-subtle bg-panel p-4 hover:border-line-control">
       <Link
@@ -441,7 +451,11 @@ function ShowCard({
         </p>
         <p className="mt-0.5 text-caption text-fg-subtle">Edited {timeAgo(show.updatedAt)}</p>
       </Link>
-      {demo && <Learn show={show} demo={demo} onChanged={onChanged} />}
+      {demo ? (
+        <DemoLearn show={show} demo={demo} onChanged={onChanged} />
+      ) : (
+        made && <TemplateLearn show={show} seed={made.seed} record={made.record} />
+      )}
       <div className="mt-4 flex items-center gap-1">
         <Button size="sm" variant="go" icon={<Play size={14} />} onClick={run}>
           Run
@@ -499,6 +513,7 @@ function ShowCard({
                 )
               ) {
                 await deleteShow(show.id);
+                forgetTemplate(show.id);
                 onChanged();
               }
             }}
@@ -510,11 +525,17 @@ function ShowCard({
 }
 
 /** The demo's Learn checklist: it ticks itself as the person does each thing. */
-function Learn({ show, demo, onChanged }: { show: Show; demo: DemoRecord; onChanged: () => void }) {
-  const [runs, setRuns] = useState<RunRecord[]>([]);
-  useEffect(() => void listRuns(show.id).then(setRuns), [show.id, show.updatedAt]);
+function DemoLearn({
+  show,
+  demo,
+  onChanged,
+}: {
+  show: Show;
+  demo: DemoRecord;
+  onChanged: () => void;
+}) {
+  const runs = useRuns(show);
   const steps = learnSteps(show, runs, demo);
-  const done = steps.filter((s) => s.done).length;
 
   // The demo is disposable: put it back to new, with Undo.
   const restore = async () => {
@@ -533,6 +554,44 @@ function Learn({ show, demo, onChanged }: { show: Show; demo: DemoRecord; onChan
     });
   };
 
+  return (
+    <Checklist steps={steps}>
+      <li className="mt-2">
+        <Button
+          size="sm"
+          variant="ghost"
+          icon={<RotateCcw size={13} />}
+          onClick={() => void restore()}
+        >
+          Restore the demo
+        </Button>
+      </li>
+    </Checklist>
+  );
+}
+
+/** A show made from a template: its own checklist for making the template theirs. */
+function TemplateLearn({
+  show,
+  seed,
+  record,
+}: {
+  show: Show;
+  seed: TemplateSeed;
+  record: TemplateRecord;
+}) {
+  const runs = useRuns(show);
+  return <Checklist steps={templateSteps(seed.learn, { show, runs, baseline: record.baseline })} />;
+}
+
+function useRuns(show: Show): RunRecord[] {
+  const [runs, setRuns] = useState<RunRecord[]>([]);
+  useEffect(() => void listRuns(show.id).then(setRuns), [show.id, show.updatedAt]);
+  return runs;
+}
+
+function Checklist({ steps, children }: { steps: LearnStep[]; children?: ReactNode }) {
+  const done = steps.filter((s) => s.done).length;
   return (
     <details className="mt-3 rounded-control border border-line-subtle">
       <summary className="flex cursor-default list-none items-center gap-2 px-3 py-2 text-caption [&::-webkit-details-marker]:hidden">
@@ -564,16 +623,7 @@ function Learn({ show, demo, onChanged }: { show: Show; demo: DemoRecord; onChan
             </span>
           </li>
         ))}
-        <li className="mt-2">
-          <Button
-            size="sm"
-            variant="ghost"
-            icon={<RotateCcw size={13} />}
-            onClick={() => void restore()}
-          >
-            Restore the demo
-          </Button>
-        </li>
+        {children}
       </ul>
     </details>
   );

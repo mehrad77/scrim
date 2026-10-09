@@ -1,5 +1,6 @@
 import type { Media, Show } from '@scrim/format';
 import { useEffect, useState } from 'react';
+import { isVariableFont } from '../lib/fontInfo.js';
 import { mediaFile } from '../storage/media.js';
 
 /** The CSS family a show font is registered under: its file name without the extension. */
@@ -24,8 +25,9 @@ export function useShowFonts(show: Show): number {
       if (!p) {
         p = mediaFile(m.id).then(async (file) => {
           if (!file) return;
-          const face = new FontFace(fontFamilyOf(m), await file.arrayBuffer());
-          document.fonts.add(await face.load());
+          const data = await file.arrayBuffer();
+          for (const [family, descriptors] of faces(m, data))
+            document.fonts.add(await new FontFace(family, data, descriptors).load());
         });
         loaded.set(
           m.id,
@@ -41,4 +43,21 @@ export function useShowFonts(show: Show): number {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [key]);
   return ready;
+}
+
+/**
+ * The faces one font file provides. A variable font covers every weight, so it is registered for
+ * the whole range (otherwise bold would be faked). A file named "Family-Italic" (or "Family
+ * Italic") is also the italic of "Family", so italic text in that family uses the real letters.
+ */
+export function faces(
+  media: Pick<Media, 'name'>,
+  data: ArrayBuffer,
+): [string, FontFaceDescriptors][] {
+  const family = fontFamilyOf(media);
+  const weight: FontFaceDescriptors = isVariableFont(data) ? { weight: '1 1000' } : {};
+  const out: [string, FontFaceDescriptors][] = [[family, weight]];
+  const base = /^(.+?)[-_ ]Italic$/i.exec(family)?.[1];
+  if (base) out.push([base, { ...weight, style: 'italic' }]);
+  return out;
 }

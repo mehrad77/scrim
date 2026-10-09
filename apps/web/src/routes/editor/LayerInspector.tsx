@@ -19,6 +19,7 @@ import { Button } from '../../ui/Button.js';
 import { CommitInput, Field, NumberInput, Select, TextArea, Toggle } from '../../ui/Field.js';
 import { ColorInput } from '../../ui/ColorInput.js';
 import { toast } from '../../ui/toast.js';
+import { FillInput } from './FillInput.js';
 import { deleteLayers, duplicateSelection } from './layerCommands.js';
 import { keepDrawn, measureLayer } from './measure.js';
 import { Fold, useSimpleEditor, useUnfolded } from './simple.js';
@@ -432,7 +433,7 @@ function Inspector({ show, layer }: { show: Show; layer: Layer }) {
                 value={layer.fontWeight}
                 onChange={(e) => set({ fontWeight: Number(e.target.value) } as Partial<Layer>)}
               >
-                {[300, 400, 600, 800].map((w) => (
+                {[...new Set([300, 400, 500, 600, 700, 800, 900, layer.fontWeight])].map((w) => (
                   <option key={w} value={w}>
                     {w}
                   </option>
@@ -483,22 +484,16 @@ function Inspector({ show, layer }: { show: Show; layer: Layer }) {
               ) && <option value={layer.fontFamily}>{layer.fontFamily} (not in the show)</option>}
             </Select>
           </Field>
-          <Field label="Background">
-            <div className="flex gap-2">
-              <ColorInput
-                aria-label="Background colour"
-                className="flex-1"
-                value={layer.background.startsWith('#') ? layer.background : '#000000'}
-                onChange={(background) => set({ background } as Partial<Layer>, 'bg')}
-              />
-              <Button
-                size="sm"
-                onClick={() => set({ background: 'transparent' } as Partial<Layer>)}
-              >
-                None
-              </Button>
-            </div>
-          </Field>
+          <FillInput
+            label="Background"
+            value={layer.background}
+            onChange={(background, live) =>
+              set({ background } as Partial<Layer>, live && `bg:${live}`)
+            }
+          />
+          <Fold id="layer.type" label="Line spacing, letter spacing, capitals and shadow">
+            <TypeDetails layer={layer} set={set} />
+          </Fold>
         </Section>
       )}
 
@@ -623,19 +618,11 @@ function FrameSection({
   );
   return (
     <Section title="Frame">
-      <Field label="Fill">
-        <div className="flex gap-2">
-          <ColorInput
-            aria-label="Fill colour"
-            className="flex-1"
-            value={frame.fill.startsWith('#') ? frame.fill : '#000000'}
-            onChange={(fill) => set({ fill } as Partial<Layer>, 'fill')}
-          />
-          <Button size="sm" onClick={() => set({ fill: 'transparent' } as Partial<Layer>)}>
-            None
-          </Button>
-        </div>
-      </Field>
+      <FillInput
+        label="Fill"
+        value={frame.fill}
+        onChange={(fill, live) => set({ fill } as Partial<Layer>, live && `fill:${live}`)}
+      />
       <div className="grid grid-cols-2 items-end gap-2">
         <Field label="Corners">
           <NumberInput
@@ -807,6 +794,76 @@ function NothingSelected() {
           </div>
         </Field>
       </Section>
+    </div>
+  );
+}
+
+/** The finer points of type: what makes a title look set rather than typed. */
+function TypeDetails({
+  layer,
+  set,
+}: {
+  layer: Extract<Layer, { kind: 'text' | 'counter' | 'state' }>;
+  set: (patch: Partial<Layer>, coalesce?: string) => void;
+}) {
+  return (
+    <div className="flex flex-col gap-2">
+      <div className="grid grid-cols-2 gap-2">
+        <Field label="Line spacing">
+          <NumberInput
+            aria-label="Line spacing"
+            value={layer.lineHeight ?? 1.15}
+            min={0.6}
+            max={3}
+            step={0.05}
+            suffix="×"
+            onCommit={(lineHeight, live) =>
+              set({ lineHeight } as Partial<Layer>, live ? 'lineHeight' : undefined)
+            }
+          />
+        </Field>
+        <Field label="Letter spacing">
+          <NumberInput
+            aria-label="Letter spacing"
+            value={layer.letterSpacing ?? 0}
+            min={-0.2}
+            max={1}
+            step={0.01}
+            suffix="em"
+            onCommit={(letterSpacing, live) =>
+              set(
+                { letterSpacing: letterSpacing || undefined } as Partial<Layer>,
+                live ? 'letterSpacing' : undefined,
+              )
+            }
+          />
+        </Field>
+      </div>
+      <div className="flex flex-wrap gap-x-4 gap-y-2">
+        <Toggle
+          checked={!!layer.italic}
+          onChange={(italic) => set({ italic: italic || undefined } as Partial<Layer>)}
+          label="Italic"
+        />
+        <Toggle
+          checked={!!layer.uppercase}
+          onChange={(uppercase) => set({ uppercase: uppercase || undefined } as Partial<Layer>)}
+          label="Capitals"
+        />
+      </div>
+      <Field label="Shadow">
+        <Select
+          value={layer.shadow ?? 'none'}
+          onChange={(e) => {
+            const shadow = e.target.value as 'none' | 'soft' | 'strong';
+            set({ shadow: shadow === 'none' ? undefined : shadow } as Partial<Layer>);
+          }}
+        >
+          <option value="none">None</option>
+          <option value="soft">Soft: lifts text off a picture</option>
+          <option value="strong">Strong: for busy pictures</option>
+        </Select>
+      </Field>
     </div>
   );
 }

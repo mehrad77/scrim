@@ -1,0 +1,141 @@
+{
+  "about": "Every file under apps/web/public/templates/, where it comes from and why we may use it. Hand-curated: check the licence on the source page, then run `node scripts/template-media/build.mjs`, which downloads, encodes and writes public/templates/index.json. Allowed: public domain or CC0, and OFL for fonts (docs/templates.md).",
+  "assets": [
+    {
+      "path": "fonts/Fraunces.woff2",
+      "name": "Fraunces.woff2",
+      "fetch": {
+        "googleFonts": "Fraunces:opsz,wght@9..144,100..900",
+        "style": "normal"
+      },
+      "licenceText": "https://raw.githubusercontent.com/google/fonts/main/ofl/fraunces/OFL.txt",
+      "credit": {
+        "title": "Fraunces",
+        "creator": "Undercase Type (Phaedra Charles, Flavia Zimbardi)",
+        "year": "2020",
+        "source": "Google Fonts",
+        "url": "https://fonts.google.com/specimen/Fraunces",
+        "licence": "OFL-1.1"
+      }
+    },
+    {
+      "path": "fonts/Fraunces-Italic.woff2",
+      "name": "Fraunces Italic.woff2",
+      "fetch": {
+        "googleFonts": "Fraunces:ital,opsz,wght@1,9..144,100..900",
+        "style": "italic"
+      },
+      "credit": {
+        "title": "Fraunces Italic",
+        "creator": "Undercase Type (Phaedra Charles, Flavia Zimbardi)",
+        "year": "2020",
+        "source": "Google Fonts",
+        "url": "https://fonts.google.com/specimen/Fraunces",
+        "licence": "OFL-1.1"
+      },
+      "licenceText": "https://raw.githubusercontent.com/google/fonts/main/ofl/fraunces/OFL.txt"
+    },
+    {
+      "path": "fonts/AtkinsonHyperlegibleNext.woff2",
+      "name": "Atkinson Hyperlegible Next.woff2",
+      "fetch": {
+        "googleFonts": "Atkinson Hyperlegible Next:wght@200..800",
+        "style": "normal"
+      },
+      "licenceText": "https://raw.githubusercontent.com/google/fonts/main/ofl/atkinsonhyperlegiblenext/OFL.txt",
+      "credit": {
+        "title": "Atkinson Hyperlegible Next",
+        "creator": "Braille Institute of America, Applied Design Works",
+        "year": "2024",
+        "source": "Google Fonts",
+        "url": "https://fonts.google.com/specimen/Atkinson+Hyperlegible+Next",
+        "licence": "OFL-1.1"
+      }
+    },
+    {
+      "path": "fonts/Anton.woff2",
+      "name": "Anton.woff2",
+      "fetch": {
+        "googleFonts": "Anton",
+        "style": "normal"
+      },
+      "licenceText": "https://raw.githubusercontent.com/google/fonts/main/ofl/anton/OFL.txt",
+      "credit": {
+        "title": "Anton",
+        "creator": "Vernon Adams",
+        "year": "2011",
+        "source": "Google Fonts",
+        "url": "https://fonts.google.com/specimen/Anton",
+        "licence": "OFL-1.1"
+      }
+    },
+    {
+      "path": "fonts/Fredoka.woff2",
+      "name": "Fredoka.woff2",
+      "fetch": {
+        "googleFonts": "Fredoka:wght@300..700",
+        "style": "normal"
+      },
+      "licenceText": "https://raw.githubusercontent.com/google/fonts/main/ofl/fredoka/OFL.txt",
+      "credit": {
+        "title": "Fredoka",
+        "creator": "Milena Brandão, Hafontia",
+        "year": "2021",
+        "source": "Google Fonts",
+        "url": "https://fonts.google.com/specimen/Fredoka",
+        "licence": "OFL-1.1"
+      }
+    },
+    {
+      "path": "fonts/CormorantGaramond.woff2",
+      "name": "Cormorant Garamond.woff2",
+      "fetch": {
+        "googleFonts": "Cormorant Garamond:wght@300..700",
+        "style": "normal"
+      },
+      "licenceText": "https://raw.githubusercontent.com/google/fonts/main/ofl/cormorantgaramond/OFL.txt",
+      "credit": {
+        "title": "Cormorant Garamond",
+        "creator": "Christian Thalmann (Catharsis Fonts)",
+        "year": "2015",
+        "source": "Google Fonts",
+        "url": "https://fonts.google.com/specimen/Cormorant+Garamond",
+        "licence": "OFL-1.1"
+      }
+    },
+    {
+      "path": "fonts/CormorantGaramond-Italic.woff2",
+      "name": "Cormorant Garamond Italic.woff2",
+      "fetch": {
+        "googleFonts": "Cormorant Garamond:ital,wght@1,300..700",
+        "style": "italic"
+      },
+      "credit": {
+        "title": "Cormorant Garamond Italic",
+        "creator": "Christian Thalmann (Catharsis Fonts)",
+        "year": "2015",
+        "source": "Google Fonts",
+        "url": "https://fonts.google.com/specimen/Cormorant+Garamond",
+        "licence": "OFL-1.1"
+      },
+      "licenceText": "https://raw.githubusercontent.com/google/fonts/main/ofl/cormorantgaramond/OFL.txt"
+    },
+    {
+      "path": "fonts/IBMPlexSans.woff2",
+      "name": "IBM Plex Sans.woff2",
+      "fetch": {
+        "googleFonts": "IBM Plex Sans:wght@100..700",
+        "style": "normal"
+      },
+      "licenceText": "https://raw.githubusercontent.com/google/fonts/main/ofl/ibmplexsans/OFL.txt",
+      "credit": {
+        "title": "IBM Plex Sans",
+        "creator": "Mike Abbink, Bold Monday",
+        "year": "2017",
+        "source": "Google Fonts",
+        "url": "https://fonts.google.com/specimen/IBM+Plex+Sans",
+        "licence": "OFL-1.1"
+      }
+    }
+  ]
+}

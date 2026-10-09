@@ -4,7 +4,7 @@
 // Each surface is measured as everything it downloads before it can run, gzipped. Output windows
 // and the audience page run on show machines and phones, so they may grow at most 5% over their
 // baseline; the editor may add 1 MB (DESIGN_SYSTEM.md › Guards).
-import { readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
 import { gzipSync } from 'node:zlib';
 
 const dist = new URL('../dist/', import.meta.url);
@@ -47,6 +47,24 @@ for (const [name, size] of Object.entries(surfaces)) {
     `${ok ? 'ok  ' : 'OVER'} ${name.padEnd(9)} ${kb(size).padStart(9)} gzip  ${change.padStart(7)}  (limit ${kb(limit)})`,
   );
 }
+
+// Template media (docs/templates.md › Media) ships as static files and downloads only when a
+// template is chosen; each template's own limit is checked in src/templates/templates.test.ts.
+const TEMPLATE_MEDIA_LIMIT = 70 * 1024 * 1024;
+const templates = new URL('../public/templates/', import.meta.url);
+const sizeOf = (dir) =>
+  readdirSync(dir, { withFileTypes: true }).reduce(
+    (n, d) =>
+      n +
+      (d.isDirectory() ? sizeOf(new URL(`${d.name}/`, dir)) : statSync(new URL(d.name, dir)).size),
+    0,
+  );
+const media = existsSync(templates) ? sizeOf(templates) : 0;
+const mediaOk = media <= TEMPLATE_MEDIA_LIMIT;
+failed ||= !mediaOk;
+console.log(
+  `${mediaOk ? 'ok  ' : 'OVER'} templates ${`${(media / 1024 / 1024).toFixed(1)} MB`.padStart(9)} files          (limit ${TEMPLATE_MEDIA_LIMIT / 1024 / 1024} MB)`,
+);
 
 if (process.argv.includes('--update')) {
   for (const [name, size] of Object.entries(surfaces)) budget[name].baseline = size;

@@ -12,6 +12,7 @@ import {
   type RunOrder,
   type TallySource,
 } from '@scrim/engine';
+import { DEFAULT_MARK } from '../lib/learn.js';
 import { cueOrder, uid, type Command, type Show } from '@scrim/format';
 import {
   CLOSE,
@@ -1035,7 +1036,7 @@ export class ShowHost {
             : String(e.result ?? '');
         return this.#log(
           'moment',
-          `Closed "${name}": ${result}${e.usedDefault ? ' (default — no input)' : ''}${sourceBreakdown(this.engine.state.moments[e.momentId], def?.type)}`,
+          `Closed "${name}": ${result}${e.usedDefault ? ` ${DEFAULT_MARK}` : ''}${sourceBreakdown(this.engine.state.moments[e.momentId], def?.type)}`,
         );
       }
       case 'trigger':

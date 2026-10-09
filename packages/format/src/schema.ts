@@ -108,6 +108,15 @@ const TextStyle = {
    * autoHeight: w wide, as tall as the wrapped text. Absent: fixed.
    */
   sizing: z.enum(['fixed', 'autoWidth', 'autoHeight']).optional(),
+  /** Line spacing, as a multiple of the font size. Absent: 1.15. */
+  lineHeight: z.number().min(0.6).max(3).optional(),
+  /** Extra space between letters, in ems (0.1 is a tenth of the font size). Absent: none. */
+  letterSpacing: z.number().min(-0.2).max(1).optional(),
+  italic: z.boolean().optional(),
+  /** Shown in capitals; the text itself keeps its case. */
+  uppercase: z.boolean().optional(),
+  /** A shadow under the letters, so text stays readable over pictures. Absent: none. */
+  shadow: z.enum(['none', 'soft', 'strong']).optional(),
 };
 
 export const ImageLayerSchema = z.object({

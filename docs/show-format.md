@@ -104,6 +104,17 @@ A `state` layer shows a value as one line of text (`value`), a vote's or prop's 
 
 Text style: `fontSize, color, fontFamily, fontWeight, align, background, sizing?`. `sizing` is `fixed` (the default: a `w` × `h` box), `autoWidth` (one line per line of text, as wide as it needs) or `autoHeight` (`w` wide, as tall as the wrapped text).
 
+The finer type settings are all optional:
+
+- `lineHeight`: line spacing as a multiple of the font size (0.6–3; 1.15 when absent);
+- `letterSpacing`: extra space between letters, in ems (−0.2 to 1);
+- `italic` and `uppercase`: `uppercase` changes only how the text is shown, not the text itself;
+- `shadow`: `none`, `soft` or `strong`, so text stays readable over pictures.
+
+`background` (and a frame's `fill`) is any CSS background. The inspector edits one colour or a two-colour `linear-gradient`, each colour with its opacity, and keeps other forms as written.
+
+A show's own fonts are font media. A variable font covers every weight. A file named `Family-Italic` (or `Family Italic`) is also the italic of `Family`.
+
 **Frames** group layers that move, fade and clear as one. A frame's opacity multiplies into everything inside it, so showing or hiding the frame shows or hides its content, and the content keeps its own opacity for the next time.
 
 - `fill` is a colour behind the content, `radius` rounds its corners, and `clip` cuts the content off at its edge.
