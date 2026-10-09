@@ -119,6 +119,27 @@ export async function seedShow(page: Page): Promise<{ showId: string; outputId: 
   });
 }
 
+/**
+ * The brightest colour channel (0–255) in the top-left quarter of the page, where the seed
+ * show's layers sit, away from the output HUD. Decoded in the page, so no image library is needed.
+ */
+export async function brightest(page: Page): Promise<number> {
+  const size = page.viewportSize()!;
+  const png = await page.screenshot({
+    clip: { x: 0, y: 0, width: size.width / 2, height: size.height / 2 },
+  });
+  return page.evaluate(async (b64) => {
+    const bytes = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
+    const bmp = await createImageBitmap(new Blob([bytes], { type: 'image/png' }));
+    const ctx = new OffscreenCanvas(bmp.width, bmp.height).getContext('2d')!;
+    ctx.drawImage(bmp, 0, 0);
+    const { data } = ctx.getImageData(0, 0, bmp.width, bmp.height);
+    let max = 0;
+    for (let i = 0; i < data.length; i += 4) max = Math.max(max, data[i]!, data[i + 1]!, data[i + 2]!);
+    return max;
+  }, png.toString('base64'));
+}
+
 export function layerOpacity(page: Page, layerId: string): Promise<number> {
   return page
     .locator(`[data-layer="${layerId}"]`)

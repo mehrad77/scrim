@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { layerOpacity, seedShow } from './fixtures.js';
+import { brightest, layerOpacity, seedShow } from './fixtures.js';
 
 test('GO drives an output window; panic blacks out; a reload resumes', async ({
   page,
@@ -21,10 +21,14 @@ test('GO drives an output window; panic blacks out; a reload resumes', async ({
   await expect(page.getByText('Open', { exact: true })).toBeVisible();
 
   // Panic from the operator view; the output's blackout overlay goes opaque.
+  // The red picture and the white caption (z 1) are on screen first.
+  await expect.poll(() => brightest(output)).toBeGreaterThan(200);
   await page.keyboard.press('Escape');
   await expect(page.getByRole('button', { name: /Blacked out/ })).toBeVisible();
   const blackout = output.locator('.bg-black.pointer-events-none');
   await expect.poll(() => blackout.evaluate((el) => (el as HTMLElement).style.opacity)).toBe('1');
+  // Every pixel is black: the blackout covers layers above the bottom of the stack too.
+  await expect.poll(() => brightest(output)).toBeLessThanOrEqual(2);
 
   // Crash recovery: once the journal has the blackout, reload and land on the same cue.
   await expect

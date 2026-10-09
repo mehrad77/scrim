@@ -98,6 +98,7 @@ export function Stage(props: StageProps) {
     );
   }
 
+  const topZ = layers.reduce((z, l) => Math.max(z, l.z), 0);
   const scale = size.w && size.h ? Math.min(size.w / output.width, size.h / output.height) : 0;
   const offX = (size.w - output.width * scale) / 2;
   const offY = (size.h - output.height * scale) / 2;
@@ -154,7 +155,8 @@ export function Stage(props: StageProps) {
             <div
               ref={blackoutEl}
               className="pointer-events-none absolute inset-0 bg-black"
-              style={{ opacity: 0, visibility: 'hidden' }}
+              // Above every layer, since layers carry their own z-index: PANIC covers everything.
+              style={{ opacity: 0, visibility: 'hidden', zIndex: topZ + 1 }}
             />
           )}
           {props.overlay?.(scale)}
