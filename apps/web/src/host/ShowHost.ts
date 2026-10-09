@@ -240,6 +240,11 @@ export class ShowHost {
         return 'Moved standby';
       case 'action':
         return 'Ran an action by hand';
+      case 'clear':
+        return input.what === 'text' ? 'Cleared text from the stage' : 'Cleared pictures and video';
+      case 'mute':
+        // Unmuting goes back toward the script; only muting is a deviation.
+        return (input.on ?? this.engine.state.mute?.to !== 1) ? 'Muted sound' : null;
       case 'seek':
         return 'Scrubbed media';
       default:
@@ -265,6 +270,17 @@ export class ShowHost {
         return this.dispatch({ type: 'hold' });
       case 'back':
         return this.dispatch({ type: 'back' });
+      case 'clearText':
+      case 'clearMedia': {
+        // One key does both: clear, and if this kind was just cleared, bring it back.
+        const what = c.type === 'clearText' ? 'text' : 'media';
+        return this.dispatch({
+          type: this.engine.state.cleared?.[what] ? 'unclear' : 'clear',
+          what,
+        });
+      }
+      case 'mute':
+        return this.dispatch({ type: 'mute' });
       case 'standbyNext':
         return this.dispatch({ type: 'standbyNext' });
       case 'standbyPrev':
@@ -804,6 +820,22 @@ export class ShowHost {
         return this.#log('info', 'Reset to top');
       case 'back':
         return this.#log('cue', `Back to before “${e.name}”`);
+      case 'cleared': {
+        const kind = e.what === 'text' ? 'text' : 'pictures and video';
+        return this.#log(
+          'panic',
+          e.layers
+            ? `Cleared ${kind} (${e.layers} layer${e.layers > 1 ? 's' : ''})`
+            : `No ${kind} on stage to clear`,
+        );
+      }
+      case 'uncleared':
+        return this.#log(
+          'panic',
+          `Brought ${e.what === 'text' ? 'text' : 'pictures and video'} back`,
+        );
+      case 'mute':
+        return this.#log('panic', e.on ? 'Sound muted' : 'Sound back on');
       case 'warning':
         return this.#log('warning', e.message);
       default:

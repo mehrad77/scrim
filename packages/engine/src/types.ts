@@ -35,7 +35,16 @@ export type EngineInput =
   | { type: 'action'; action: Action }
   | { type: 'reset' }
   /** Return to the state before the operator's last GO, fading over that cue's fade. */
-  | { type: 'back' };
+  | { type: 'back' }
+  /** PANIC's secondary clears: fade out what's on stage of one kind, remembering it for undo. */
+  | { type: 'clear'; what: ClearKind; fade?: number }
+  /** Bring back what the last clear of that kind took off, until the next cue fires. */
+  | { type: 'unclear'; what: ClearKind; fade?: number }
+  /** Mute every sound, like a blackout for audio; toggles when `on` is left out. */
+  | { type: 'mute'; on?: boolean; fade?: number };
+
+/** Text: text, counter and live-value layers. Media: pictures and video. */
+export type ClearKind = 'text' | 'media';
 
 export type EngineEvent =
   | { type: 'cueFired'; cueId: string; name: string; source: InputSource }
@@ -49,6 +58,9 @@ export type EngineEvent =
   | { type: 'hold'; on: boolean }
   | { type: 'reset' }
   | { type: 'back'; cueId: string; name: string }
+  | { type: 'cleared'; what: ClearKind; layers: number }
+  | { type: 'uncleared'; what: ClearKind; layers: number }
+  | { type: 'mute'; on: boolean }
   /** A rule's trigger matched: whether it ran, and each check with the value it saw. */
   | { type: 'ruleEvaluated'; ruleId: string; ran: boolean; checks: ConditionCheck[] }
   | { type: 'warning'; message: string };

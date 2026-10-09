@@ -1,4 +1,4 @@
-import type { Action, Cue, Moment, Show, VarValue } from '@scrim/format';
+import type { Action, Cue, Layer, Moment, Show, VarValue } from '@scrim/format';
 import { cueOrder } from '@scrim/format';
 import { evaluateAll, explain } from './conditions.js';
 import {
@@ -7,10 +7,11 @@ import {
   initialState,
   mediaPosition,
   reconcile,
+  type ClearPoint,
   type EngineState,
 } from './state.js';
-import { retarget } from './tween.js';
-import type { EngineEvent, EngineInput, InputSource } from './types.js';
+import { retarget, still } from './tween.js';
+import type { ClearKind, EngineEvent, EngineInput, InputSource } from './types.js';
 
 const MAX_RULE_EVENTS = 200;
 
@@ -177,7 +178,76 @@ function applyInput(ctx: Ctx, input: EngineInput): void {
     case 'back':
       back(ctx);
       return;
+    case 'clear':
+      clear(ctx, input.what, input.fade ?? CLEAR_FADE);
+      return;
+    case 'unclear':
+      unclear(ctx, input.what, input.fade ?? CLEAR_FADE);
+      return;
+    case 'mute': {
+      const muted = (state.mute ?? still(0)).to === 1;
+      const on = input.on ?? !muted;
+      if (on === muted) return;
+      state.mute = retarget(state.mute ?? still(0), on ? 1 : 0, now, input.fade ?? 0.15, 'linear');
+      ctx.events.push({ type: 'mute', on });
+      return;
+    }
   }
+}
+
+/** Secondary clears are quick but not a cut, so nobody sees a jump. */
+const CLEAR_FADE = 0.5;
+
+const CLEARS: Record<ClearKind, ReadonlySet<Layer['kind']>> = {
+  text: new Set(['text', 'counter', 'state']),
+  media: new Set(['image', 'video']),
+};
+
+/**
+ * Fade out every layer of one kind that is on stage or on its way, pause its video, and cancel
+ * delayed actions that would bring any of them back. What it took is kept so `unclear` can
+ * restore it until the next cue fires.
+ */
+function clear(ctx: Ctx, what: ClearKind, fade: number): void {
+  const { state, now, show } = ctx;
+  const ids = new Set(show.layers.filter((l) => CLEARS[what].has(l.kind)).map((l) => l.id));
+  const point: ClearPoint = {};
+  for (const id of ids) {
+    const ls = state.layers[id];
+    if (!ls || ls.opacity.to <= 0) continue;
+    point[id] = { opacity: ls.opacity.to, playing: !!ls.media?.playing };
+    ls.opacity = retarget(ls.opacity, 0, now, fade, 'easeOut');
+    if (ls.media?.playing)
+      Object.assign(ls.media, {
+        playing: false,
+        position: mediaPosition(ls.media, now),
+        anchor: now,
+      });
+  }
+  state.timers = state.timers.filter((t) =>
+    t.kind === 'pause'
+      ? !ids.has(t.layerId)
+      : !('layerId' in t.action) || !ids.has(t.action.layerId),
+  );
+  const count = Object.keys(point).length;
+  if (count) state.cleared = { ...state.cleared, [what]: point };
+  ctx.events.push({ type: 'cleared', what, layers: count });
+}
+
+function unclear(ctx: Ctx, what: ClearKind, fade: number): void {
+  const { state, now } = ctx;
+  const point = state.cleared?.[what];
+  if (!point) return warn(ctx, `Nothing to bring back: no ${what} was cleared since the last cue`);
+  for (const [id, was] of Object.entries(point)) {
+    const ls = state.layers[id];
+    if (!ls) continue;
+    ls.opacity = retarget(ls.opacity, was.opacity, now, fade, 'easeIn');
+    if (was.playing && ls.media) Object.assign(ls.media, { playing: true, anchor: now });
+  }
+  const rest = { ...state.cleared };
+  delete rest[what];
+  state.cleared = rest;
+  ctx.events.push({ type: 'uncleared', what, layers: Object.keys(point).length });
 }
 
 /**
@@ -198,6 +268,8 @@ function back(ctx: Ctx): void {
       layer.opacity = retarget(current.opacity, layer.opacity.to, now, fade, 'easeInOut');
   }
   target.blackout = state.blackout;
+  target.mute = state.mute ?? still(0);
+  target.cleared = {};
   target.held = state.held;
   target.heldAt = state.heldAt;
   target.follow = null;
@@ -256,6 +328,8 @@ function fireCue(ctx: Ctx, cueId: string, source: InputSource): void {
   const next = ctx.order[i + 1] ?? null;
   state.lastFired = cue.id;
   state.standby = next?.id ?? null;
+  // A new cue is a new picture: what the clears took is no longer worth bringing back.
+  state.cleared = {};
   state.follow =
     cue.follow.auto && next ? { cueId: next.id, at: now + cue.follow.delay * 1000 } : null;
   state.fired += 1;

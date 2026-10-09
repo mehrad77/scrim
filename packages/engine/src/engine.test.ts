@@ -552,3 +552,89 @@ describe('action delays', () => {
     expect(panicked.timers).toHaveLength(0);
   });
 });
+
+describe('secondary clears', () => {
+  const play = (layerId: string): EngineInput => ({
+    type: 'action',
+    action: { type: 'play', layerId, restart: true },
+  });
+  const show = (layerId: string, delay?: number): EngineInput => ({
+    type: 'action',
+    action: { type: 'show', layerId, duration: 0, easing: 'linear', ...(delay ? { delay } : {}) },
+  });
+
+  it('clear text fades text and counters out, leaves video, and undo brings them back', () => {
+    const s0 = run(demo(), [
+      [0, { type: 'fireCue', cueId: 'c1' }],
+      [10, show('vid')],
+    ]);
+    const { state, events } = step(demo(), s0, { type: 'clear', what: 'text' }, 5000);
+    expect(state.layers.title!.opacity.to).toBe(0);
+    expect(state.layers.clock!.opacity.to).toBe(0);
+    expect(state.layers.vid!.opacity.to).toBe(1);
+    expect(events).toContainEqual({ type: 'cleared', what: 'text', layers: 2 });
+
+    const back = step(demo(), state, { type: 'unclear', what: 'text' }, 6000).state;
+    expect(back.layers.title!.opacity.to).toBe(0.8);
+    expect(back.layers.clock!.opacity.to).toBe(1);
+    expect(back.cleared).toEqual({});
+  });
+
+  it('clear media pauses video, cancels delayed shows, and undo resumes where it stopped', () => {
+    const s0 = run(demo(), [
+      [0, show('vid')],
+      [0, play('vid')],
+      [1000, show('title')],
+    ]);
+    const withDelay = step(demo(), s0, show('vid', 5), 2000).state;
+    const cleared = step(demo(), withDelay, { type: 'clear', what: 'media' }, 3000).state;
+    expect(cleared.layers.vid!.opacity.to).toBe(0);
+    expect(cleared.layers.vid!.media).toMatchObject({ playing: false, position: 3 });
+    expect(cleared.layers.title!.opacity.to).toBe(0.8);
+    expect(cleared.timers.some((t) => t.kind === 'action')).toBe(false);
+
+    const back = step(demo(), cleared, { type: 'unclear', what: 'media' }, 10_000).state;
+    expect(back.layers.vid!.opacity.to).toBe(1);
+    expect(back.layers.vid!.media).toMatchObject({ playing: true, position: 3, anchor: 10_000 });
+  });
+
+  it('a new cue forgets what was cleared; with nothing on stage a clear takes nothing', () => {
+    const s0 = run(demo(), [[0, { type: 'fireCue', cueId: 'c1' }]]);
+    const cleared = step(demo(), s0, { type: 'clear', what: 'text' }, 100).state;
+    const next = step(demo(), cleared, { type: 'fireCue', cueId: 'c2' }, 200).state;
+    expect(next.cleared).toEqual({});
+    const { events } = step(demo(), next, { type: 'unclear', what: 'text' }, 300);
+    expect(events.at(-1)).toMatchObject({ type: 'warning' });
+
+    const none = step(demo(), initialState(demo()), { type: 'clear', what: 'media' }, 0);
+    expect(none.events).toContainEqual({ type: 'cleared', what: 'media', layers: 0 });
+    expect(none.state.cleared).toEqual({});
+  });
+
+  it('mute toggles sound on its own, and PANIC, Release and Back leave it alone', () => {
+    const s = run(demo(), [
+      [0, { type: 'fireCue', cueId: 'c1' }],
+      [100, { type: 'mute' }],
+      [200, { type: 'panic' }],
+      [300, { type: 'release' }],
+      [400, { type: 'back' }],
+    ]);
+    expect(s.mute!.to).toBe(1);
+    expect(s.blackout.to).toBe(0);
+    const { state, events } = step(demo(), s, { type: 'mute' }, 500);
+    expect(state.mute!.to).toBe(0);
+    expect(events).toEqual([{ type: 'mute', on: false }]);
+    // Asking for the state it is already in does nothing.
+    expect(step(demo(), state, { type: 'mute', on: false }, 600).events).toEqual([]);
+  });
+
+  it('older journals without mute or clears still load', () => {
+    const show = demo();
+    const old = initialState(show) as EngineState & { mute?: unknown; cleared?: unknown };
+    delete old.mute;
+    delete old.cleared;
+    const engine = new Engine(show, () => 0, old);
+    expect(engine.state.mute!.to).toBe(0);
+    expect(engine.state.cleared).toEqual({});
+  });
+});

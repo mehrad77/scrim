@@ -38,11 +38,16 @@ export function VideoLayerView({
     const id = setInterval(() => {
       if (!ls) return;
       const now = clock();
-      const v = layer.volume * tweenValue(ls.opacity, now) * (1 - tweenValue(state.blackout, now));
+      const mute = state.mute ? tweenValue(state.mute, now) : 0;
+      const v =
+        layer.volume *
+        tweenValue(ls.opacity, now) *
+        (1 - tweenValue(state.blackout, now)) *
+        (1 - mute);
       el.volume = Math.min(1, Math.max(0, v));
     }, 40);
     return () => clearInterval(id);
-  }, [ls, state.blackout, layer.volume, layer.bus, clock, silent]);
+  }, [ls, state.blackout, state.mute, layer.volume, layer.bus, clock, silent]);
 
   if (!url) return <Missing />;
   return (

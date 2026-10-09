@@ -347,6 +347,10 @@ export const CommandSchema = z.discriminatedUnion('type', [
   z.object({ type: z.literal('standbyNext') }),
   z.object({ type: z.literal('standbyPrev') }),
   z.object({ type: z.literal('trigger'), triggerId: Ref }),
+  /** PANIC's secondary clears: fade text or media off stage (again: bring it back); mute sound. */
+  z.object({ type: z.literal('clearText') }),
+  z.object({ type: z.literal('clearMedia') }),
+  z.object({ type: z.literal('mute') }),
 ]);
 export type Command = z.infer<typeof CommandSchema>;
 

@@ -1,6 +1,18 @@
-import { cueOrder } from '@scrim/format';
-import { Check, Pause, Play, SkipBack, SkipForward, Square, Undo2 } from 'lucide-react';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { cueOrder, type Command } from '@scrim/format';
+import {
+  Check,
+  Film,
+  Pause,
+  Play,
+  SkipBack,
+  SkipForward,
+  Square,
+  Type,
+  Undo2,
+  Volume2,
+  VolumeX,
+} from 'lucide-react';
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { keyLabel, PANIC_KEY } from '../../host/inputs.js';
 import { epochNow } from '../../lib/clock.js';
 import { cn } from '../../lib/cn.js';
@@ -137,8 +149,9 @@ export function GoPanel() {
       </div>
 
       {/* PANIC lives in its own corner: unmistakable, but not where a slip from GO lands. */}
-      <div className="flex justify-end pt-2">
-        <Mappable command={{ type: 'panic' }} className="w-2/5 min-w-56">
+      <div className="@container flex items-center gap-3 pt-2">
+        <SecondaryClears />
+        <Mappable command={{ type: 'panic' }} className="ml-auto w-2/5 min-w-56">
           {blackedOut ? (
             <button
               type="button"
@@ -164,6 +177,67 @@ export function GoPanel() {
         </Mappable>
       </div>
     </section>
+  );
+}
+
+/**
+ * PANIC's secondary clears: take one kind of thing off stage without a full blackout. Text and
+ * Media fade out what's showing; pressed again, they bring it back, until the next cue fires.
+ * Sound mutes everything until it's pressed again. Labels hide when the panel is narrow, so
+ * PANIC never moves.
+ */
+function SecondaryClears() {
+  const [host, snap] = useHost();
+  const { state } = snap;
+  const clears: {
+    command: Command;
+    on: boolean;
+    icon: ReactNode;
+    label: string;
+    info: [off: string, on: string];
+  }[] = [
+    {
+      command: { type: 'clearText' },
+      on: !!state.cleared?.text,
+      icon: <Type size={16} />,
+      label: 'Text',
+      info: [
+        'Clear text: fade every caption, counter and value off stage',
+        'Text cleared: bring it back',
+      ],
+    },
+    {
+      command: { type: 'clearMedia' },
+      on: !!state.cleared?.media,
+      icon: <Film size={16} />,
+      label: 'Media',
+      info: ['Clear media: fade pictures and video off stage', 'Media cleared: bring it back'],
+    },
+    {
+      command: { type: 'mute' },
+      on: state.mute?.to === 1,
+      icon: state.mute?.to === 1 ? <VolumeX size={16} /> : <Volume2 size={16} />,
+      label: 'Sound',
+      info: ['Mute every sound', 'Sound muted: turn it back on'],
+    },
+  ];
+  return (
+    <div role="group" aria-label="Secondary clears" className="flex gap-1">
+      {clears.map((c) => (
+        <Mappable key={c.command.type} command={c.command}>
+          <Button
+            variant={c.on ? 'primary' : 'secondary'}
+            icon={c.icon}
+            aria-pressed={c.on}
+            aria-label={c.info[c.on ? 1 : 0]}
+            title={c.info[c.on ? 1 : 0]}
+            onClick={() => host.command(c.command, 'operator')}
+          >
+            <span className="hidden @lg:inline">{c.label}</span>
+          </Button>
+        </Mappable>
+      ))}
+    </div>
   );
 }
 

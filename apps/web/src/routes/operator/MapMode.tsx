@@ -240,6 +240,12 @@ export function commandName(host: ShowHost, c: Command): string {
       return 'Previous cue on standby';
     case 'trigger':
       return host.engine.show.triggers.find((t) => t.id === c.triggerId)?.name ?? 'a trigger';
+    case 'clearText':
+      return 'Clear text';
+    case 'clearMedia':
+      return 'Clear media';
+    case 'mute':
+      return 'Mute sound';
   }
 }
 

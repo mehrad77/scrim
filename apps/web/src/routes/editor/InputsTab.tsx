@@ -55,6 +55,11 @@ function CommandPicker({
       <option value="back">Back (undo the last GO)</option>
       <option value="standbyNext">Standby next cue</option>
       <option value="standbyPrev">Standby previous cue</option>
+      <optgroup label="Beside PANIC">
+        <option value="clearText">Clear text (again: bring it back)</option>
+        <option value="clearMedia">Clear pictures and video (again: bring them back)</option>
+        <option value="mute">Mute / unmute sound</option>
+      </optgroup>
       {show.triggers.length > 0 && (
         <optgroup label="Triggers">
           {show.triggers.map((t) => (

@@ -146,13 +146,14 @@ Easing is one of `linear`, `easeIn`, `easeOut` or `easeInOut`. Durations are in 
 Trigger { id, name, color }
 Rule    { id, name, enabled, when, if: Condition[], then: Action[] }
 when    = trigger(triggerId) | momentClosed(momentId) | varChanged(varId) | cueFired(cueId) | mediaEnded(layerId)
-Command = go | panic | hold | back | standbyNext | standbyPrev | trigger(triggerId)
+Command = go | panic | hold | back | standbyNext | standbyPrev | trigger(triggerId) | clearText | clearMedia | mute
 inputs  = { keys: {key, command}[], midi: {kind: note|cc, channel|null, number, command}[], gamepad: {button, command}[] }
 ```
 
 - **Every matching rule runs**, top to bottom in `rules` order. The editor groups rules by `when` and numbers them in that order.
 - **`keys[].key` is a physical key**, a `KeyboardEvent.code` such as `Space`, `KeyH` or `BracketLeft`, so a map survives non-US layouts. Shows saved before this store the key's value (`' '`, `h`); those still match the typed character.
 - **Esc is always PANIC.** The app adds it at runtime whatever `keys` says; a show can map extra panic keys.
+- **PANIC's secondary clears.** `clearText` fades text, counter and live-value layers off stage, and `clearMedia` fades pictures and video (pausing video). Pressed again before the next cue, each brings back what it took. `mute` silences all sound until pressed again; it is separate from the blackout. Older apps can't open shows that map them.
 - **`back`** returns to the state before the operator's last GO (one step). Older apps don't know this command, so they can't open shows that map a key to it.
 
 ## Versioning

@@ -196,5 +196,11 @@ export function describeCommand(c: Command, triggers: { id: string; name: string
       return 'Standby previous cue';
     case 'trigger':
       return `Trigger: ${triggers.find((t) => t.id === c.triggerId)?.name ?? 'missing'}`;
+    case 'clearText':
+      return 'Clear text (again: bring it back)';
+    case 'clearMedia':
+      return 'Clear pictures and video (again: bring them back)';
+    case 'mute':
+      return 'Mute / unmute sound';
   }
 }

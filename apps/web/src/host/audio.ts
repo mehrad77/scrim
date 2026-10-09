@@ -8,7 +8,7 @@ import { mediaUrl } from '../storage/media.js';
 /**
  * Plays audio layers in the operator's tab, so sound comes from the show
  * machine even when every output is on another device. Volume follows the
- * layer's opacity (fades) and the panic blackout.
+ * layer's opacity (fades), the panic blackout and the sound mute.
  */
 export class AudioEngine {
   #els = new Map<string, { el: HTMLAudioElement; layer: AudioLayer }>();
@@ -72,7 +72,9 @@ export class AudioEngine {
     const state = this.#state;
     if (!state || !this.#show) return;
     const now = epochNow();
-    const black = 1 - tweenValue(state.blackout, now);
+    // PANIC's blackout and the sound mute both silence everything.
+    const black =
+      (1 - tweenValue(state.blackout, now)) * (1 - (state.mute ? tweenValue(state.mute, now) : 0));
     for (const [id, { el, layer }] of this.#els) {
       const ls = state.layers[id];
       if (!ls) continue;

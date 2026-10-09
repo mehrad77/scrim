@@ -389,6 +389,9 @@ function runningKeys(show: Show): { group: string; rows: SheetRow[] } {
       { title: 'Back: undo the last GO', keys: keys('back') },
       { title: 'Next cue on standby', keys: keys('standbyNext') },
       { title: 'Previous cue on standby', keys: keys('standbyPrev') },
+      { title: 'Clear text (again: bring it back)', keys: keys('clearText') },
+      { title: 'Clear media (again: bring it back)', keys: keys('clearMedia') },
+      { title: 'Mute / unmute sound', keys: keys('mute') },
       ...show.triggers.map((t) => ({
         title: `Trigger: ${t.name}`,
         keys: show.inputs.keys
@@ -418,6 +421,29 @@ function OperatorCommands({ onCheck }: { onCheck: () => void }) {
         title: 'Back: undo the last GO',
         disabled: !snap.state.back,
         run: () => host.command({ type: 'back' }, 'operator'),
+      },
+      {
+        id: 'clear-text',
+        group: 'Run',
+        title: snap.state.cleared?.text ? 'Bring cleared text back' : 'Clear text from the stage',
+        aliases: ['caption', 'subtitle', 'panic'],
+        run: () => host.command({ type: 'clearText' }, 'operator'),
+      },
+      {
+        id: 'clear-media',
+        group: 'Run',
+        title: snap.state.cleared?.media
+          ? 'Bring cleared pictures and video back'
+          : 'Clear pictures and video from the stage',
+        aliases: ['image', 'video', 'panic'],
+        run: () => host.command({ type: 'clearMedia' }, 'operator'),
+      },
+      {
+        id: 'mute',
+        group: 'Run',
+        title: snap.state.mute?.to === 1 ? 'Unmute sound' : 'Mute sound',
+        aliases: ['audio', 'silence', 'panic'],
+        run: () => host.command({ type: 'mute' }, 'operator'),
       },
       {
         id: 'show-mode',
@@ -456,7 +482,7 @@ function OperatorCommands({ onCheck }: { onCheck: () => void }) {
         run: openPreferences,
       },
     ],
-    [host, snap.state.back, snap.show.id, map?.active],
+    [host, snap.state.back, snap.state.cleared, snap.state.mute, snap.show.id, map?.active],
   );
   return null;
 }

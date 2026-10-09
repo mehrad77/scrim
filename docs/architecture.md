@@ -44,7 +44,7 @@ step(show, state, input, now) → { state, events }
 ```
 
 - **Inputs** are what can happen: `go`, `fireCue`, `standby*`, `hold`, `panic`/`release`, `trigger`, `tick`, audience totals (`momentAgg`), moment control, `mediaEnded`, `setVar`, `seek`, a direct `action`, and `reset`.
-- **Events** describe what happened: `cueFired`, `momentOpened`/`momentClosed`, `varChanged`, `trigger`, `mediaEnded`, `panic`, `warning`, and so on.
+- **Events** describe what happened: `cueFired`, `momentOpened`/`momentClosed`, `varChanged`, `trigger`, `mediaEnded`, `panic`, `cleared`, `mute`, `warning`, and so on.
 - **Rules** run after every input on the events it produced. A rule's actions may cause further events, up to 200 per input; past that the engine stops and emits a warning, so a looping rule cannot hang the show.
 - **Rule traces.** Every rule whose `when` matched emits `ruleEvaluated` with whether it ran and each check with the value it saw. Traces never trigger rules and don't count toward the 200.
 

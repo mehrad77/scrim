@@ -1,6 +1,7 @@
 import type { Action, Show, VarValue } from '@scrim/format';
 import { cueOrder } from '@scrim/format';
 import { still, type Tween } from './tween.js';
+import type { ClearKind } from './types.js';
 
 /** Playback position of a media layer: `position` seconds at epoch ms `anchor`. */
 export interface MediaClock {
@@ -52,6 +53,9 @@ export type Timer =
   /** A delayed cue action; Hold postpones it, PANIC and Back cancel it. */
   | { at: number; kind: 'action'; action: Action };
 
+/** What a secondary clear took off stage: each layer's target opacity and whether it played. */
+export type ClearPoint = Record<string, { opacity: number; playing: boolean }>;
+
 /** The state just before the operator's last GO, so Back can return to it (one step). */
 export interface BackPoint {
   cueId: string;
@@ -72,6 +76,10 @@ export interface EngineState {
   fired: number;
   /** Optional so journals written before Back existed still load. */
   back?: BackPoint | null;
+  /** Sound muted (1) or not (0), on top of the blackout. Optional for older journals. */
+  mute?: Tween;
+  /** What the secondary clears took off, for undo until the next cue fires. */
+  cleared?: Partial<Record<ClearKind, ClearPoint>>;
 }
 
 export function emptyAggregate(): MomentAggregate {
@@ -115,6 +123,8 @@ export function initialState(show: Show): EngineState {
     timers: [],
     fired: 0,
     back: null,
+    mute: still(0),
+    cleared: {},
   };
 }
 
@@ -140,6 +150,10 @@ export function reconcile(show: Show, prev: EngineState): EngineState {
   if (state.standby && !cueIds.has(state.standby)) state.standby = cueOrder(show)[0]?.id ?? null;
   if (state.lastFired && !cueIds.has(state.lastFired)) state.lastFired = null;
   if (state.follow && !cueIds.has(state.follow.cueId)) state.follow = null;
+  state.mute ??= still(0);
+  state.cleared ??= {};
+  for (const point of Object.values(state.cleared))
+    for (const id of Object.keys(point ?? {})) if (!layerIds.has(id)) delete point![id];
   return state;
 }
 
