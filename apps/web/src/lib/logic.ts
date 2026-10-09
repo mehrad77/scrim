@@ -1,5 +1,7 @@
 import {
   cueOrder,
+  descendantsOf,
+  layerTree,
   type Action,
   type Condition,
   type Cue,
@@ -260,8 +262,9 @@ export interface LogicIssue {
   /** Stable across runs, for keys and dismissals. */
   id: string;
   /** The tab whose count it adds to. */
-  area: 'cues' | 'interaction';
+  area: 'stage' | 'cues' | 'interaction';
   text: string;
+  layerId?: string;
   ruleId?: string;
   momentId?: string;
   sceneId?: string;
@@ -363,6 +366,54 @@ function loopingRules(show: Show): Set<string> {
  * Problems a creative author should know about before an audience finds them: unhandled options,
  * unreachable scenes, broken references, values written but never read, and possible loops.
  */
+/** Frame links the renderer had to repair, and frames whose content can never be seen. */
+function frameIssues(show: Show): LogicIssue[] {
+  const issues: LogicIssue[] = [];
+  const tree = layerTree(show.layers);
+  for (const l of show.layers) {
+    if (!l.parentId) continue;
+    const p = show.layers.find((x) => x.id === l.parentId);
+    const problem = !p
+      ? 'its frame was deleted'
+      : p.kind !== 'frame'
+        ? `“${p.name}” is not a frame`
+        : l.kind === 'audio'
+          ? 'sound can’t sit in a frame'
+          : p.outputId !== l.outputId
+            ? `its frame “${p.name}” is on another output`
+            : tree.parent(l.id)?.id !== p.id
+              ? `it and “${p.name}” sit inside each other`
+              : null;
+    if (problem)
+      issues.push({
+        id: `frame:${l.id}`,
+        area: 'stage',
+        layerId: l.id,
+        text: `“${l.name}” is drawn straight on the output: ${problem}`,
+      });
+  }
+  const actions = [...show.cues.flatMap((c) => c.actions), ...show.rules.flatMap((r) => r.then)];
+  const shown = new Set(
+    flatActions(actions).flatMap((a) =>
+      a.type === 'show' || (a.type === 'fade' && a.opacity > 0) ? [a.layerId] : [],
+    ),
+  );
+  for (const f of show.layers)
+    if (
+      f.kind === 'frame' &&
+      !f.visible &&
+      !shown.has(f.id) &&
+      descendantsOf(tree, f.id).length > 0
+    )
+      issues.push({
+        id: `hidden-frame:${f.id}`,
+        area: 'cues',
+        layerId: f.id,
+        text: `Frame “${f.name}” never appears, so nothing inside it can be seen: show it in a cue`,
+      });
+  return issues;
+}
+
 export function checkLogic(show: Show): LogicIssue[] {
   const issues: LogicIssue[] = [];
   const use = usage(show);
@@ -450,6 +501,8 @@ export function checkLogic(show: Show): LogicIssue[] {
         text: `Rule “${r.name}” may loop: it changes a value that sets it off again`,
       });
   }
+
+  issues.push(...frameIssues(show));
 
   const tallies = new Set(show.moments.flatMap((m) => (m.tallyVarId ? [m.tallyVarId] : [])));
   for (const v of show.vars)

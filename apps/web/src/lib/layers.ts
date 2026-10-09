@@ -82,7 +82,7 @@ export function layerForMedia(show: Show, output: Output | undefined, media: Med
   };
 }
 
-export type SyntheticKind = Exclude<LayerKind, 'image' | 'video' | 'audio'> | 'countdown';
+export type SyntheticKind = Exclude<LayerKind, 'image' | 'video' | 'audio' | 'frame'> | 'countdown';
 
 export function syntheticLayer(show: Show, output: Output, kind: SyntheticKind): Layer {
   const z = topZ(show, output.id);

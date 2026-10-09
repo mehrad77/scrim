@@ -53,8 +53,11 @@ export type Timer =
   /** A delayed cue action; Hold postpones it, PANIC and Back cancel it. */
   | { at: number; kind: 'action'; action: Action };
 
-/** What a secondary clear took off stage: each layer's target opacity and whether it played. */
-export type ClearPoint = Record<string, { opacity: number; playing: boolean }>;
+/**
+ * What a secondary clear took off stage: each layer's target opacity and whether it played.
+ * `inner` marks video that was only paused because the frame around it was cleared.
+ */
+export type ClearPoint = Record<string, { opacity: number; playing: boolean; inner?: boolean }>;
 
 /** The state just before the operator's last GO, so Back can return to it (one step). */
 export interface BackPoint {

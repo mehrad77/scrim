@@ -1,5 +1,5 @@
 import type { Action, Cue, Layer, Moment, Show, VarValue } from '@scrim/format';
-import { cueOrder } from '@scrim/format';
+import { ancestorsOf, cueOrder, descendantsOf, isFrame, layerTree } from '@scrim/format';
 import { evaluateAll, explain } from './conditions.js';
 import {
   counterValue,
@@ -9,6 +9,7 @@ import {
   reconcile,
   type ClearPoint,
   type EngineState,
+  type LayerState,
 } from './state.js';
 import { retarget, still } from './tween.js';
 import type { ClearKind, EngineEvent, EngineInput, InputSource } from './types.js';
@@ -205,33 +206,71 @@ const CLEARS: Record<ClearKind, ReadonlySet<Layer['kind']>> = {
 
 /**
  * Fade out every layer of one kind that is on stage or on its way, pause its video, and cancel
- * delayed actions that would bring any of them back. What it took is kept so `unclear` can
- * restore it until the next cue fires.
+ * delayed actions that would bring any of them back. A frame holding nothing but that kind goes
+ * as one, so its fill leaves with its content. What it took is kept so `unclear` can restore it
+ * until the next cue fires.
  */
 function clear(ctx: Ctx, what: ClearKind, fade: number): void {
   const { state, now, show } = ctx;
-  const ids = new Set(show.layers.filter((l) => CLEARS[what].has(l.kind)).map((l) => l.id));
+  const tree = layerTree(show.layers);
+  const matches = new Set(show.layers.filter((l) => CLEARS[what].has(l.kind)).map((l) => l.id));
+  const whole = (f: Layer) => {
+    const leaves = descendantsOf(tree, f.id).filter((l) => !isFrame(l));
+    return leaves.length > 0 && leaves.every((l) => matches.has(l.id));
+  };
+  const targets: Layer[] = [];
+  const walk = (l: Layer): void => {
+    if (!isFrame(l)) {
+      if (matches.has(l.id)) targets.push(l);
+    } else if (whole(l)) targets.push(l);
+    else tree.children(l.id).forEach(walk);
+  };
+  tree.roots.forEach(walk);
+
+  // On stage or on its way: it and every frame around it are heading above zero.
+  const onStage = (id: string) =>
+    [id, ...ancestorsOf(tree, id).map((f) => f.id)].every(
+      (i) => (state.layers[i]?.opacity.to ?? 0) > 0,
+    );
+  const freeze = (ls: LayerState) =>
+    ls.media?.playing &&
+    Object.assign(ls.media, {
+      playing: false,
+      position: mediaPosition(ls.media, now),
+      anchor: now,
+    });
+
   const point: ClearPoint = {};
-  for (const id of ids) {
-    const ls = state.layers[id];
-    if (!ls || ls.opacity.to <= 0) continue;
-    point[id] = { opacity: ls.opacity.to, playing: !!ls.media?.playing };
+  const gone = new Set(matches);
+  for (const t of targets) {
+    const inside = descendantsOf(tree, t.id);
+    for (const d of inside) gone.add(d.id);
+    gone.add(t.id);
+    const ls = state.layers[t.id];
+    if (!ls || !onStage(t.id)) continue;
+    point[t.id] = { opacity: ls.opacity.to, playing: !!ls.media?.playing };
     ls.opacity = retarget(ls.opacity, 0, now, fade, 'easeOut');
-    if (ls.media?.playing)
-      Object.assign(ls.media, {
-        playing: false,
-        position: mediaPosition(ls.media, now),
-        anchor: now,
-      });
+    freeze(ls);
+    for (const d of inside) {
+      const ds = state.layers[d.id];
+      if (!ds?.media?.playing) continue;
+      point[d.id] = { opacity: ds.opacity.to, playing: true, inner: true };
+      freeze(ds);
+    }
   }
   state.timers = state.timers.filter((t) =>
     t.kind === 'pause'
-      ? !ids.has(t.layerId)
-      : !('layerId' in t.action) || !ids.has(t.action.layerId),
+      ? !gone.has(t.layerId)
+      : !('layerId' in t.action) || !gone.has(t.action.layerId),
   );
-  const count = Object.keys(point).length;
-  if (count) state.cleared = { ...state.cleared, [what]: point };
+  const count = counted(point);
+  if (Object.keys(point).length) state.cleared = { ...state.cleared, [what]: point };
   ctx.events.push({ type: 'cleared', what, layers: count });
+}
+
+/** Layers a clear took, leaving out video it only paused inside a cleared frame. */
+function counted(point: ClearPoint): number {
+  return Object.values(point).filter((p) => !p.inner).length;
 }
 
 function unclear(ctx: Ctx, what: ClearKind, fade: number): void {
@@ -247,7 +286,7 @@ function unclear(ctx: Ctx, what: ClearKind, fade: number): void {
   const rest = { ...state.cleared };
   delete rest[what];
   state.cleared = rest;
-  ctx.events.push({ type: 'uncleared', what, layers: Object.keys(point).length });
+  ctx.events.push({ type: 'uncleared', what, layers: counted(point) });
 }
 
 /**
@@ -430,8 +469,11 @@ function applyAction(ctx: Ctx, action: Action): void {
       closeMoment(ctx, action.momentId);
       return;
     case 'stopAll': {
+      // Frames fade their content with them and keep it for the next time they are shown, so
+      // only what sits on the output fades. Every video still stops when the fade ends.
+      const tree = layerTree(show.layers);
       for (const [id, ls] of Object.entries(state.layers)) {
-        ls.opacity = retarget(ls.opacity, 0, now, action.duration, 'linear');
+        if (!tree.parent(id)) ls.opacity = retarget(ls.opacity, 0, now, action.duration, 'linear');
         if (ls.media?.playing) {
           state.timers = state.timers.filter((t) => t.kind !== 'pause' || t.layerId !== id);
           state.timers.push({ at: now + action.duration * 1000, kind: 'pause', layerId: id });

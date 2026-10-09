@@ -59,6 +59,8 @@ The engine is therefore deterministic and cheap to unit-test, and every window t
 
 When a show is edited mid-run, `reconcile(show, state)` adapts the running state: it drops layers, values and moments that were deleted, and adds new ones in their initial state.
 
+Frames are ordinary layers to the engine: each has its own opacity tween, and nothing in the state is nested. `layerTree` (in `@scrim/format`) derives the nesting and repairs broken links, and `effectiveOpacity` multiplies a layer's opacity by its frames'. Fade all fades only top-level layers, so frames keep their content; the secondary clears take a frame as one when everything in it matches.
+
 ## The operator tab (`ShowHost`)
 
 `apps/web/src/host/ShowHost.ts` owns one `Engine` and wires it to the world:

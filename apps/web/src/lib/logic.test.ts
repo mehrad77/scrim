@@ -1,4 +1,4 @@
-import { createCue, createShow, type Show } from '@scrim/format';
+import { createCue, createShow, type Layer, type Show } from '@scrim/format';
 import { describe, expect, it } from 'vitest';
 import {
   checkLogic,
@@ -8,6 +8,7 @@ import {
   unhandledOptions,
   usage,
 } from './logic.js';
+import { removeLayer } from './refs.js';
 import {
   checkPath,
   momentsBefore,
@@ -213,5 +214,60 @@ describe('simulate', () => {
     expect(checkPath(show, path)).toBe('rerouted');
     show.cues = show.cues.filter((c) => c.id !== 'c6');
     expect(checkPath(show, path)).toBe('broken');
+  });
+});
+
+describe('frames', () => {
+  /** doors() with the sign inside a hidden frame that a cue shows. */
+  function framed(): Show {
+    const show = doors();
+    const sign = show.layers[0]!;
+    const frame = {
+      ...sign,
+      id: 'box',
+      name: 'Box',
+      kind: 'frame',
+      fill: '#000',
+      radius: 0,
+      clip: false,
+      layout: {
+        mode: 'free',
+        gap: 0,
+        padX: 0,
+        padY: 0,
+        align: 'center',
+        justify: 'start',
+        hugW: false,
+        hugH: false,
+      },
+    } as unknown as Layer;
+    show.layers = [frame, { ...sign, parentId: 'box' }];
+    show.cues[0]!.actions.push({ type: 'show', layerId: 'box', duration: 0, easing: 'linear' });
+    return show;
+  }
+
+  it('a frame a cue shows is fine', () => {
+    expect(checkLogic(framed())).toEqual([]);
+  });
+
+  it('flags broken frame links and a frame nothing shows', () => {
+    const show = framed();
+    show.cues[0]!.actions.pop();
+    show.layers.push({ ...show.layers[1]!, id: 'lost', name: 'Lost', parentId: 'gone' });
+    show.layers.push({ ...show.layers[1]!, id: 'inSign', name: 'In sign', parentId: 'sign' });
+    const issues = checkLogic(show);
+    expect(issues.map((i) => i.id)).toEqual(
+      expect.arrayContaining(['frame:lost', 'frame:inSign', 'hidden-frame:box']),
+    );
+    expect(issues.find((i) => i.id === 'frame:lost')).toMatchObject({ area: 'stage' });
+  });
+
+  it('deleting a frame deletes what is inside it and every action that used them', () => {
+    const show = framed();
+    show.cues[1]!.actions.push({ type: 'hide', layerId: 'sign', duration: 0, easing: 'linear' });
+    removeLayer(show, 'box');
+    expect(show.layers).toEqual([]);
+    const used = show.cues.flatMap((c) => c.actions).filter((a) => 'layerId' in a);
+    expect(used).toEqual([]);
   });
 });

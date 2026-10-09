@@ -4,3 +4,4 @@ export * from './factory.js';
 export * from './order.js';
 export * from './migrate.js';
 export * from './bundle.js';
+export * from './tree.js';

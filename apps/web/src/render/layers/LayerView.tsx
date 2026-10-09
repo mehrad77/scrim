@@ -31,6 +31,8 @@ export function LayerView(props: LayerViewProps) {
     case 'state':
       return <StateLayerView {...props} layer={layer} />;
     case 'audio':
+    case 'frame':
+      // A frame's fill and layout belong to its box; its children render inside it.
       return null;
   }
 }

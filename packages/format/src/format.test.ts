@@ -2,11 +2,16 @@ import { describe, expect, it } from 'vitest';
 import {
   createCue,
   createShow,
+  ancestorsOf,
   cueOrder,
+  descendantsOf,
+  hugAxes,
+  layerTree,
   parseShow,
   readBundle,
   ShowFormatError,
   writeBundle,
+  type Layer,
   type Show,
 } from './index.js';
 
@@ -180,5 +185,119 @@ describe('unfinished references', () => {
     });
     show.inputs.keys.push({ key: 'x', command: { type: 'trigger', triggerId: '' } });
     expect(parseShow(JSON.parse(JSON.stringify(show)))).toEqual(show);
+  });
+});
+
+describe('frames', () => {
+  const base = { x: 0, y: 0, w: 100, h: 50, z: 0, opacity: 1, visible: true };
+  const frame = (id: string, extra: Record<string, unknown> = {}) =>
+    ({ id, name: id, kind: 'frame', outputId: 'out', ...base, ...extra }) as unknown as Layer;
+  const text = (id: string, extra: Record<string, unknown> = {}) =>
+    ({
+      id,
+      name: id,
+      kind: 'text',
+      outputId: 'out',
+      text: id,
+      ...base,
+      ...extra,
+    }) as unknown as Layer;
+
+  it('parse with their defaults, and older shows still parse', () => {
+    const show = createShow('Frames');
+    const out = show.outputs[0]!.id;
+    const raw = JSON.parse(JSON.stringify(show));
+    raw.layers = [
+      {
+        id: 'f',
+        name: 'Lower third',
+        kind: 'frame',
+        outputId: out,
+        ...base,
+        pin: { x: 'right', y: 'bottom' },
+      },
+      {
+        id: 't',
+        name: 'Name',
+        kind: 'text',
+        outputId: out,
+        text: 'Ada',
+        ...base,
+        parentId: 'f',
+        sizing: 'autoWidth',
+      },
+    ];
+    const parsed = parseShow(raw);
+    const [f, t] = parsed.layers;
+    expect(f).toMatchObject({
+      fill: 'transparent',
+      radius: 0,
+      clip: false,
+      layout: {
+        mode: 'free',
+        gap: 0,
+        padX: 0,
+        padY: 0,
+        align: 'center',
+        justify: 'start',
+        hugW: false,
+        hugH: false,
+      },
+      pin: { x: 'right', y: 'bottom' },
+    });
+    expect(t).toMatchObject({ parentId: 'f', sizing: 'autoWidth' });
+    // A show from before frames has no parentId, pin or sizing at all.
+    expect(parseShow(JSON.parse(JSON.stringify(show))).layers).toEqual([]);
+  });
+
+  it('reject a pin outside the nine anchors', () => {
+    const show = JSON.parse(JSON.stringify(createShow('Bad pin')));
+    show.layers = [{ ...frame('f'), outputId: show.outputs[0].id, pin: { x: 'middle', y: 'top' } }];
+    expect(() => parseShow(show)).toThrow(ShowFormatError);
+  });
+
+  it('build a tree in list order, front first', () => {
+    const tree = layerTree([
+      frame('f', { z: 1 }),
+      text('a', { parentId: 'f', z: 0 }),
+      text('b', { parentId: 'f', z: 2 }),
+      frame('g', { parentId: 'f', z: 1 }),
+      text('c', { parentId: 'g' }),
+      text('top', { z: 3 }),
+    ]);
+    expect(tree.roots.map((l) => l.id)).toEqual(['top', 'f']);
+    expect(tree.children('f').map((l) => l.id)).toEqual(['b', 'g', 'a']);
+    expect(ancestorsOf(tree, 'c').map((l) => l.id)).toEqual(['g', 'f']);
+    expect(descendantsOf(tree, 'f').map((l) => l.id)).toEqual(['b', 'g', 'c', 'a']);
+  });
+
+  it('draw broken links on the output instead of throwing', () => {
+    const tree = layerTree([
+      text('orphan', { parentId: 'gone' }),
+      text('host'),
+      text('notAFrame', { parentId: 'host' }),
+      frame('other', { outputId: 'out2' }),
+      text('crossOutput', { parentId: 'other' }),
+      { ...frame('f'), kind: 'audio', outputId: null } as unknown as Layer,
+      frame('a', { parentId: 'b' }),
+      frame('b', { parentId: 'a' }),
+    ]);
+    for (const id of ['orphan', 'notAFrame', 'crossOutput', 'f'])
+      expect(tree.parent(id), id).toBeUndefined();
+    // A loop is cut once: one of the two frames ends up on the output.
+    expect([tree.parent('a')?.id, tree.parent('b')?.id].filter(Boolean)).toHaveLength(1);
+    expect(tree.roots.length + tree.children('a').length + tree.children('b').length).toBe(8);
+  });
+
+  it('hug only on row and column frames and auto-sized text', () => {
+    const layout = { mode: 'free', hugW: true, hugH: true };
+    expect(hugAxes(frame('f', { layout }))).toEqual({ w: false, h: false });
+    expect(hugAxes(frame('f', { layout: { ...layout, mode: 'row' } }))).toEqual({
+      w: true,
+      h: true,
+    });
+    expect(hugAxes(text('t', { sizing: 'autoWidth' }))).toEqual({ w: true, h: true });
+    expect(hugAxes(text('t', { sizing: 'autoHeight' }))).toEqual({ w: false, h: true });
+    expect(hugAxes(text('t'))).toEqual({ w: false, h: false });
   });
 });

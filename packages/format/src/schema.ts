@@ -55,6 +55,16 @@ export type Crop = z.infer<typeof CropSchema>;
 export const FitSchema = z.enum(['contain', 'cover', 'fill']);
 export const AlignSchema = z.enum(['left', 'center', 'right']);
 
+/**
+ * The output edges a top-level layer keeps its distance to when the output is resized or the
+ * layer moves to another output. A layer that hugs its content grows away from its pin.
+ */
+export const PinSchema = z.object({
+  x: z.enum(['left', 'center', 'right']),
+  y: z.enum(['top', 'center', 'bottom']),
+});
+export type Pin = z.infer<typeof PinSchema>;
+
 const LayerBase = {
   id: Id,
   name: z.string(),
@@ -70,6 +80,13 @@ const LayerBase = {
   /** Whether the layer is visible when the show starts. */
   visible: z.boolean().default(false),
   crop: CropSchema.default({ top: 0, right: 0, bottom: 0, left: 0 }),
+  /**
+   * The frame this layer sits in, on the same output. Absent: it sits on the output. Inside a
+   * frame, x and y are relative to the frame, and z orders it among the frame's children.
+   */
+  parentId: Id.optional(),
+  /** Absent: left and top. Ignored while the layer is inside a frame. */
+  pin: PinSchema.optional(),
 };
 
 const TextStyle = {
@@ -79,6 +96,11 @@ const TextStyle = {
   fontWeight: z.number().int().default(600),
   align: AlignSchema.default('center'),
   background: z.string().default('transparent'),
+  /**
+   * fixed: the box is w × h. autoWidth: one line per line of text, as wide as it needs.
+   * autoHeight: w wide, as tall as the wrapped text. Absent: fixed.
+   */
+  sizing: z.enum(['fixed', 'autoWidth', 'autoHeight']).optional(),
 };
 
 export const ImageLayerSchema = z.object({
@@ -133,6 +155,33 @@ export const StateLayerSchema = z.object({
   ...TextStyle,
 });
 
+export const FrameLayoutSchema = z.object({
+  /** free: children sit where they are put. row, column: children line up in list order. */
+  mode: z.enum(['free', 'row', 'column']).default('free'),
+  gap: z.number().min(0).default(0),
+  padX: z.number().min(0).default(0),
+  padY: z.number().min(0).default(0),
+  /** Across the line. */
+  align: z.enum(['start', 'center', 'end']).default('center'),
+  /** Along the line. */
+  justify: z.enum(['start', 'center', 'end', 'between']).default('start'),
+  /** Row and column frames only: grow and shrink with their content on that axis. */
+  hugW: z.boolean().default(false),
+  hugH: z.boolean().default(false),
+});
+export type FrameLayout = z.infer<typeof FrameLayoutSchema>;
+
+/** A group of layers that moves, fades and clears as one, with an optional fill. */
+export const FrameLayerSchema = z.object({
+  ...LayerBase,
+  kind: z.literal('frame'),
+  fill: z.string().default('transparent'),
+  radius: z.number().min(0).default(0),
+  /** Cut children off at the frame's edge. */
+  clip: z.boolean().default(false),
+  layout: FrameLayoutSchema.prefault({}),
+});
+
 export const LayerSchema = z.discriminatedUnion('kind', [
   ImageLayerSchema,
   VideoLayerSchema,
@@ -140,6 +189,7 @@ export const LayerSchema = z.discriminatedUnion('kind', [
   TextLayerSchema,
   CounterLayerSchema,
   StateLayerSchema,
+  FrameLayerSchema,
 ]);
 export type Layer = z.infer<typeof LayerSchema>;
 export type LayerKind = Layer['kind'];
@@ -149,6 +199,7 @@ export type AudioLayer = z.infer<typeof AudioLayerSchema>;
 export type TextLayer = z.infer<typeof TextLayerSchema>;
 export type CounterLayer = z.infer<typeof CounterLayerSchema>;
 export type StateLayer = z.infer<typeof StateLayerSchema>;
+export type FrameLayer = z.infer<typeof FrameLayerSchema>;
 
 export const VarValueSchema = z.union([
   z.number(),

@@ -1,7 +1,8 @@
-import { createShow, type Show } from '@scrim/format';
+import { createShow, layerTree, type Action, type Layer, type Show } from '@scrim/format';
 import { describe, expect, it } from 'vitest';
 import {
   counterValue,
+  effectiveOpacity,
   Engine,
   initialState,
   interpolate,
@@ -636,5 +637,161 @@ describe('secondary clears', () => {
     const engine = new Engine(show, () => 0, old);
     expect(engine.state.mute!.to).toBe(0);
     expect(engine.state.cleared).toEqual({});
+  });
+});
+
+describe('frames', () => {
+  /** demo() with a lower third holding only text (title, clock) and a box with video and a caption. */
+  function framed(): Show {
+    const show = demo();
+    const out = show.outputs[0]!.id;
+    const frame = (id: string, z: number): Layer => ({
+      id,
+      name: id,
+      kind: 'frame',
+      outputId: out,
+      x: 0,
+      y: 0,
+      w: 100,
+      h: 100,
+      z,
+      opacity: 1,
+      visible: false,
+      crop: { top: 0, right: 0, bottom: 0, left: 0 },
+      fill: '#000',
+      radius: 0,
+      clip: false,
+      layout: {
+        mode: 'free',
+        gap: 0,
+        padX: 0,
+        padY: 0,
+        align: 'center',
+        justify: 'start',
+        hugW: false,
+        hugH: false,
+      },
+    });
+    const caption = { ...show.layers[0]!, id: 'cap', name: 'Caption', visible: true };
+    show.layers.push(frame('lt', 3), frame('box', 4), { ...caption, parentId: 'box' });
+    for (const l of show.layers) {
+      if (l.id === 'title' || l.id === 'clock') l.parentId = 'lt';
+      if (l.id === 'vid') l.parentId = 'box';
+    }
+    return show;
+  }
+  const act = (action: Action): EngineInput => ({ type: 'action', action });
+  const on = (layerId: string) => act({ type: 'show', layerId, duration: 0, easing: 'linear' });
+  const off = (layerId: string) => act({ type: 'hide', layerId, duration: 0, easing: 'linear' });
+
+  it('a frame fades its content with it and leaves the content’s own opacity alone', () => {
+    const show = framed();
+    const tree = layerTree(show.layers);
+    const s = run(show, [[0, on('title')]]);
+    expect(effectiveOpacity(tree, s, 'title', 0)).toBe(0);
+    const up = step(show, s, on('lt'), 10).state;
+    expect(effectiveOpacity(tree, up, 'title', 10)).toBeCloseTo(0.8);
+    const down = step(show, up, off('lt'), 20).state;
+    expect(down.layers.title!.opacity.to).toBe(0.8);
+    expect(effectiveOpacity(tree, down, 'title', 20)).toBe(0);
+  });
+
+  it('Fade all fades what sits on the output, keeps frames’ content, and still stops video', () => {
+    const show = framed();
+    const tree = layerTree(show.layers);
+    const s = run(show, [
+      [0, on('lt')],
+      [0, on('title')],
+      [0, on('box')],
+      [0, on('vid')],
+      [0, act({ type: 'play', layerId: 'vid', restart: true })],
+    ]);
+    const faded = step(show, s, act({ type: 'stopAll', duration: 2 }), 1000).state;
+    expect(faded.layers.lt!.opacity.to).toBe(0);
+    expect(faded.layers.box!.opacity.to).toBe(0);
+    expect(faded.layers.title!.opacity.to).toBe(0.8);
+    expect(faded.timers).toContainEqual({ at: 3000, kind: 'pause', layerId: 'vid' });
+    // Showing the frame again brings its content back with it.
+    const again = step(show, faded, on('lt'), 5000).state;
+    expect(effectiveOpacity(tree, again, 'title', 5000)).toBeCloseTo(0.8);
+  });
+
+  it('clear text takes a frame of only text as one, and just the text from a mixed frame', () => {
+    const show = framed();
+    const s = run(show, [
+      [0, on('lt')],
+      [0, on('title')],
+      [0, on('box')],
+      [0, on('vid')],
+    ]);
+    const { state, events } = step(show, s, { type: 'clear', what: 'text' }, 1000);
+    expect(state.layers.lt!.opacity.to).toBe(0);
+    expect(state.layers.title!.opacity.to).toBe(0.8);
+    expect(state.layers.box!.opacity.to).toBe(1);
+    expect(state.layers.cap!.opacity.to).toBe(0);
+    expect(state.layers.vid!.opacity.to).toBe(1);
+    expect(events).toContainEqual({ type: 'cleared', what: 'text', layers: 2 });
+
+    const back = step(show, state, { type: 'unclear', what: 'text' }, 2000);
+    expect(back.state.layers.lt!.opacity.to).toBe(1);
+    expect(back.state.layers.cap!.opacity.to).toBe(0.8);
+    expect(back.events).toContainEqual({ type: 'uncleared', what: 'text', layers: 2 });
+  });
+
+  it('clear media pauses video inside a cleared frame and counts the frame once', () => {
+    const show = framed();
+    show.layers = show.layers.filter((l) => l.id !== 'cap');
+    const s = run(show, [
+      [0, on('box')],
+      [0, on('vid')],
+      [0, act({ type: 'play', layerId: 'vid', restart: true })],
+    ]);
+    const { state, events } = step(show, s, { type: 'clear', what: 'media' }, 2000);
+    expect(state.layers.box!.opacity.to).toBe(0);
+    expect(state.layers.vid!.opacity.to).toBe(1);
+    expect(state.layers.vid!.media).toMatchObject({ playing: false, position: 2 });
+    expect(events).toContainEqual({ type: 'cleared', what: 'media', layers: 1 });
+
+    const back = step(show, state, { type: 'unclear', what: 'media' }, 9000).state;
+    expect(back.layers.box!.opacity.to).toBe(1);
+    expect(back.layers.vid!.media).toMatchObject({ playing: true, position: 2, anchor: 9000 });
+  });
+
+  it('clear leaves alone what a hidden frame holds', () => {
+    const show = framed();
+    const s = run(show, [[0, on('title')]]);
+    const { state, events } = step(show, s, { type: 'clear', what: 'text' }, 1000);
+    expect(events).toContainEqual({ type: 'cleared', what: 'text', layers: 0 });
+    expect(state.layers.title!.opacity.to).toBe(0.8);
+    expect(state.layers.cap!.opacity.to).toBe(0.8);
+  });
+
+  it('Back returns frames too', () => {
+    const show = framed();
+    show.cues[0]!.actions.push({ type: 'hide', layerId: 'lt', duration: 0, easing: 'linear' });
+    const s = run(show, [
+      [0, on('lt')],
+      [100, { type: 'go' }],
+    ]);
+    expect(s.layers.lt!.opacity.to).toBe(0);
+    expect(step(show, s, { type: 'back' }, 200).state.layers.lt!.opacity.to).toBe(1);
+  });
+
+  it('a frame added to a running show joins it hidden, and a loop between frames is harmless', () => {
+    const engine = new Engine(framed(), () => 0, initialState(demo()));
+    expect(engine.state.layers.lt!.opacity.to).toBe(0);
+
+    const show = framed();
+    for (const l of show.layers) {
+      if (l.id === 'lt') l.parentId = 'box';
+      if (l.id === 'box') l.parentId = 'lt';
+    }
+    const s = run(show, [
+      [0, on('lt')],
+      [0, on('box')],
+      [0, on('cap')],
+    ]);
+    expect(() => step(show, s, { type: 'clear', what: 'text' }, 10)).not.toThrow();
+    expect(() => step(show, s, act({ type: 'stopAll', duration: 1 }), 10)).not.toThrow();
   });
 });

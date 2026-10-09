@@ -70,10 +70,12 @@ A `font` file (WOFF2, WOFF, TTF or OTF) is registered under its file name withou
 
 ### Layer
 
-Common fields: `id, name, kind, outputId (null for audio), x, y, w, h, z, opacity, visible, crop`.
+Common fields: `id, name, kind, outputId (null for audio), x, y, w, h, z, opacity, visible, crop, parentId?, pin?`.
 
 - `opacity` is the opacity when shown. `visible` says whether the layer is shown when the show starts.
 - `crop` holds fractions from 0 to 1 per edge.
+- `parentId` puts the layer inside a frame on the same output. Its `x` and `y` are then relative to the frame, and `z` orders it among the frame's children only. A link that can't hold (the frame is missing, is not a frame, sits on another output or inside the layer itself, or the layer is audio) is ignored: the layer is drawn on the output, and the logic check reports it.
+- `pin` (`{ x: left · center · right, y: top · center · bottom }`, default left and top) is the output edge a top-level layer keeps its distance to when the output is resized or the layer moves to another output. A layer that hugs its content grows away from its pin: one pinned right grows to the left. It is ignored inside a frame.
 
 | `kind`    | Extra fields                                                                                   |
 | --------- | ---------------------------------------------------------------------------------------------- |
@@ -83,8 +85,18 @@ Common fields: `id, name, kind, outputId (null for audio), x, y, w, h, z, opacit
 | `text`    | `text` (may contain `{{varName}}`), text style                                                 |
 | `counter` | `mode` (`countdown` · `countup` · `count`), `start`, `format` (`clock` · `number`), text style |
 | `state`   | `varId`, `display` (`value` · `bars`), text style                                              |
+| `frame`   | `fill`, `radius`, `clip`, `layout`                                                             |
 
-Text style: `fontSize, color, fontFamily, fontWeight, align, background`.
+Text style: `fontSize, color, fontFamily, fontWeight, align, background, sizing?`. `sizing` is `fixed` (the default: a `w` × `h` box), `autoWidth` (one line per line of text, as wide as it needs) or `autoHeight` (`w` wide, as tall as the wrapped text).
+
+**Frames** group layers that move, fade and clear as one. A frame's opacity multiplies into everything inside it, so showing or hiding the frame shows or hides its content, and the content keeps its own opacity for the next time.
+
+- `fill` is a colour behind the content, `radius` rounds its corners, and `clip` cuts the content off at its edge.
+- `layout` is `{ mode, gap, padX, padY, align, justify, hugW, hugH }`. In a `free` frame (the default) children sit at their `x` and `y`. In a `row` or `column` frame they line up in list order (front first), with `gap` between them and `padX`/`padY` inside the edge; `align` (`start` · `center` · `end`) places them across the line and `justify` (`start` · `center` · `end` · `between`) along it. `hugW` and `hugH` make a row or column frame grow and shrink with its content.
+- On an axis that hugs, `x`/`w` (or `y`/`h`) only fix the edge the layer grows from: the left edge for a left pin, the right edge for a right pin, the middle for a centred one.
+- **Fade all** fades what sits on the output, so frames keep their content. **Clear text** and **Clear media** take a frame as one when everything in it is of that kind, and otherwise take just the matching layers inside it.
+
+Older apps can't open shows that contain frames.
 
 ### Scene and cue
 

@@ -1,4 +1,4 @@
-import type { Action, Show } from '@scrim/format';
+import { descendantsOf, layerTree, type Action, type Show } from '@scrim/format';
 
 /** Remove actions (recursively, inside branches) that match `drop`. */
 export function pruneActions(actions: Action[], drop: (a: Action) => boolean): Action[] {
@@ -22,12 +22,13 @@ function pruneEverywhere(show: Show, drop: (a: Action) => boolean): void {
   for (const r of show.rules) r.then = pruneActions(r.then, drop);
 }
 
+/** Remove a layer, everything inside it if it is a frame, and every action that uses them. */
 export function removeLayer(show: Show, layerId: string): void {
-  show.layers = show.layers.filter((l) => l.id !== layerId);
-  pruneEverywhere(show, (a) => 'layerId' in a && a.layerId === layerId);
-  show.rules = show.rules.filter(
-    (r) => !(r.when.type === 'mediaEnded' && r.when.layerId === layerId),
-  );
+  const tree = layerTree(show.layers);
+  const ids = new Set([layerId, ...descendantsOf(tree, layerId).map((l) => l.id)]);
+  show.layers = show.layers.filter((l) => !ids.has(l.id));
+  pruneEverywhere(show, (a) => 'layerId' in a && ids.has(a.layerId));
+  show.rules = show.rules.filter((r) => !(r.when.type === 'mediaEnded' && ids.has(r.when.layerId)));
 }
 
 export function removeVar(show: Show, varId: string): void {
