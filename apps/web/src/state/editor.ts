@@ -24,6 +24,8 @@ interface EditorState {
   saving: 'idle' | 'pending' | 'saved' | 'error';
   savedAt: number | null;
   selection: Selection;
+  /** Frames folded shut in the layers tree; kept here because the Stage tab unmounts. */
+  collapsed: string[];
   /** Set by a running host in Show mode; editing is locked unless overridden. */
   showModeLock: boolean;
   unlocked: boolean;
@@ -32,6 +34,7 @@ interface EditorState {
   undo(): void;
   redo(): void;
   select(sel: Partial<Selection>): void;
+  setCollapsed(ids: string[]): void;
   replace(show: Show): void;
   unlock(): void;
 }
@@ -47,6 +50,7 @@ export const useEditor = create<EditorState>((set, get) => ({
   saving: 'idle',
   savedAt: null,
   selection: { outputId: null, layerId: null, extra: [], cueId: null },
+  collapsed: [],
   showModeLock: false,
   unlocked: false,
 
@@ -70,6 +74,7 @@ export const useEditor = create<EditorState>((set, get) => ({
       saving: 'saved',
       savedAt: show.updatedAt,
       selection: { outputId: show.outputs[0]?.id ?? null, layerId: null, extra: [], cueId: null },
+      collapsed: [],
       showModeLock: false,
       unlocked: false,
     });
@@ -134,6 +139,10 @@ export const useEditor = create<EditorState>((set, get) => ({
     // Picking one layer clears any extra selection unless the caller sets it.
     const extra = sel.extra ?? ('layerId' in sel ? [] : get().selection.extra);
     set({ selection: { ...get().selection, ...sel, extra } });
+  },
+
+  setCollapsed(collapsed) {
+    set({ collapsed });
   },
 
   replace(show) {

@@ -33,13 +33,11 @@ import {
   alignLayers,
   cueBringingIn,
   distributeLayers,
-  duplicateOf,
   insertCueAfter,
   nudgeLayers,
   type Align,
 } from '../../lib/layerActions.js';
 import { layerForMedia } from '../../lib/layers.js';
-import { removeLayer } from '../../lib/refs.js';
 import { Stage } from '../../render/Stage.js';
 import { useEditor, useShow } from '../../state/editor.js';
 import { Button, IconButton } from '../../ui/Button.js';
@@ -48,6 +46,7 @@ import { MenuButton } from '../../ui/Menu.js';
 import { Empty, Panel } from '../../ui/Panel.js';
 import { toast } from '../../ui/toast.js';
 import { previewState } from '../../lib/simulate.js';
+import { deleteLayers, duplicateSelection } from './layerCommands.js';
 
 const PAD = 32;
 const RULER = 16;
@@ -181,33 +180,15 @@ export function Canvas() {
     return () => el.removeEventListener('wheel', onWheel);
   });
 
-  const deleteSelected = () => {
-    if (!selectedIds.length) return;
-    update((d) => selectedIds.forEach((id) => removeLayer(d, id)));
-    select({ layerId: null });
-    toast(
-      `Deleted ${selectedIds.length === 1 ? (primary?.name ?? 'layer') : `${selectedIds.length} layers`}`,
-      'info',
-      {
-        label: 'Undo',
-        run: () => useEditor.getState().undo(),
-      },
-    );
-  };
-
-  const duplicate = () => {
-    if (!primary) return;
-    const copy = duplicateOf(primary);
-    update((d) => void d.layers.push(copy));
-    select({ layerId: copy.id });
-  };
+  const deleteSelected = () => deleteLayers(selectedIds);
+  const duplicate = () => duplicateSelection(selectedIds);
 
   // Keyboard: arrows nudge (Shift ×10); Shift+1 fit, Shift+2 selection, Shift+0 100%;
   // Space-drag pans; hold ⌘/Ctrl while dragging to suspend snapping; ⌫ deletes; ⌘D duplicates.
   useEffect(() => {
     const inList = (t: EventTarget | null) =>
       !!(t as Element | null)?.closest?.(
-        '[role=grid],[role=listbox],[role=tablist],[role=menu],[role=slider]',
+        '[role=grid],[role=treegrid],[role=listbox],[role=tablist],[role=menu],[role=slider]',
       );
     const down = (e: KeyboardEvent) => {
       if (e.key === 'Control' || e.key === 'Meta') setNoSnap(true);

@@ -46,7 +46,7 @@ function Inspector({ show, layer }: { show: Show; layer: Layer }) {
   return (
     <div className="flex flex-col gap-4 p-3">
       <Field label="Name">
-        <CommitInput value={layer.name} onCommit={(name) => set({ name })} />
+        <CommitInput id="layer-name" value={layer.name} onCommit={(name) => set({ name })} />
       </Field>
       <p className="-mt-2 text-caption text-fg-subtle">
         Used by {usage} cue or rule action{usage === 1 ? '' : 's'}.

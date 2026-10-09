@@ -120,6 +120,108 @@ export async function seedShow(page: Page): Promise<{ showId: string; outputId: 
 }
 
 /**
+ * A show with frames: a hidden lower third whose caption is on, and three labels that hug
+ * `Door: {{door}}`, pinned left, right and centre. Cue 1 shows the lower third; cue 2 sets the
+ * door, so the labels grow.
+ */
+export async function seedFrames(page: Page): Promise<{ showId: string; outputId: string }> {
+  await page.goto('/');
+  return page.evaluate(async () => {
+    const format = await import('/@id/@scrim/format' as string);
+    const shows = await import('/src/storage/shows.ts' as string);
+    const show = format.createShow('Frames');
+    const out = show.outputs[0];
+    const scene = show.scenes[0].id;
+    const crop = { top: 0, right: 0, bottom: 0, left: 0 };
+    const base = { outputId: out.id, z: 1, opacity: 1, crop };
+    const style = {
+      fontSize: 48,
+      color: '#fff',
+      fontFamily: 'sans-serif',
+      fontWeight: 600,
+      align: 'left',
+      background: 'transparent',
+    };
+    const layout = (mode: string, hug: boolean) => ({
+      mode,
+      gap: 0,
+      padX: 20,
+      padY: 10,
+      align: 'center',
+      justify: 'start',
+      hugW: hug,
+      hugH: hug,
+    });
+    const frame = (id: string, x: number, y: number, extra: object) => ({
+      ...base,
+      id,
+      name: id,
+      kind: 'frame',
+      x,
+      y,
+      w: 300,
+      h: 80,
+      visible: true,
+      fill: '#0000ff',
+      radius: 0,
+      clip: false,
+      ...extra,
+    });
+    const label = (id: string, parentId: string) => ({
+      ...base,
+      ...style,
+      id,
+      name: id,
+      kind: 'text',
+      parentId,
+      text: 'Door: {{door}}',
+      x: 0,
+      y: 0,
+      w: 100,
+      h: 60,
+      visible: true,
+      sizing: 'autoWidth',
+    });
+    show.layers.push(
+      frame('lt', 100, 900, { visible: false, layout: layout('free', false) }),
+      {
+        ...base,
+        ...style,
+        id: 'cap',
+        name: 'Caption',
+        kind: 'text',
+        parentId: 'lt',
+        text: 'Ada',
+        x: 10,
+        y: 10,
+        w: 200,
+        h: 60,
+        visible: true,
+      },
+      frame('fl', 100, 100, { layout: layout('row', true), pin: { x: 'left', y: 'top' } }),
+      label('tl', 'fl'),
+      frame('fr', 1500, 300, { layout: layout('row', true), pin: { x: 'right', y: 'top' } }),
+      label('tr', 'fr'),
+      frame('fc', 800, 500, { layout: layout('row', true), pin: { x: 'center', y: 'top' } }),
+      label('tc', 'fc'),
+    );
+    show.vars.push({ id: 'door', name: 'door', type: 'text', initial: '' });
+    show.cues = [
+      {
+        ...format.createCue(scene, 'Lower third'),
+        actions: [{ type: 'show', layerId: 'lt', duration: 0, easing: 'linear' }],
+      },
+      {
+        ...format.createCue(scene, 'Door'),
+        actions: [{ type: 'setVar', varId: 'door', value: 'the one on the right' }],
+      },
+    ];
+    await shows.saveShow(show);
+    return { showId: show.id, outputId: out.id };
+  });
+}
+
+/**
  * The brightest colour channel (0–255) in the top-left quarter of the page, where the seed
  * show's layers sit, away from the output HUD. Decoded in the page, so no image library is needed.
  */
@@ -135,7 +237,8 @@ export async function brightest(page: Page): Promise<number> {
     ctx.drawImage(bmp, 0, 0);
     const { data } = ctx.getImageData(0, 0, bmp.width, bmp.height);
     let max = 0;
-    for (let i = 0; i < data.length; i += 4) max = Math.max(max, data[i]!, data[i + 1]!, data[i + 2]!);
+    for (let i = 0; i < data.length; i += 4)
+      max = Math.max(max, data[i]!, data[i + 1]!, data[i + 2]!);
     return max;
   }, png.toString('base64'));
 }
