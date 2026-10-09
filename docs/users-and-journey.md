@@ -2,7 +2,7 @@
 
 Who uses Scrim, what each of them needs, and how a production moves through the app from a first idea to the last performance.
 
-The five primary users come from the [product proposal](https://claude.ai/code/artifact/8e8f9f6f-ccc6-4e46-9b08-ce8778cfb65d)'s launch personas. The supporting users are the other people a real production involves. **Today** describes what the app does now; **Gaps** are things the journey needs that are not built yet.
+The five primary users come from the [product proposal](https://claude.ai/code/artifact/8e8f9f6f-ccc6-4e46-9b08-ce8778cfb65d)'s launch personas. The supporting users are the other people a real production involves. Later sections cover [music and live events](#music-and-live-events), [other places Scrim is used](#other-places-scrim-is-used), from classrooms to care homes, and the [ideas that make Scrim accessible to all](#accessible-to-all) of them. **Today** describes what the app does now; **Gaps** are things the journey needs that are not built yet.
 
 ## At a glance
 
@@ -16,6 +16,7 @@ The five primary users come from the [product proposal](https://claude.ai/code/a
 | _Production technician_      | Rigs projectors, screens, sound and the network | Outputs & audio tab, output windows, Identify, pre-show check           | Show machine and venue gear                     |
 | _Lighting / sound designer_  | Owns the console and the sound system           | Not yet: planned [show-control output](research/show-control-output.md) | Their console or QLab machine                   |
 | _Producer / company manager_ | Pays for, schedules and tours the show          | Library (backups, `.scrim` files); later, the cloud workspace           | Any                                             |
+| _Front-of-house and ushers_  | Welcome the audience and help them take part    | Not yet: a planned front-of-house view                                  | Their own phone, shared venue tablets           |
 
 ## Primary users
 
@@ -258,6 +259,33 @@ The five primary users come from the [product proposal](https://claude.ai/code/a
   - No reports across performances.
   - No billing (see the proposal's business model).
 
+### Front-of-house and usher team
+
+- **Who:** ushers, box office staff, the front-of-house manager and, in many venues, an access officer on the night.
+- **Situation:** they are the people the audience asks when joining fails, when the captions won't appear, or when someone has no phone. Today they have no part in Scrim at all.
+- **Their journey:**
+  1. **Before doors:**
+     - put out QR code signs;
+     - charge the shared tablets and clickers;
+     - check the room is open and phones can join.
+  2. **As people arrive:**
+     - help them join;
+     - set up their [personal access channel](#1-a-personal-access-channel-on-the-audience-phone) (captions, language, audio description);
+     - hand out shared devices to people [without a phone](#4-no-phone-participation).
+  3. **During the show:**
+     - watch the room status;
+     - help phones that dropped out to rejoin;
+     - enter a hands-up count when a moment asks for one.
+  4. **After the show:** collect devices, and pass on access feedback.
+- **Needs:**
+  - A **front-of-house view** on their own phone, with no show controls:
+    - room status, number of phones joined, and the moment now open;
+    - a "how to join" help card;
+    - a plain explanation of each access option.
+  - A way to submit counts for no-phone participation.
+- **Today:** nothing specific. Only the operator sees the audience panel.
+- **Gaps:** a front-of-house role in the relay. It would be like the performer remote: a key from the operator, and a limited view.
+
 ## The overarching journey
 
 A production moves through seven stages. Different users lead each one, but the same show file carries through all of them.
@@ -279,15 +307,15 @@ Design and rehearsal loop many times. Review feeds the next rehearsal. Touring r
 
 ### Who is involved at each stage
 
-| Stage         | Designer | Director | Stage manager | Performer | Audience | Technician | Producer |
-| ------------- | :------: | :------: | :-----------: | :-------: | :------: | :--------: | :------: |
-| 1 Discover    |    ●     |    ○     |               |           |          |            |    ○     |
-| 2 Design      |    ●     |    ○     |               |           |          |            |          |
-| 3 Rehearse    |    ●     |    ●     |       ●       |     ○     |          |            |          |
-| 4 Tech        |    ○     |    ○     |       ●       |     ●     |          |     ●      |          |
-| 5 Perform     |          |          |       ●       |     ●     |    ●     |     ○      |          |
-| 6 Review      |    ●     |    ●     |       ●       |           |          |            |    ○     |
-| 7 Move / tour |          |          |       ○       |           |          |     ●      |    ●     |
+| Stage         | Designer | Director | Stage manager | Performer | Audience | Technician | Producer | Front of house |
+| ------------- | :------: | :------: | :-----------: | :-------: | :------: | :--------: | :------: | :------------: |
+| 1 Discover    |    ●     |    ○     |               |           |          |            |    ○     |                |
+| 2 Design      |    ●     |    ○     |               |           |          |            |          |                |
+| 3 Rehearse    |    ●     |    ●     |       ●       |     ○     |          |            |          |                |
+| 4 Tech        |    ○     |    ○     |       ●       |     ●     |          |     ●      |          |       ○        |
+| 5 Perform     |          |          |       ●       |     ●     |    ●     |     ○      |          |       ●        |
+| 6 Review      |    ●     |    ●     |       ●       |           |          |            |    ○     |       ○        |
+| 7 Move / tour |          |          |       ○       |           |          |     ●      |    ●     |                |
 
 ● leads or is essential · ○ takes part
 
@@ -479,6 +507,345 @@ None of these exist yet:
 
 Scrim's model already fits: outputs, layers, cues, show state, audience moments and triggers all apply as they are. The work is in timing and the live setlist, not in a new model.
 
+## Other places Scrim is used
+
+Scrim's model of outputs, cues, show state and audience moments is not specific to theatre. These users run very different events with the same app. Each faces barriers that professional show tools ignore: cost, skill, time, ability, or the lack of a network.
+
+For each user, **Ideas** links to the cross-cutting ideas in [Accessible to all](#accessible-to-all) that matter most to them.
+
+### Teacher and students (school plays, drama class)
+
+- **Who:**
+  - A drama or media teacher, and a class aged roughly 8–18.
+  - They work in a school hall or classroom, with an old projector and school Chromebooks.
+  - The budget is close to zero, and the school's IT department manages every device.
+- **Journey:**
+  1. **Start:** the teacher starts from a **School play** template in class.
+  2. **Design:** students design scenes in groups, each group on its own machine.
+  3. **Rehearse:** students take turns in each role: operator, performer with the remote, designer.
+  4. **Perform:** the class performs for parents, who vote from their phones.
+  5. **Review:** the class reads the run log together, which is also a lesson in reading data.
+- **Needs:**
+  - **Safeguarding.** No accounts, and nothing published. Audience text moments are off or strictly moderated by default.
+  - **A simple mode** that a 10-year-old can operate, and that hides rules until the class is ready for them.
+  - **Works under school IT policy.** Managed Chrome can block permissions such as Web MIDI and window management; the pre-show check should say so plainly.
+  - **Room for every student.** Students with additional needs can operate or perform through switch, voice or hold-to-confirm controls.
+- **Today:**
+  - Runs on ChromeOS.
+  - No accounts.
+  - Text moments are moderated.
+  - The demo show is a starting point.
+- **Gaps:**
+  - Templates and a simple mode.
+  - Merging work from several groups into one show.
+  - Checks for admin policies.
+- **Ideas:** [3 inclusive operation](#3-inclusive-operation), [5 simple modes and templates](#5-simple-modes-and-templates), [2 relaxed mode](#2-relaxed-mode-and-a-flash-safety-check) for relaxed school performances.
+
+### Museum or gallery curator (installations)
+
+- **Who:**
+  - A curator or exhibition technician, often working with an artist.
+  - The piece runs **unattended for weeks or months**, in front of visitors of every age and ability.
+- **Journey:**
+  1. **Design:** with the artist, as for a show.
+  2. **Install:** on a small PC with displays or projectors. Chrome starts in kiosk mode when the machine boots.
+  3. **Schedule:** the piece wakes for opening hours and sleeps at night.
+  4. **Idle:** when nobody is there, an "attract" loop plays.
+  5. **Visitors:** they scan a QR code at the piece, or press a large physical button, and the work responds.
+  6. **Monitoring:** staff see the piece's health from the office and get an alert if an output is lost.
+  7. **Change:** content is swapped between exhibitions.
+- **Needs:**
+  - No operator at all, and recovery without one.
+  - A schedule.
+  - Remote health alerts.
+  - Access for every visitor (museums often have legal accessibility duties):
+    - captions, audio description and translations on the visitor's own phone;
+    - a physical button for visitors without one.
+- **Today:**
+  - Crash resume from the journal.
+  - Fully offline running.
+  - Auto-follow and rules that can loop scenes.
+- **Gaps:**
+  - A scheduler, and an attract or idle mode.
+  - A kiosk-mode setup guide.
+  - Remote monitoring.
+- **Ideas:** [1 personal access channel](#1-a-personal-access-channel-on-the-audience-phone), [4 no-phone participation](#4-no-phone-participation), [2 relaxed mode](#2-relaxed-mode-and-a-flash-safety-check) for quiet or sensory-friendly visiting hours.
+
+### Faith or community group volunteer (lyrics, notices)
+
+- **Who:**
+  - A different volunteer each week, often older and not technical, in a hall with one projector.
+  - They show song lyrics, readings and a loop of notices before the gathering starts. Some groups also stream.
+- **Journey:**
+  1. **Prepare:** during the week, a coordinator builds the order: songs from a shared song library, plus notices.
+  2. **Arrive:** the volunteer arrives 20 minutes early, opens the show and runs the pre-show check.
+  3. **Before:** the notices loop on screen.
+  4. **During:**
+     - press GO for each verse;
+     - jump back to the chorus when the musicians repeat it;
+     - skip a song when plans change.
+  5. **After:** next week, reuse most of it.
+- **Needs:**
+  - **A song library** that is reused across shows, with lyrics split into sections (verse, chorus, bridge). Today every Scrim show stands alone.
+  - **Jumping to a section** (chorus, verse 2) with one key, and reordering on the fly, as in the band [setlist mode](#what-scrim-would-need).
+  - **A dead-simple operator view,** with hold-to-confirm for nervous volunteers.
+  - **Lyrics on people's own phones,** in large print for people with low vision, or translated for congregations that speak several languages.
+  - **Licence compliance:** song lyrics are usually licensed, for example through CCLI. Scrim should store the copyright line for each song and display it.
+- **Today:**
+  - Text layers, cues, scenes and jumping between scenes.
+  - Notices can loop with auto-follow.
+- **Gaps:**
+  - The song library and lyrics import.
+  - Jumping to a section, and a simple operator view.
+- **Ideas:** [5 simple modes and templates](#5-simple-modes-and-templates), [1 personal access channel](#1-a-personal-access-channel-on-the-audience-phone), [3 inclusive operation](#3-inclusive-operation).
+
+### Drama therapist or care-home activity leader
+
+- **Who:**
+  - A drama therapist, occupational therapist or activity coordinator.
+  - They work with small groups: people living with dementia or learning disabilities, or patients in recovery.
+  - The room has a large TV and one or two tablets.
+- **Journey:**
+  1. **Prepare:** from a template, for example:
+     - a memory session with photos and music from the residents' youth;
+     - a gentle story where the group makes choices.
+  2. **In the room:**
+     - the leader sits with the group, not behind a laptop, and advances at the group's pace;
+     - a tablet is passed around, or the group presses large physical buttons, to make choices.
+  3. **After:** the leader keeps brief notes on engagement. No personal data leaves the device.
+- **Needs:**
+  - **No time pressure:** moments without timers. Scrim already supports this: a moment with duration 0 stays open until it is closed.
+  - **Calm by default:** soft fades, limited brightness, no sudden sound.
+  - **Very large touch targets,** and shared devices instead of personal phones.
+  - **The leader can run the show from a tablet** while facing the group.
+  - **Privacy.** This is a health setting. Scrim's local-first design means photos and choices stay on the machine, and the relay is used only if phones join.
+- **Today:**
+  - Moments with no time limit.
+  - Offline running.
+  - Moments with a default result.
+- **Gaps:**
+  - The operator view is not designed for tablets.
+  - Shared-device participation.
+  - Session templates.
+- **Ideas:** [2 relaxed mode](#2-relaxed-mode-and-a-flash-safety-check) as the default, [4 no-phone participation](#4-no-phone-participation), [3 inclusive operation](#3-inclusive-operation), [5 simple modes and templates](#5-simple-modes-and-templates).
+
+### Street or festival performer
+
+- **Who:**
+  - A solo performer or small act, outdoors or in a festival tent.
+  - They have battery power and perhaps a small projector at dusk.
+  - The crowd is passers-by. There is no venue Wi-Fi, and mobile data is weak.
+- **Journey:**
+  1. **Build:** the show on a laptop at home.
+  2. **Set up:** at the pitch, in minutes, with a laptop or tablet, a battery projector and a speaker.
+  3. **Join:**
+     - the crowd scans a QR code to vote, over mobile data or a hotspot the performer brings;
+     - people without phones take part by cheering, clapping, or holding up their hands.
+  4. **Trigger:** the performer uses a foot pedal or the phone in their pocket.
+  5. **Pack down:** in minutes.
+- **Needs:**
+  - **Full offline operation,** including audience voting when there is no internet. That needs a **local relay** on the show machine or the [bridge](research/show-control-output.md#7-the-bridge-problem), reached through the performer's own hotspot.
+  - **An applause meter:** the microphone measures cheering or clapping as a moment, so everyone can vote without a phone.
+  - **Battery and brightness awareness.**
+  - **Running the show from a tablet.**
+- **Today:**
+  - Offline show running.
+  - Foot pedals and the performer remote.
+  - Wake lock.
+- **Gaps:**
+  - A local relay.
+  - Microphone-based moments.
+  - A tablet operator view.
+- **Ideas:** [4 no-phone participation](#4-no-phone-participation), [3 inclusive operation](#3-inclusive-operation).
+
+### Young creator (a child at home, a youth group)
+
+- **Who:**
+  - A child of about 8 or older at home with a parent, or a youth group or after-school club.
+  - They make an interactive story for a birthday party, a sleepover or a class.
+- **Journey:**
+  1. **Start:** open Scrim on the family laptop.
+  2. **Choose:** a guided "make your first show" path, with templates:
+     - choose your own adventure;
+     - quiz night;
+     - birthday surprise.
+  3. **Make:** add their own drawings, photos and voice recordings.
+  4. **Play:** on the TV, with guests voting on their parents' phones.
+  5. **Share:** keep the show as a `.scrim` file, or send it to a relative.
+- **Needs:**
+  - **A playful, guided path:**
+    - plain words and icons;
+    - read-aloud help for younger or struggling readers;
+    - undo for everything.
+  - **Media capture inside Scrim:** camera, microphone and drawing, rather than juggling files.
+  - **Safety and privacy by default:**
+    - no accounts, nothing published, no free-text moments;
+    - no data collected, which matters under children's privacy rules.
+    - Scrim's local-first design already gives most of this.
+- **Today:**
+  - No accounts.
+  - Local-only storage.
+  - The demo show as an example.
+- **Gaps:**
+  - Children's templates.
+  - A guided simple mode.
+  - Media capture inside the app.
+- **Ideas:** [5 simple modes and templates](#5-simple-modes-and-templates), [3 inclusive operation](#3-inclusive-operation).
+
+## Accessible to all
+
+The users above, and the theatre users before them, share five needs that no single feature covers. Together they are how Scrim can be accessible to everyone: people with disabilities, in every role, and people and places that professional show tools leave out.
+
+| Idea                                                                             | Serves most                                                                                              |
+| -------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| [1. Personal access channel](#1-a-personal-access-channel-on-the-audience-phone) | Audience members with access needs, museum visitors, multilingual and faith audiences, front of house    |
+| [2. Relaxed mode and flash safety](#2-relaxed-mode-and-a-flash-safety-check)     | Neurodivergent and sensory-sensitive audiences, people with photosensitive epilepsy, care homes, schools |
+| [3. Inclusive operation](#3-inclusive-operation)                                 | Operators and performers with disabilities, students, volunteers, therapists                             |
+| [4. No-phone participation](#4-no-phone-participation)                           | People without a smartphone, care homes, museums, street shows, children                                 |
+| [5. Simple modes and templates](#5-simple-modes-and-templates)                   | Teachers, faith and community volunteers, care settings, young creators                                  |
+
+### Who each idea serves
+
+| User                         | 1 Access channel | 2 Relaxed and flash | 3 Inclusive operation | 4 No-phone | 5 Simple and templates |
+| ---------------------------- | :--------------: | :-----------------: | :-------------------: | :--------: | :--------------------: |
+| Audience member              |        ●         |          ●          |                       |     ●      |                        |
+| Stage manager / operator     |                  |          ○          |           ●           |            |           ○            |
+| Performer                    |                  |                     |           ●           |            |                        |
+| Show designer                |        ○         |          ●          |           ○           |     ○      |           ○            |
+| Front of house and ushers    |        ●         |          ○          |                       |     ●      |                        |
+| Teacher and students         |                  |          ○          |           ●           |            |           ●            |
+| Museum or gallery curator    |        ●         |          ○          |                       |     ●      |                        |
+| Faith or community volunteer |        ●         |                     |           ●           |            |           ●            |
+| Drama therapist / care home  |                  |          ●          |           ●           |     ●      |           ●            |
+| Street or festival performer |                  |                     |           ○           |     ●      |                        |
+| Young creator                |                  |                     |           ○           |     ○      |           ●            |
+
+● central to their journey · ○ helps
+
+### 1. A personal access channel on the audience phone
+
+**The idea.**
+
+- Most venues offer access as a fixed service, such as one captioned performance or a handful of audio-description headsets.
+- In Scrim, every phone in the room is already connected and already follows the show.
+- So each person can turn on what _they_ need, at any performance:
+  - **captions** of what is said and sung;
+  - **audio description** in their own headphones;
+  - **translations** of captions and moment text;
+  - **haptics:** a vibration for sound cues or for the start of a moment;
+  - **content warnings** a minute before intense moments.
+- This is probably the most distinctive thing Scrim can offer, and it reuses the relay already built.
+
+**How it fits Scrim.**
+
+- **Show format:**
+  - Cues gain an optional access track: caption lines, audio-description text and content warnings, in several languages.
+  - Moments gain translated prompts and options.
+  - These fields are additive, so no version bump is needed.
+- **Relay:** the operator sends the current access state with the audience `view` it already sends, so a phone that joins late or reloads catches up.
+- **Phone:**
+  - **Captions and translations** render on the audience page.
+  - **Audio description** uses the phone's built-in text-to-speech (`speechSynthesis`), so no audio files cross the network. Pre-recorded description would need media hosting, which Scrim does not have yet.
+  - **Haptics** use the Vibration API. It works on Android but not in iOS Safari, so haptics are a bonus, never the only signal.
+- **Privacy:** each person's choices stay on their phone. The relay never learns who uses captions or description.
+
+**Reliability rule.** The phone channel is best effort: it stops if the network does.
+
+- Access that the show _depends on_ also needs a stage version that works offline, such as open captions on an output or a sign interpreter on stage.
+- The pre-show check should flag a show that relies only on phones for access.
+
+**Who builds it.**
+
+- A new **access coordinator** task in the editor: write captions and descriptions against the cue list, set content warnings, preview the phone.
+- On the night, front of house helps people turn it on.
+
+### 2. Relaxed mode and a flash safety check
+
+**Relaxed mode** is a show-wide switch the operator turns on for a relaxed or sensory-friendly performance. It is chosen per performance, not designed into the show. While it is on:
+
+- brightness is capped, through a dimming layer on every output;
+- volume is capped per audio bus;
+- fades get a minimum duration, so nothing snaps on;
+- cues or layers the designer marked **intense** are skipped, or replaced by a gentler alternative;
+- phones show content warnings and a "it's OK to step out" note, and people can rejoin at any time.
+
+How it fits:
+
+- **Engine:** a mode flag in engine state, which every renderer and the audio engine apply. The engine stays pure: the same state gives the same picture.
+- **Format:** marking cues and layers as intense, and alternative actions for them, are additive fields.
+
+**Flash safety check.** Flashing light can trigger seizures in people with photosensitive epilepsy.
+
+- **The rule:** WCAG 2.3.1 says no more than three general flashes or red flashes in any one second.
+- **Where Scrim checks:**
+  - **Cue timings:** the editor and the pre-show check look for fast, repeated fades and blackouts.
+  - **Video:** frames are sampled on import to find sudden swings in brightness and saturated red.
+  - **Mitigation:** Scrim offers either a warning to show before that moment or a relaxed alternative.
+- **Limits:** this is a design aid, not a certified test such as the Harding test used for broadcast. The docs and UI must say so.
+
+### 3. Inclusive operation
+
+Accessibility usually stops at the audience. Scrim should let **anyone run a show**, including operators and performers with disabilities, students and nervous volunteers.
+
+| Way of operating                      | What it means in Scrim                                                                                                                                                                                                                                                                                          |
+| ------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Single switch** (also sip-and-puff) | Partly possible today: accessibility switches can send a key, and any key can map to GO. Missing: a **scanning mode** that steps through GO, Hold and Panic for one switch, with a pause to choose.                                                                                                             |
+| **Hold to confirm**                   | An option to fire GO only after a press is held, for example for half a second. This prevents accidental presses, helps people with tremor, and calms new volunteers. It works with Scrim's existing 300 ms double-GO guard.                                                                                    |
+| **Voice**                             | "Go", "hold", "standby next" spoken aloud, with Panic always on a physical key. The browser's speech recognition often sends audio to a server, which breaks the offline rule. Only on-device recognition is acceptable _(on-device support in Chrome unverified)_, and voice must never be the only way to GO. |
+| **Screen reader**                     | The operator view announces the standby cue, each fired cue, moment results and warnings (ARIA live regions). The editor works fully from the keyboard, and every control has a text label.                                                                                                                     |
+| **Large, high-contrast display**      | An operator theme with large text and high contrast. Status never relies on colour alone.                                                                                                                                                                                                                       |
+| **Touch, from a tablet**              | An operator layout for tablets, so leaders and performers can run a show while facing the room.                                                                                                                                                                                                                 |
+
+Every option maps to the same commands the engine already understands (`go`, `hold`, `panic`, `standbyNext`, triggers), so none of them changes the engine.
+
+### 4. No-phone participation
+
+An interactive moment should never shut out someone without a smartphone: older people, children, people without data, or people who don't want to use one.
+
+| Way to take part                  | How it fits                                                                                                                                                                                        |
+| --------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Shared venue tablets**          | The audience page in a "shared device" mode: it resets after each answer, so several people can use one tablet. Front of house hands them out.                                                     |
+| **Physical buttons and clickers** | Large arcade buttons, MIDI pads or gamepad buttons on the show machine, mapped to a moment's options. Scrim already reads MIDI and gamepads. They need a new command: "count a vote for option B". |
+| **Ushers' counts**                | An usher counts raised hands or coloured cards and enters the number on the front-of-house view. It is added to the moment's totals.                                                               |
+| **Applause meter**                | The show machine's microphone measures the cheer for each option. Everyone can take part, and it works with no network.                                                                            |
+| **Camera counting** _(later)_     | Coloured cards counted by a camera. Promising, but it needs care with privacy and reliability.                                                                                                     |
+
+How it fits:
+
+- **Engine:** these are local inputs that feed the same moment totals (`momentAgg`) as the relay, so the engine treats every source alike.
+- **A side benefit:** moments then work even with no network, which matters for care homes, museums and street shows.
+- **The operator's tally:** shows each source separately, so a dominant source is visible.
+
+### 5. Simple modes and templates
+
+The full editor is right for show designers but too much for a teacher, a volunteer, a therapist or a child.
+
+- **Simple mode:**
+  - **Hidden:** rules, show state and controls stay out of view until they're needed.
+  - **Wizards:** "add a vote" or "add a song" walk through each step.
+  - **Words:** plain language throughout.
+  - **No dead ends:** switching to the full editor never loses work.
+- **Simple operator view:**
+  - one huge GO, the next item in plain words, and Panic;
+  - optional hold-to-confirm.
+- **Templates:**
+  - school play;
+  - lyrics and notices for gatherings;
+  - care-home memory session;
+  - choose your own adventure;
+  - quiz night;
+  - birthday surprise;
+  - museum attract loop.
+- **Each template comes with:**
+  - safe defaults (text moments moderated or off);
+  - relaxed settings where they fit;
+  - example media the user can replace.
+- **Safe defaults for children and schools:**
+  - no accounts, nothing published, no free-text moments;
+  - no data leaves the device unless an audience room is opened.
+
+Templates are ordinary `.scrim` files, so they can be shared by communities: a school district, a church network, a care provider. They need no new format.
+
 ## What the journey tells us
 
 - **Most gaps sit in Tech and in collaboration, not in running.** The live path (Perform) is the most complete part of the app, which is right for a show-control tool.
@@ -486,4 +853,8 @@ Scrim's model already fits: outputs, layers, cues, show state, audience moments 
   - [Show-control output](research/show-control-output.md) closes the biggest Tech gap for stage managers and lighting/sound designers.
   - The [GPU compositor](research/gpu-compositor.md) closes the Tech gaps for technicians (warping, blending) and the Design gaps for designers (effects).
   - Both are also prerequisites for [music and live events](#music-and-live-events), which then need timing (tempo sync, timecode) and a live setlist.
+- **Being accessible to all is a product direction, not a checklist.**
+  - The [personal access channel](#1-a-personal-access-channel-on-the-audience-phone) turns the audience phone, which is already in every seat, into each person's own access device. Few venues can offer that today.
+  - Combined with [inclusive operation](#3-inclusive-operation), [no-phone participation](#4-no-phone-participation) and [simple modes](#5-simple-modes-and-templates), Scrim reaches schools, care homes, museums, faith groups and street performers. Those users are poorly served by professional show tools.
+  - Most of these ideas reuse what exists: the relay, the input mapping, moment totals and the pure engine. None needs a format version bump.
 - **Collaboration helps three stages at once.** A cloud workspace with roles and comments would help Design, Rehearse and Review, and would serve the director, who is the user Scrim supports least today.
