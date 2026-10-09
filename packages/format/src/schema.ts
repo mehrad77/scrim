@@ -434,6 +434,15 @@ export const CommandSchema = z.discriminatedUnion('type', [
   z.object({ type: z.literal('mute') }),
   /** Put a cue on standby, or fire it at once (through the double-GO guard). */
   z.object({ type: z.literal('jump'), target: JumpTargetSchema, fire: z.boolean().default(false) }),
+  /**
+   * A vote for option N (1–6) of the newest open vote, or a tap for a tap moment, from a button,
+   * pad or pedal in the room: taking part without a phone.
+   */
+  z.object({
+    type: z.literal('countVote'),
+    option: z.number().int().min(1).max(6),
+    momentId: Ref.optional(),
+  }),
 ]);
 export type Command = z.infer<typeof CommandSchema>;
 
@@ -452,6 +461,16 @@ export const InputsSchema = z.object({
 export type Inputs = z.infer<typeof InputsSchema>;
 
 export const AudioBusSchema = z.object({ id: Id, name: z.string() });
+
+/** How this show is run; it travels with the show, like the key map. */
+export const OperatorSettingsSchema = z.object({
+  /**
+   * GO fires only after a key, pedal or button is held this long, in ms: against accidental
+   * presses, for tremor and for nervous volunteers. Absent or 0: on press.
+   */
+  goHoldMs: z.number().int().min(0).max(3000).optional(),
+});
+export type OperatorSettings = z.infer<typeof OperatorSettingsSchema>;
 
 export const ShowSchema = z.object({
   format: z.literal('scrim-show'),
@@ -473,6 +492,7 @@ export const ShowSchema = z.object({
   audioBuses: z.array(AudioBusSchema),
   /** Prepared running orders the operator can switch to; the show order is the default. */
   setlists: z.array(SetlistSchema).optional(),
+  operator: OperatorSettingsSchema.optional(),
   /** The fade new show/hide actions start with (the editor's default; 1 s ease in-out if unset). */
   defaultFade: z.object({ duration: z.number().nonnegative(), easing: EasingSchema }).optional(),
 });

@@ -30,6 +30,8 @@ export type ClientMessage =
   /** A key pressed in another Scrim window, so GO and panic work from any screen. */
   /** `code` is the physical key (`KeyboardEvent.code`); older windows send only `key`. */
   | { t: 'key'; v: number; key: string; code?: string }
+  /** That key came back up, for a hold-to-confirm GO. */
+  | { t: 'keyUp'; v: number; key: string; code?: string }
   /** An output window could not start sound until clicked. */
   | { t: 'audioBlocked'; v: number; outputId: string }
   | { t: 'bye'; v: number; clientId: string };

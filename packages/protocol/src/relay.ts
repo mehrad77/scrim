@@ -18,6 +18,11 @@ export interface CreateRoomResponse {
   hostKey: string;
   /** Shared by performer remotes and remote outputs; audience needs only the code. */
   deviceKey: string;
+  /**
+   * For shared tablets passed from person to person: each answer carries a ballot number and
+   * counts as its own person. Absent for rooms made before shared tablets.
+   */
+  sharedKey?: string;
 }
 
 /** What the relay needs to run an audience moment; sent by the host. */
@@ -104,18 +109,32 @@ export type RelayToHost =
   | { t: 'error'; message: string };
 
 // ---- audience / remote / output -> relay (untrusted: validated) ----
+/** A shared tablet's person number; ignored from phones joined without the shared key. */
+const Ballot = z.number().int().min(0).max(100_000).optional();
+
 export const AudienceToRelaySchema = z.discriminatedUnion('t', [
-  z.object({ t: z.literal('vote'), momentId: z.string().max(64), optionId: z.string().max(64) }),
+  z.object({
+    t: z.literal('vote'),
+    momentId: z.string().max(64),
+    optionId: z.string().max(64),
+    ballot: Ballot,
+  }),
   z.object({
     t: z.literal('tap'),
     momentId: z.string().max(64),
     count: z.number().int().min(1).max(50),
   }),
-  z.object({ t: z.literal('slider'), momentId: z.string().max(64), value: z.number().finite() }),
+  z.object({
+    t: z.literal('slider'),
+    momentId: z.string().max(64),
+    value: z.number().finite(),
+    ballot: Ballot,
+  }),
   z.object({
     t: z.literal('text'),
     momentId: z.string().max(64),
     text: z.string().trim().min(1).max(280),
+    ballot: Ballot,
   }),
   z.object({ t: z.literal('ping'), c: z.number() }),
 ]);

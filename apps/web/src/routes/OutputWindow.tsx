@@ -128,8 +128,14 @@ export default function OutputWindow() {
       if (e.key === ' ' || e.key.startsWith('Arrow')) e.preventDefault();
       channel.current?.post({ t: 'key', key: e.key, code: e.code });
     };
+    const onKeyUp = (e: KeyboardEvent) =>
+      channel.current?.post({ t: 'keyUp', key: e.key, code: e.code });
     window.addEventListener('keydown', onKey, { capture: true });
-    return () => window.removeEventListener('keydown', onKey, { capture: true });
+    window.addEventListener('keyup', onKeyUp, { capture: true });
+    return () => {
+      window.removeEventListener('keydown', onKey, { capture: true });
+      window.removeEventListener('keyup', onKeyUp, { capture: true });
+    };
   }, []);
 
   // The cursor and the small status bar appear only while the mouse moves.

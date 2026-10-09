@@ -43,7 +43,8 @@ Scrim runs a show from one browser tab, the **operator view**. Everything else e
 step(show, state, input, now) → { state, events }
 ```
 
-- **Inputs** are what can happen: `go`, `fireCue`, `standby*`, `hold`, `panic`/`release`, `trigger`, `tick`, audience totals (`momentAgg`), moment control, `mediaEnded`, `setVar`, `seek`, a direct `action`, and `reset`.
+- **Inputs** are what can happen: `go`, `fireCue`, `standby*`, `jump`, `setOrder`, `hold`, `panic`/`release`, `trigger`, `tick`, audience totals (`momentAgg`), counts from the room (`countVote`), moment control, `mediaEnded`, `setVar`, `seek`, a direct `action`, `back`, the secondary clears, `mute`, and `reset`.
+- **Moment totals by source.** A moment keeps totals per source: `relay` (phones and shared tablets, as running totals that replace their own source), `sim` (pretend phones), `buttons` and `counted` (which add). Its result and live values use the sum, and the default is used only when every source is empty.
 - **Events** describe what happened: `cueFired`, `momentOpened`/`momentClosed`, `varChanged`, `trigger`, `mediaEnded`, `panic`, `cleared`, `mute`, `warning`, and so on.
 - **Rules** run after every input on the events it produced. A rule's actions may cause further events, up to 200 per input; past that the engine stops and emits a warning, so a looping rule cannot hang the show.
 - **Cues fired at once.** A zero-second auto-follow fires in the same step as the cue before it, after that cue's rules. One input may fire at most 64 cues through jumps that fire and zero-second follows; past that the engine stops the rest of that step's cue and rule actions, names the cues, and warns. The logic check flags such loops in the editor.

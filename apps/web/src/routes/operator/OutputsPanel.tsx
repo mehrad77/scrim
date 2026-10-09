@@ -9,6 +9,7 @@ import {
   windowManagementSupported,
   type ScreenChoice,
 } from '../../host/windows.js';
+import { notePopupBlocked } from '../../lib/capabilities.js';
 import { cn } from '../../lib/cn.js';
 import { epochNow } from '../../lib/clock.js';
 import { readLocal, writeLocal } from '../../lib/local.js';
@@ -71,8 +72,10 @@ export function OutputsPanel() {
   const open = async (o: Output, list = screens) => {
     const url = `/output/${snap.show.id}/${o.id}`;
     const w = openOutputWindow(url, o.id, screenFor(o, list));
-    if (!w)
+    if (!w) {
+      notePopupBlocked();
       toast('The browser blocked the window. Allow pop-ups for Scrim and try again.', 'error');
+    }
   };
 
   // "Go live": the single click that opens every output on its display.

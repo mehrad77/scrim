@@ -39,7 +39,19 @@ export interface MomentAggregate {
   n: number;
 }
 
+/**
+ * Where a moment's input came from: `relay` (phones and shared tablets, as running totals),
+ * `sim` (pretend phones in rehearsal), `buttons` (keys, pads and pedals in the room), `counted`
+ * (a count the operator typed, such as raised hands).
+ */
+export type TallySource = 'relay' | 'sim' | 'buttons' | 'counted';
+
 export interface MomentState extends MomentAggregate {
+  /**
+   * Totals per source; the moment's own totals are their sum. Optional so journals written
+   * before sources existed still load.
+   */
+  sources?: Partial<Record<TallySource, MomentAggregate>>;
   status: 'idle' | 'open' | 'closed';
   openedAt: number | null;
   closesAt: number | null;

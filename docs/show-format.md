@@ -49,6 +49,7 @@ Readers must:
   audioBuses: { id, name }[],
   defaultFade?: { duration, easing },  // the fade new show/hide actions start with
   setlists?: Setlist[],                // prepared running orders
+  operator?: { goHoldMs? },            // how the show is run: GO fires after a hold this long
 }
 ```
 
@@ -167,7 +168,7 @@ Trigger { id, name, color }
 Rule    { id, name, enabled, when, if: Condition[], then: Action[] }
 when    = trigger(triggerId) | momentClosed(momentId) | varChanged(varId) | cueFired(cueId) | mediaEnded(layerId)
 Command = go | panic | hold | back | standbyNext | standbyPrev | trigger(triggerId) | clearText | clearMedia | mute
-        | jump(target, fire)
+        | jump(target, fire) | countVote(option 1–6, momentId?)
 target  = scene(sceneId) | cue(cueId) | section(section) | nextScene | prevScene | restartScene
 inputs  = { keys: {key, command}[], midi: {kind: note|cc|program, channel|null, number, command}[], gamepad: {button, command}[] }
 ```
@@ -177,6 +178,8 @@ inputs  = { keys: {key, command}[], midi: {kind: note|cc|program, channel|null, 
 - **Esc is always PANIC.** The app adds it at runtime whatever `keys` says; a show can map extra panic keys.
 - **PANIC's secondary clears.** `clearText` fades text, counter and live-value layers off stage, and `clearMedia` fades pictures and video (pausing video). Pressed again before the next cue, each brings back what it took. `mute` silences all sound until pressed again; it is separate from the blackout. Older apps can't open shows that map them.
 - **`jump`** puts its target on standby, or fires it when `fire` is true (through the double-GO guard). Sections, and the next, previous and same scene, are found from the live cue in tonight's running order. MIDI `program` matches a program change, so a playback rig can start each song. Older apps can't open shows that map a jump or a program change.
+- **`countVote`** counts a vote for option N of the newest open vote (or of `momentId`), or a tap for a tap moment, from a button, pad or pedal: people without a phone take part. It adds to the phones' totals. Older apps can't open shows that map it.
+- **`operator.goHoldMs`** makes GO fire only after a key, pedal, pad or the GO button has been held that long; a shorter press doesn't fire. PANIC never waits.
 - **`back`** returns to the state before the operator's last GO (one step). Older apps don't know this command, so they can't open shows that map a key to it.
 
 ## Versioning

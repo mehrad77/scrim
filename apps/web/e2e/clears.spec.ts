@@ -42,6 +42,8 @@ test('PANIC’s secondary clears take text or media off stage and bring it back'
     'false',
   );
   await page.getByRole('tab', { name: 'Log' }).click();
-  await expect(page.getByText('Cleared pictures and video (1 layer)')).toBeVisible();
-  await expect(page.getByText('Sound muted')).toBeVisible();
+  // In the run log itself: the screen-reader announcer says the same words.
+  const log = page.locator('section', { has: page.getByRole('heading', { name: 'Run log' }) });
+  await expect(log.getByText('Cleared pictures and video (1 layer)')).toBeVisible();
+  await expect(log.getByText('Sound muted')).toBeVisible();
 });

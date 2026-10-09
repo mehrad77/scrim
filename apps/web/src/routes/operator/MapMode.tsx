@@ -251,6 +251,7 @@ export function commandName(host: ShowHost, c: Command): string {
     case 'mute':
       return 'Mute sound';
     case 'jump':
+    case 'countVote':
       return describeCommand(c, host.engine.show);
   }
 }

@@ -30,6 +30,7 @@ import { Lamp } from '../../ui/Lamp.js';
 import { Columns, Divider, Pane } from '../../ui/Layout.js';
 import { Tabs } from '../../ui/Tabs.js';
 import { HelpMode, InfoStrip } from '../../ui/Tooltip.js';
+import { Announcer } from './Announcer.js';
 import { AudiencePanel } from './AudiencePanel.js';
 import { CueStack } from './CueStack.js';
 import { GoPanel } from './GoPanel.js';
@@ -228,14 +229,21 @@ function OperatorView() {
       if ((e.target as HTMLElement | null)?.tagName === 'SELECT') (e.target as HTMLElement).blur();
     };
     const onFocus = () => setTyping(isTyping(document.activeElement));
+    // A hold-to-confirm GO counts from press to release.
+    const onKeyUp = (e: KeyboardEvent) => host.keyUp(e.key, e.code);
+    const onBlur = () => host.releaseAll();
     setEscapeIsPanic(true);
     window.addEventListener('keydown', onKey, { capture: true });
+    window.addEventListener('keyup', onKeyUp, { capture: true });
+    window.addEventListener('blur', onBlur);
     window.addEventListener('change', onChange, { capture: true });
     window.addEventListener('focusin', onFocus);
     window.addEventListener('focusout', onFocus);
     return () => {
       setEscapeIsPanic(false);
       window.removeEventListener('keydown', onKey, { capture: true });
+      window.removeEventListener('keyup', onKeyUp, { capture: true });
+      window.removeEventListener('blur', onBlur);
       window.removeEventListener('change', onChange, { capture: true });
       window.removeEventListener('focusin', onFocus);
       window.removeEventListener('focusout', onFocus);
@@ -324,6 +332,7 @@ function OperatorView() {
           </div>
         </header>
         <MessageStrip typing={typing} />
+        <Announcer />
         <main className="min-h-0 flex-1 border-t border-line-subtle">
           <Columns id="operator" locked={showMode}>
             <Pane id="cues" size="25%" min={280}>

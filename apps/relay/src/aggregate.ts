@@ -18,6 +18,8 @@ export interface AggregatorSnapshot {
 
 const MAX_ENTRIES_PER_CLIENT = 3;
 const MAX_TAPS_PER_SECOND = 15;
+/** People one shared tablet can answer for in one moment. */
+const MAX_BALLOTS_PER_DEVICE = 1000;
 
 /**
  * Collects audience input for the open moments. The host only ever receives
@@ -80,15 +82,25 @@ export class Aggregator {
     return changed;
   }
 
-  /** Apply one phone's input. Returns false if it was ignored. */
-  input(client: string, msg: Exclude<AudienceToRelay, { t: 'ping' }>, now: number): boolean {
+  /**
+   * Apply one phone's input. Returns false if it was ignored. `ballot` is set only for a shared
+   * tablet: then each ballot number is a person of its own, up to a cap per device.
+   */
+  input(
+    client: string,
+    msg: Exclude<AudienceToRelay, { t: 'ping' }>,
+    now: number,
+    ballot?: number,
+  ): boolean {
     const m = this.#moments.get(msg.momentId);
     if (!m || (m.spec.closesAt !== null && now > m.spec.closesAt)) return false;
     const { spec } = m;
+    const voter = ballot === undefined ? client : `${client}#${ballot}`;
+    if (ballot !== undefined && !this.#ballotFits(m, client, voter)) return false;
     switch (msg.t) {
       case 'vote':
         if (spec.type !== 'vote' || !spec.options.some((o) => o.id === msg.optionId)) return false;
-        m.votes[client] = msg.optionId;
+        m.votes[voter] = msg.optionId;
         break;
       case 'tap': {
         if (spec.type !== 'tap') return false;
@@ -99,13 +111,17 @@ export class Aggregator {
       }
       case 'slider':
         if (spec.type !== 'slider') return false;
-        m.sliders[client] = Math.min(spec.max, Math.max(spec.min, msg.value));
+        m.sliders[voter] = Math.min(spec.max, Math.max(spec.min, msg.value));
         break;
       case 'text': {
         if (spec.type !== 'text') return false;
-        if (m.entries.filter((e) => e.client === client).length >= MAX_ENTRIES_PER_CLIENT)
+        if (m.entries.filter((e) => e.client === voter).length >= MAX_ENTRIES_PER_CLIENT)
           return false;
-        m.entries.push({ id: `${client.slice(0, 8)}-${m.entries.length}`, text: msg.text, client });
+        m.entries.push({
+          id: `${client.slice(0, 8)}-${m.entries.length}`,
+          text: msg.text,
+          client: voter,
+        });
         break;
       }
     }
@@ -178,6 +194,21 @@ export class Aggregator {
       m.sent = m.entries.length;
     }
     return out;
+  }
+
+  /** A new person on a shared tablet is let in only while the device is under its cap. */
+  #ballotFits(m: MomentData, client: string, voter: string): boolean {
+    if (voter in m.votes || voter in m.sliders || m.entries.some((e) => e.client === voter))
+      return true;
+    const prefix = `${client}#`;
+    const people = new Set(
+      [
+        ...Object.keys(m.votes),
+        ...Object.keys(m.sliders),
+        ...m.entries.map((e) => e.client),
+      ].filter((k) => k.startsWith(prefix)),
+    );
+    return people.size < MAX_BALLOTS_PER_DEVICE;
   }
 
   #takeTaps(client: string, count: number, now: number): number {

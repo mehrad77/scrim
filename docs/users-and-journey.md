@@ -542,7 +542,7 @@ For each user, **Ideas** links to the cross-cutting ideas in [Accessible to all]
 - **Gaps:**
   - Templates and a simple mode.
   - Merging work from several groups into one show.
-  - Checks for admin policies.
+- **Since added:** the pre-show check says when the browser or the school's administrator blocks window management, pop-ups, full screen or MIDI, and names the Chrome policy where there is one.
 - **Ideas:** [3 inclusive operation](#3-inclusive-operation), [5 simple modes and templates](#5-simple-modes-and-templates), [2 relaxed mode](#2-relaxed-mode-and-a-flash-safety-check) for relaxed school performances.
 
 ### Museum or gallery curator (installations)
@@ -631,8 +631,8 @@ For each user, **Ideas** links to the cross-cutting ideas in [Accessible to all]
   - Moments with a default result.
 - **Gaps:**
   - The operator view is not designed for tablets.
-  - Shared-device participation.
   - Session templates.
+- **Since added:** a shared tablet passed around the group (each answer counts as one person, in large print), large buttons mapped to vote options, and counts the leader types in.
 - **Ideas:** [2 relaxed mode](#2-relaxed-mode-and-a-flash-safety-check) as the default, [4 no-phone participation](#4-no-phone-participation), [3 inclusive operation](#3-inclusive-operation), [5 simple modes and templates](#5-simple-modes-and-templates).
 
 ### Street or festival performer
@@ -796,9 +796,9 @@ Accessibility usually stops at the audience. Scrim should let **anyone run a sho
 | Way of operating                      | What it means in Scrim                                                                                                                                                                                                                                                                                          |
 | ------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Single switch** (also sip-and-puff) | Partly possible today: accessibility switches can send a key, and any key can map to GO. Missing: a **scanning mode** that steps through GO, Hold and Panic for one switch, with a pause to choose.                                                                                                             |
-| **Hold to confirm**                   | An option to fire GO only after a press is held, for example for half a second. This prevents accidental presses, helps people with tremor, and calms new volunteers. It works with Scrim's existing 300 ms double-GO guard.                                                                                    |
+| **Hold to confirm**                   | _Built._ An option to fire GO only after a press is held, for example for half a second. This prevents accidental presses, helps people with tremor, and calms new volunteers. It works with Scrim's existing 300 ms double-GO guard.                                                                           |
 | **Voice**                             | "Go", "hold", "standby next" spoken aloud, with Panic always on a physical key. The browser's speech recognition often sends audio to a server, which breaks the offline rule. Only on-device recognition is acceptable _(on-device support in Chrome unverified)_, and voice must never be the only way to GO. |
-| **Screen reader**                     | The operator view announces the standby cue, each fired cue, moment results and warnings (ARIA live regions). The editor works fully from the keyboard, and every control has a text label.                                                                                                                     |
+| **Screen reader**                     | _Built for the operator view:_ it announces the standby cue, each fired cue, moment results and warnings (ARIA live regions). The editor works fully from the keyboard, and every control has a text label.                                                                                                     |
 | **Large, high-contrast display**      | An operator theme with large text and high contrast. Status never relies on colour alone.                                                                                                                                                                                                                       |
 | **Touch, from a tablet**              | An operator layout for tablets, so leaders and performers can run a show while facing the room.                                                                                                                                                                                                                 |
 
@@ -808,17 +808,17 @@ Every option maps to the same commands the engine already understands (`go`, `ho
 
 An interactive moment should never shut out someone without a smartphone: older people, children, people without data, or people who don't want to use one.
 
-| Way to take part                  | How it fits                                                                                                                                                                                        |
-| --------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Shared venue tablets**          | The audience page in a "shared device" mode: it resets after each answer, so several people can use one tablet. Front of house hands them out.                                                     |
-| **Physical buttons and clickers** | Large arcade buttons, MIDI pads or gamepad buttons on the show machine, mapped to a moment's options. Scrim already reads MIDI and gamepads. They need a new command: "count a vote for option B". |
-| **Ushers' counts**                | An usher counts raised hands or coloured cards and enters the number on the front-of-house view. It is added to the moment's totals.                                                               |
-| **Applause meter**                | The show machine's microphone measures the cheer for each option. Everyone can take part, and it works with no network.                                                                            |
-| **Camera counting** _(later)_     | Coloured cards counted by a camera. Promising, but it needs care with privacy and reliability.                                                                                                     |
+| Way to take part                  | How it fits                                                                                                                                                                                           |
+| --------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Shared venue tablets**          | _Built._ The audience page in a "shared tablet" mode (its own QR code): large print, and after each answer it says _pass it on_, so several people can use one tablet. Front of house hands them out. |
+| **Physical buttons and clickers** | _Built._ Large arcade buttons, MIDI pads or gamepad buttons on the show machine, mapped to **Count a vote** for an option of whatever vote is open (or a tap).                                        |
+| **Ushers' counts**                | _Partly built._ An usher counts raised hands or coloured cards; the operator types the number on the moment and it is added to the totals. A front-of-house view to enter it is still to come.        |
+| **Applause meter**                | The show machine's microphone measures the cheer for each option. Everyone can take part, and it works with no network.                                                                               |
+| **Camera counting** _(later)_     | Coloured cards counted by a camera. Promising, but it needs care with privacy and reliability.                                                                                                        |
 
 How it fits:
 
-- **Engine:** these are local inputs that feed the same moment totals (`momentAgg`) as the relay, so the engine treats every source alike.
+- **Engine:** these are local inputs (`countVote`) that add to the same moment totals as the relay, kept per source, so the engine treats every source alike.
 - **A side benefit:** moments then work even with no network, which matters for care homes, museums and street shows.
 - **The operator's tally:** shows each source separately, so a dominant source is visible.
 

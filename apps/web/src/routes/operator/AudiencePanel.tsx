@@ -1,9 +1,9 @@
-import { formatValue, type MomentState } from '@scrim/engine';
+import { emptyAggregate, formatValue, type MomentState, type TallySource } from '@scrim/engine';
 import type { Moment } from '@scrim/format';
 import { Check, Copy, Plus, Radio, Smartphone, Users, X } from 'lucide-react';
 import QRCode from 'qrcode';
 import { useEffect, useState } from 'react';
-import { appBase, audienceUrl, remoteUrl } from '../../host/room.js';
+import { appBase, audienceUrl, remoteUrl, sharedUrl } from '../../host/room.js';
 import { epochNow } from '../../lib/clock.js';
 import { fakePhones } from '../../lib/simulate.js';
 import { isLocalHost } from '../../lib/config.js';
@@ -77,12 +77,15 @@ function Qr({ text, size = 132 }: { text: string; size?: number }) {
 function RoomInfo() {
   const [host, snap] = useHost();
   const { relay } = snap;
-  const [who, setWho] = useState<'audience' | 'remote'>('audience');
+  const [who, setWho] = useState<'audience' | 'shared' | 'remote'>('audience');
   const [, setBase] = useState(appBase);
   const room = relay.room;
   const local = isLocalHost(new URL(appBase()).hostname);
   if (!room) return <p className="p-2 text-ui text-fg-muted">{relay.error ?? 'Opening room…'}</p>;
-  const url = who === 'audience' ? audienceUrl(room) : remoteUrl(room);
+  const shared = sharedUrl(room);
+  const url =
+    who === 'remote' ? remoteUrl(room) : who === 'shared' && shared ? shared : audienceUrl(room);
+  const kinds = ['audience', ...(shared ? ['shared' as const] : []), 'remote'] as const;
   return (
     <div className="rounded-control border border-line-subtle p-2">
       <div className="flex items-center gap-2">
@@ -123,7 +126,7 @@ function RoomInfo() {
       {snap.mode !== 'show' && (
         <>
           <div className="mt-2 flex gap-1">
-            {(['audience', 'remote'] as const).map((w) => (
+            {kinds.map((w) => (
               <button
                 key={w}
                 onClick={() => setWho(w)}
@@ -132,7 +135,11 @@ function RoomInfo() {
                   who === w ? 'bg-control-active' : 'text-fg-subtle hover:bg-control-hover',
                 )}
               >
-                {w === 'audience' ? 'Audience QR' : 'Performer remote QR'}
+                {w === 'audience'
+                  ? 'Audience QR'
+                  : w === 'shared'
+                    ? 'Shared tablet'
+                    : 'Performer remote QR'}
               </button>
             ))}
           </div>
@@ -142,7 +149,9 @@ function RoomInfo() {
               <p className="text-fg-muted">
                 {who === 'audience'
                   ? 'Project this, print it, or put it on the tickets.'
-                  : 'Only for performers: it can fire triggers.'}
+                  : who === 'shared'
+                    ? 'Open it on a tablet that is passed around: each answer counts as one more person.'
+                    : 'Only for performers: it can fire triggers.'}
               </p>
               <Button
                 size="sm"
@@ -220,6 +229,8 @@ function MomentCard({
         )}
       </div>
       {(open || ms.status === 'closed') && <Results moment={m} ms={ms} />}
+      {(open || ms.status === 'closed') && <Sources moment={m} ms={ms} />}
+      {open && (m.type === 'vote' || m.type === 'tap') && <AddCount moment={m} />}
       {ms.status === 'closed' && (
         <div className="mt-1 text-caption text-fg-muted">
           Result:{' '}
@@ -310,7 +321,7 @@ function MomentCard({
             {rehearsal && (
               <div
                 className="flex items-center gap-1"
-                data-info="Rehearsal only: pretend phones answer. Real phones' totals replace them."
+                data-info="Rehearsal only: pretend phones answer, on top of real phones, buttons and counts."
               >
                 <NumberInput
                   aria-label="Pretend phones"
@@ -324,7 +335,12 @@ function MomentCard({
                   size="sm"
                   icon={<Smartphone size={12} />}
                   onClick={() => {
-                    const agg = fakePhones(host.engine.show, m.id, phones, ms);
+                    const agg = fakePhones(
+                      host.engine.show,
+                      m.id,
+                      phones,
+                      ms.sources?.sim ?? emptyAggregate(),
+                    );
                     if (agg) host.dispatch(agg);
                   }}
                 >
@@ -341,6 +357,82 @@ function MomentCard({
           )
         )}
       </div>
+    </div>
+  );
+}
+
+const SOURCE_LABEL: Record<TallySource, string> = {
+  relay: 'Phones',
+  sim: 'Pretend',
+  buttons: 'Buttons',
+  counted: 'Counted',
+};
+
+/** Where the input came from, once anything but phones has added to it. */
+function Sources({ moment: m, ms }: { moment: Moment; ms: MomentState }) {
+  const parts = Object.entries(ms.sources ?? {}).flatMap(([source, a]) => {
+    const n = m.type === 'tap' ? a.count : a.n;
+    return n > 0 ? [{ label: SOURCE_LABEL[source as TallySource], n }] : [];
+  });
+  if (!parts.some((p) => p.label !== 'Phones')) return null;
+  return (
+    <div className="mt-1 text-caption text-fg-subtle" data-testid="sources">
+      {parts.map((p) => `${p.label} ${p.n}`).join(' · ')}
+    </div>
+  );
+}
+
+/**
+ * Add a count from the room: raised hands, coloured cards, an usher's tally. Negative numbers
+ * correct a mistake. It adds to phones and buttons, never replaces them.
+ */
+function AddCount({ moment: m }: { moment: Moment }) {
+  const [host] = useHost();
+  const [option, setOption] = useState(m.options[0]?.id ?? '');
+  const [amount, setAmount] = useState(1);
+  return (
+    <div
+      className="mt-2 flex items-center gap-1"
+      data-info="Raised hands, cards, an usher's count: added to what phones and buttons sent"
+    >
+      <span className="text-caption text-fg-muted">Add</span>
+      <NumberInput
+        aria-label="How many"
+        className="w-16"
+        value={amount}
+        min={-999}
+        max={999}
+        onCommit={setAmount}
+      />
+      {m.type === 'vote' && (
+        <Select
+          aria-label="For option"
+          className="h-7 w-32 text-caption"
+          value={option}
+          onChange={(e) => setOption(e.target.value)}
+        >
+          {m.options.map((o) => (
+            <option key={o.id} value={o.id}>
+              {o.label}
+            </option>
+          ))}
+        </Select>
+      )}
+      <Button
+        size="sm"
+        disabled={!amount}
+        onClick={() =>
+          host.dispatch({
+            type: 'countVote',
+            momentId: m.id,
+            amount,
+            source: 'counted',
+            ...(m.type === 'vote' ? { optionId: option } : {}),
+          })
+        }
+      >
+        {m.type === 'tap' ? 'Add taps' : 'Add votes'}
+      </Button>
     </div>
   );
 }

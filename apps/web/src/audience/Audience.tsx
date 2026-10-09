@@ -15,11 +15,18 @@ import { RelayClient, type RelayStatus } from '../transport/relay.js';
 
 type Send = (msg: AudienceToRelay) => boolean;
 
-/** The page audience phones open from the QR code. Anonymous; nothing to install. */
+/**
+ * The page audience phones open from the QR code. Anonymous; nothing to install. With the
+ * shared key (`s`) it is a tablet passed around: each answer carries a ballot number and counts
+ * as one more person, and after each answer it says to pass it on.
+ */
 export function Audience() {
   const params = new URLSearchParams(location.search);
   const [code, setCode] = useState(() => (params.get('r') ?? '').toUpperCase());
   const relayUrl = params.get('relay') || defaultRelayUrl();
+  const sharedKey = params.get('s');
+  const [ballot, setBallot] = useStored<number>('scrim.ballot', 1);
+  const [passOn, setPassOn] = useState(false);
   const [title, setTitle] = useState('');
   const [moments, setMoments] = useState<PublicMoment[]>([]);
   const [status, setStatus] = useState<RelayStatus>('connecting');
@@ -35,6 +42,7 @@ export function Audience() {
       code,
       role: 'audience',
       client: clientId('scrim.audienceId'),
+      ...(sharedKey ? { key: sharedKey } : {}),
       fatal: [CLOSE.notFound, CLOSE.full],
     });
     relay.current = client;
@@ -56,12 +64,13 @@ export function Audience() {
           for (const kind of ['vote', 'slider', 'text']) forget(`${kind}:${gone}`);
         }
         prev.current = ids;
+        if (!ids.length) setPassOn(false);
         setMoments(m.moments);
         if (m.moments.length) navigator.vibrate?.(60);
       }
     });
     return () => client.close();
-  }, [code, relayUrl]);
+  }, [code, relayUrl, sharedKey]);
 
   useEffect(() => {
     document.title = title ? `${title} · join` : 'Join the show';
@@ -69,7 +78,18 @@ export function Audience() {
 
   if (code.length !== ROOM_CODE_LENGTH) return <CodeEntry onCode={setCode} />;
 
-  const send: Send = (msg) => relay.current?.send(msg) ?? false;
+  const send: Send = (msg) => {
+    if (!sharedKey || msg.t === 'tap' || msg.t === 'ping') return relay.current?.send(msg) ?? false;
+    return relay.current?.send({ ...msg, ballot }) ?? false;
+  };
+  // A shared tablet thanks each person once they've answered (sliders say when they're done).
+  const answered = () => sharedKey && setPassOn(true);
+  const nextPerson = () => {
+    for (const m of moments)
+      for (const kind of ['vote', 'slider', 'text']) forget(`${kind}:${m.id}`);
+    setBallot(ballot + 1);
+    setPassOn(false);
+  };
   const offset = () => relay.current?.offset ?? 0;
 
   return (
@@ -121,14 +141,53 @@ export function Audience() {
               : 'Keep this page open. When it is your turn, it will light up here.'}
           </p>
         </Center>
+      ) : passOn ? (
+        <PassOn onNext={nextPerson} onBack={() => setPassOn(false)} />
       ) : (
         <div className="flex flex-col gap-8">
           {moments.map((m) => (
-            <MomentView key={m.id} moment={m} send={send} offset={offset} />
+            // A new person gets fresh answers: the ballot keys each moment's view.
+            <MomentView
+              key={`${m.id}:${ballot}`}
+              moment={m}
+              send={send}
+              offset={offset}
+              shared={!!sharedKey}
+              onAnswered={answered}
+            />
           ))}
         </div>
       )}
     </div>
+  );
+}
+
+/** Between people on a shared tablet: thanks, then the next person, on a tap or after 5 s. */
+function PassOn({ onNext, onBack }: { onNext: () => void; onBack: () => void }) {
+  const next = useRef(onNext);
+  next.current = onNext;
+  useEffect(() => {
+    const id = setTimeout(() => next.current(), 5000);
+    return () => clearTimeout(id);
+  }, []);
+  return (
+    <Center>
+      <span className="aud-pop mb-5 flex size-14 items-center justify-center rounded-full bg-accent text-accent-fg">
+        <Check size={28} strokeWidth={2.5} aria-hidden />
+      </span>
+      <p className="font-display text-2xl font-semibold" role="status">
+        Thank you — pass it on
+      </p>
+      <button
+        className="mt-8 w-64 rounded-control bg-accent py-5 text-xl font-semibold text-accent-fg"
+        onClick={onNext}
+      >
+        Next person
+      </button>
+      <button className="mt-4 text-ui text-fg-muted underline" onClick={onBack}>
+        Change my answer
+      </button>
+    </Center>
   );
 }
 
@@ -222,10 +281,14 @@ function MomentView({
   moment: m,
   send,
   offset,
+  shared,
+  onAnswered,
 }: {
   moment: PublicMoment;
   send: Send;
   offset: () => number;
+  shared: boolean;
+  onAnswered: () => void;
 }) {
   return (
     <section className="aud-enter flex flex-col gap-4">
@@ -233,10 +296,12 @@ function MomentView({
         <h2 className="font-display text-2xl leading-tight font-semibold">{m.prompt}</h2>
         <Countdown closesAt={m.closesAt} offset={offset} />
       </div>
-      {m.type === 'vote' && <Vote moment={m} send={send} />}
+      {m.type === 'vote' && <Vote moment={m} send={send} onAnswered={onAnswered} />}
       {m.type === 'tap' && <Tap moment={m} send={send} />}
-      {m.type === 'slider' && <Slider moment={m} send={send} />}
-      {m.type === 'text' && <TextEntry moment={m} send={send} />}
+      {m.type === 'slider' && (
+        <Slider moment={m} send={send} onDone={shared ? onAnswered : undefined} />
+      )}
+      {m.type === 'text' && <TextEntry moment={m} send={send} onAnswered={onAnswered} />}
       {m.type === 'prop' && m.prop && (
         <div className="rounded-control border border-line-control bg-control p-6">
           <div className="label-caps text-fg-subtle">{m.prop.label}</div>
@@ -248,7 +313,15 @@ function MomentView({
   );
 }
 
-function Vote({ moment: m, send }: { moment: PublicMoment; send: Send }) {
+function Vote({
+  moment: m,
+  send,
+  onAnswered,
+}: {
+  moment: PublicMoment;
+  send: Send;
+  onAnswered: () => void;
+}) {
   const [choice, setChoice] = useStored<string | null>(`vote:${m.id}`, null);
   return (
     <div className="flex flex-col gap-3">
@@ -259,6 +332,7 @@ function Vote({ moment: m, send }: { moment: PublicMoment; send: Send }) {
             if (send({ t: 'vote', momentId: m.id, optionId: o.id })) {
               setChoice(o.id);
               navigator.vibrate?.(30);
+              onAnswered();
             }
           }}
           aria-pressed={choice === o.id}
@@ -355,7 +429,16 @@ function Tap({ moment: m, send }: { moment: PublicMoment; send: Send }) {
   );
 }
 
-function Slider({ moment: m, send }: { moment: PublicMoment; send: Send }) {
+function Slider({
+  moment: m,
+  send,
+  onDone,
+}: {
+  moment: PublicMoment;
+  send: Send;
+  /** A shared tablet: the person says when they're done, since a slider can keep moving. */
+  onDone?: (() => void) | undefined;
+}) {
   const [value, setValue] = useStored<number>(`slider:${m.id}`, Math.round((m.min + m.max) / 2));
   const [sent, setSent] = useState(false);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -383,11 +466,27 @@ function Slider({ moment: m, send }: { moment: PublicMoment; send: Send }) {
         <span>{sent ? 'Sent' : ' '}</span>
         <span>{m.max}</span>
       </div>
+      {onDone && sent && (
+        <button
+          className="mt-2 rounded-control bg-accent py-4 text-lg font-semibold text-accent-fg"
+          onClick={onDone}
+        >
+          Done
+        </button>
+      )}
     </div>
   );
 }
 
-function TextEntry({ moment: m, send }: { moment: PublicMoment; send: Send }) {
+function TextEntry({
+  moment: m,
+  send,
+  onAnswered,
+}: {
+  moment: PublicMoment;
+  send: Send;
+  onAnswered: () => void;
+}) {
   const [text, setText] = useState('');
   const [sent, setSent] = useStored<number>(`text:${m.id}`, 0);
   if (sent >= 3) return <p className="text-fg-muted">Thanks — you've sent the maximum of three.</p>;
@@ -400,6 +499,7 @@ function TextEntry({ moment: m, send }: { moment: PublicMoment; send: Send }) {
         if (t && send({ t: 'text', momentId: m.id, text: t })) {
           setSent(sent + 1);
           setText('');
+          onAnswered();
         }
       }}
     >

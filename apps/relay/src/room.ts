@@ -21,11 +21,15 @@ import type { Env } from './env.js';
 interface Attachment {
   role: Role;
   client: string;
+  /** An audience socket for a shared tablet: its answers count per ballot. */
+  shared?: boolean;
 }
 
 interface Keys {
   hostKey: string;
   deviceKey: string;
+  /** Absent in rooms made before shared tablets. */
+  sharedKey?: string;
   createdAt: number;
 }
 
@@ -89,12 +93,18 @@ export class Room extends DurableObject<Env> {
     this.#show = null;
     this.#state = null;
     this.#remoteView = null;
-    this.#keys = { hostKey: secret(), deviceKey: secret(), createdAt: Date.now() };
+    this.#keys = {
+      hostKey: secret(),
+      deviceKey: secret(),
+      sharedKey: secret(),
+      createdAt: Date.now(),
+    };
     await this.ctx.storage.put('keys', this.#keys);
     await this.ctx.storage.setAlarm(Date.now() + IDLE_EXPIRY_MS);
     const body: Omit<CreateRoomResponse, 'code'> = {
       hostKey: this.#keys.hostKey,
       deviceKey: this.#keys.deviceKey,
+      sharedKey: this.#keys.sharedKey!,
     };
     return Response.json(body);
   }
@@ -133,8 +143,13 @@ export class Room extends DurableObject<Env> {
         ws.close(CLOSE.replaced, 'Another operator took over');
     }
 
+    const shared = role === 'audience' && !!this.#keys.sharedKey && key === this.#keys.sharedKey;
     this.ctx.acceptWebSocket(server, [role]);
-    server.serializeAttachment({ role, client } satisfies Attachment);
+    server.serializeAttachment({
+      role,
+      client,
+      ...(shared ? { shared } : {}),
+    } satisfies Attachment);
     void this.ctx.storage.setAlarm(Date.now() + IDLE_EXPIRY_MS);
 
     switch (role) {
@@ -187,7 +202,9 @@ export class Room extends DurableObject<Env> {
         if (!parsed.success) return;
         if (parsed.data.t === 'ping')
           return send(ws, { t: 'pong', c: parsed.data.c, s: Date.now() });
-        if (this.#agg.input(att.client, parsed.data, Date.now())) this.#scheduleFlush();
+        // A ballot counts only from a shared tablet; a phone's own answers are one person.
+        const ballot = att.shared && 'ballot' in parsed.data ? parsed.data.ballot : undefined;
+        if (this.#agg.input(att.client, parsed.data, Date.now(), ballot)) this.#scheduleFlush();
         return;
       }
       case 'remote': {

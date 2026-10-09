@@ -1,6 +1,7 @@
 import { AlertTriangle, CheckCircle2, Circle, Loader2, XCircle } from 'lucide-react';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { testTone } from '../../host/audio.js';
+import { checkCapabilities, type Capability } from '../../lib/capabilities.js';
 import { formatBytes } from '../../lib/clock.js';
 import { AUDIO_DEVICES_KEY, readLocal } from '../../lib/local.js';
 import { checkLogic } from '../../lib/logic.js';
@@ -34,6 +35,7 @@ export function PreshowCheck({ onClose }: { onClose: () => void }) {
   const [storage, setStorage] = useState<StorageInfo | null>(null);
   const [confirmed, setConfirmed] = useState<Record<string, boolean>>({});
   const [sw, setSw] = useState<boolean | null>(null);
+  const [caps, setCaps] = useState<Capability[] | null>(null);
 
   useEffect(() => {
     dialog.current?.showModal();
@@ -49,6 +51,13 @@ export function PreshowCheck({ onClose }: { onClose: () => void }) {
     setSw(!!navigator.serviceWorker?.controller);
   }, [show.media]);
 
+  const usesMidiInputs = show.inputs.midi.length > 0;
+  useEffect(() => {
+    void checkCapabilities({ outputs: show.outputs.length > 0, midi: usesMidiInputs }).then(
+      setCaps,
+    );
+  }, [show.outputs.length, usesMidiInputs, snap.midi]);
+
   const totalMedia = show.media.reduce((n, m) => n + m.size, 0);
   const devices = readLocal<Record<string, string>>(AUDIO_DEVICES_KEY, {});
   const hasSound = show.layers.some((l) => l.kind === 'audio' || l.kind === 'video');
@@ -56,6 +65,27 @@ export function PreshowCheck({ onClose }: { onClose: () => void }) {
   const needsRemotes = show.triggers.length > 0;
   const usesMidi = show.inputs.midi.length > 0;
   const logic = checkLogic(show);
+
+  // MIDI the show maps but can't reach fails; a blocked window or full screen only slows tech.
+  const blocked = (caps ?? []).filter((c) => c.state === 'blocked' || c.state === 'unsupported');
+  const capItem: Item = {
+    id: 'browser',
+    title: 'This browser allows what the show needs',
+    status:
+      caps === null
+        ? 'pending'
+        : blocked.some((c) => c.id === 'midi')
+          ? 'fail'
+          : blocked.length
+            ? 'warn'
+            : 'ok',
+    detail:
+      caps === null
+        ? 'Checking…'
+        : blocked.length
+          ? blocked.map((c) => `${c.title}: ${c.detail}`).join(' ')
+          : caps.map((c) => `${c.title}: ${c.detail}`).join(' ') || 'Nothing special needed.',
+  };
 
   const items: Item[] = [
     {
@@ -147,6 +177,7 @@ export function PreshowCheck({ onClose }: { onClose: () => void }) {
           },
         ]
       : []),
+    capItem,
     {
       id: 'wake',
       title: 'Screen wake lock held',

@@ -19,15 +19,16 @@ Two transports carry the same ideas: the operator tab is authoritative and broad
 
 ### Windows → operator
 
-| `t`            | Fields                                        | Sent by                                                       |
-| -------------- | --------------------------------------------- | ------------------------------------------------------------- |
-| `hello`        | `clientId, role (output \| editor), outputId` | On open                                                       |
-| `outputBeat`   | `clientId, outputId, status`                  | Output windows, every 500 ms                                  |
-| `mediaEnded`   | `layerId`                                     | Output window, when a non-looping video ends                  |
-| `audioBlocked` | `outputId`                                    | Output window, when sound needs a click                       |
-| `key`          | `key`                                         | Output windows (all keys), editor (Escape)                    |
-| `showSaved`    | `show`                                        | Editor, after each autosave, so a running show picks up edits |
-| `bye`          | `clientId`                                    | On close                                                      |
+| `t`            | Fields                                        | Sent by                                                        |
+| -------------- | --------------------------------------------- | -------------------------------------------------------------- |
+| `hello`        | `clientId, role (output \| editor), outputId` | On open                                                        |
+| `outputBeat`   | `clientId, outputId, status`                  | Output windows, every 500 ms                                   |
+| `mediaEnded`   | `layerId`                                     | Output window, when a non-looping video ends                   |
+| `audioBlocked` | `outputId`                                    | Output window, when sound needs a click                        |
+| `key`          | `key`                                         | Output windows (all keys), editor (Escape)                     |
+| `keyUp`        | `key`                                         | Output windows: the key came back up, for a hold-to-confirm GO |
+| `showSaved`    | `show`                                        | Editor, after each autosave, so a running show picks up edits  |
+| `bye`          | `clientId`                                    | On close                                                       |
 
 `status` is `{ fullscreen, width, height, screen, errors }`. An output with no beat for 2 s is reported as lost.
 
@@ -35,23 +36,26 @@ Two transports carry the same ideas: the operator tab is authoritative and broad
 
 ### HTTP
 
-| Request                                         | Response                                                                                         |
-| ----------------------------------------------- | ------------------------------------------------------------------------------------------------ |
-| `POST /api/rooms`                               | `{ code, hostKey, deviceKey }`; `code` is five characters from `ABCDEFGHJKMNPQRSTUVWXYZ23456789` |
-| `GET /api/rooms/:code`                          | `{ exists, title }`                                                                              |
-| `GET /api/rooms/:code/ws?role=…&client=…&key=…` | WebSocket upgrade                                                                                |
-| `GET /health`                                   | `ok`                                                                                             |
+| Request                                         | Response                                                                                                    |
+| ----------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| `POST /api/rooms`                               | `{ code, hostKey, deviceKey, sharedKey }`; `code` is five characters from `ABCDEFGHJKMNPQRSTUVWXYZ23456789` |
+| `GET /api/rooms/:code`                          | `{ exists, title }`                                                                                         |
+| `GET /api/rooms/:code/ws?role=…&client=…&key=…` | WebSocket upgrade                                                                                           |
+| `GET /health`                                   | `ok`                                                                                                        |
 
 ### Roles and keys
 
-| `role`     | `key`       | Purpose                                                       |
-| ---------- | ----------- | ------------------------------------------------------------- |
-| `host`     | `hostKey`   | The operator tab. A new host connection replaces the old one. |
-| `output`   | `deviceKey` | A remote output on another device                             |
-| `remote`   | `deviceKey` | A performer remote                                            |
-| `audience` | none        | Audience phones; the room code is enough                      |
+| `role`     | `key`       | Purpose                                                                          |
+| ---------- | ----------- | -------------------------------------------------------------------------------- |
+| `host`     | `hostKey`   | The operator tab. A new host connection replaces the old one.                    |
+| `output`   | `deviceKey` | A remote output on another device                                                |
+| `remote`   | `deviceKey` | A performer remote                                                               |
+| `audience` | none        | Audience phones; the room code is enough                                         |
+| `audience` | `sharedKey` | A shared tablet passed from person to person: each `ballot` counts as one person |
 
 `client` is a stable id per device (6–40 characters from `[A-Za-z0-9_-]`). Audience phones keep theirs in `localStorage`, so votes survive a reload.
+
+A **shared tablet** joins with `sharedKey`. Its `vote`, `slider` and `text` messages carry `ballot` (0–100000), and each ballot counts as its own person, up to 1000 per tablet per moment; `ballot` is ignored from sockets without the key. Rooms made before shared tablets have no `sharedKey`.
 
 ### Host → relay
 
@@ -82,16 +86,16 @@ Two transports carry the same ideas: the operator tab is authoritative and broad
 
 These messages are untrusted and validated with zod.
 
-| Role     | `t`          | Fields                         | Limits                                                  |
-| -------- | ------------ | ------------------------------ | ------------------------------------------------------- |
-| audience | `vote`       | `momentId, optionId`           | The latest vote per phone counts                        |
-| audience | `tap`        | `momentId, count` (1–50)       | 15 taps per second per phone                            |
-| audience | `slider`     | `momentId, value`              | Clamped to the moment's range                           |
-| audience | `text`       | `momentId, text` (1–280 chars) | 3 entries per phone per moment                          |
-| remote   | `trigger`    | `triggerId`                    | Answered with `ack`, or `error` if no host is connected |
-| remote   | `ready`      | `cueId`                        | Acknowledged by the host's next `remoteView` (`ready`)  |
-| output   | `outputBeat` | `outputId, status`             | —                                                       |
-| all      | `ping`       | `c`                            | —                                                       |
+| Role     | `t`          | Fields                                  | Limits                                                         |
+| -------- | ------------ | --------------------------------------- | -------------------------------------------------------------- |
+| audience | `vote`       | `momentId, optionId, ballot?`           | The latest vote per phone (or per shared-tablet ballot) counts |
+| audience | `tap`        | `momentId, count` (1–50)                | 15 taps per second per phone                                   |
+| audience | `slider`     | `momentId, value, ballot?`              | Clamped to the moment's range                                  |
+| audience | `text`       | `momentId, text, ballot?` (1–280 chars) | 3 entries per phone (or ballot) per moment                     |
+| remote   | `trigger`    | `triggerId`                             | Answered with `ack`, or `error` if no host is connected        |
+| remote   | `ready`      | `cueId`                                 | Acknowledged by the host's next `remoteView` (`ready`)         |
+| output   | `outputBeat` | `outputId, status`                      | —                                                              |
+| all      | `ping`       | `c`                                     | —                                                              |
 
 Every non-host socket is limited to 30 messages per second and 4 KB per message. Input for a moment that is closed, past its `closesAt`, or of the wrong type is dropped.
 

@@ -30,6 +30,7 @@ export function InputsTab() {
 
 function encode(c: Command): string {
   if (c.type === 'trigger') return `trigger:${c.triggerId}`;
+  if (c.type === 'countVote') return `count:${c.option}`;
   if (c.type !== 'jump') return c.type;
   const t = c.target;
   return t.to === 'scene'
@@ -42,7 +43,9 @@ function encode(c: Command): string {
 /** The command a picker value stands for; a jump keeps the section and "fire" it had. */
 function decode(v: string, prev: Command, show: Show): Command {
   if (v.startsWith('trigger:')) return { type: 'trigger', triggerId: v.slice(8) };
-  if (!v.startsWith('jump:')) return { type: v as Exclude<Command['type'], 'trigger' | 'jump'> };
+  if (v.startsWith('count:')) return { type: 'countVote', option: Number(v.slice(6)) };
+  if (!v.startsWith('jump:'))
+    return { type: v as Exclude<Command['type'], 'trigger' | 'jump' | 'countVote'> };
   const [, to = '', id = ''] = v.split(':');
   const was = prev.type === 'jump' ? prev : null;
   const target: JumpTarget =
@@ -101,6 +104,13 @@ function CommandPicker({
             ))}
           </optgroup>
         )}
+        <optgroup label="Count a vote (people without a phone)">
+          {[1, 2, 3, 4, 5, 6].map((n) => (
+            <option key={n} value={`count:${n}`}>
+              Vote for option {n} (or a tap)
+            </option>
+          ))}
+        </optgroup>
         <optgroup label="Jump (tonight's running order)">
           <option value="jump:nextScene">Next scene</option>
           <option value="jump:prevScene">Previous scene</option>
@@ -186,6 +196,28 @@ function KeysPanel() {
       <p className="mb-2 text-caption text-fg-subtle">
         Keys work in the operator view and in output windows. Panic also works from the editor.
       </p>
+      <label
+        className="mb-3 flex items-center gap-2 text-caption text-fg-muted"
+        data-info="Against accidental presses, for shaky hands and nervous volunteers. Applies to keys, pedals, pads and the GO button."
+      >
+        GO fires
+        <Select
+          className="w-44"
+          value={String(show.operator?.goHoldMs ?? 0)}
+          onChange={(e) =>
+            update((d) => {
+              const ms = Number(e.target.value);
+              d.operator = { ...d.operator, goHoldMs: ms };
+              if (!ms) delete d.operator.goHoldMs;
+            })
+          }
+        >
+          <option value="0">on press</option>
+          <option value="300">after a 0.3 s hold</option>
+          <option value="500">after a 0.5 s hold</option>
+          <option value="1000">after a 1 s hold</option>
+        </Select>
+      </label>
       <div
         className="mb-1 flex items-center gap-2"
         data-info="Esc always fires Panic, in every window"
@@ -239,7 +271,8 @@ function MidiPanel() {
   useEffect(() => {
     if (devices === null) return;
     let stop: (() => void) | null = null;
-    void listenMidi(setLast, setDevices)
+    // Learn takes presses, never the release that follows them.
+    void listenMidi((e) => !e.release && setLast(e), setDevices)
       .then((s) => (stop = s))
       .catch(errorToast);
     return () => stop?.();

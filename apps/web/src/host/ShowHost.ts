@@ -6,7 +6,9 @@ import {
   type EngineInput,
   type EngineState,
   type InputSource,
+  type MomentState,
   type RunOrder,
+  type TallySource,
 } from '@scrim/engine';
 import { cueOrder, uid, type Command, type Show } from '@scrim/format';
 import {
@@ -28,7 +30,14 @@ import { saveShow } from '../storage/shows.js';
 import { ShowChannel } from '../transport/local.js';
 import { RelayClient, type RelayStatus } from '../transport/relay.js';
 import { AudioEngine } from './audio.js';
-import { keyCommand, listenGamepads, listenMidi, midiCommand, type MidiEvent } from './inputs.js';
+import {
+  keyCommand,
+  keyToCode,
+  listenGamepads,
+  listenMidi,
+  midiCommand,
+  type MidiEvent,
+} from './inputs.js';
 import { createRoom, storedRoom, type RoomInfo } from './room.js';
 
 const BEAT_MS = 500;
@@ -36,6 +45,24 @@ const LOST_AFTER_MS = 2000;
 const JOURNAL_MS = 250;
 const LOG_LIMIT = 500;
 const DOUBLE_GO_MS = 300;
+
+const SOURCE_NAMES: Record<TallySource, string> = {
+  relay: 'phones',
+  sim: 'pretend phones',
+  buttons: 'buttons',
+  counted: 'counted',
+};
+
+/** " · phones 31, buttons 9": where a moment's input came from, when not just phones. */
+function sourceBreakdown(m: MomentState | undefined, type: string | undefined): string {
+  const parts = Object.entries(m?.sources ?? {}).flatMap(([source, a]) => {
+    const n = type === 'tap' ? a.count : a.n;
+    return n > 0 ? [`${SOURCE_NAMES[source as TallySource]} ${n}`] : [];
+  });
+  return parts.length > 1 || (parts.length === 1 && !parts[0]!.startsWith('phones '))
+    ? ` · ${parts.join(', ')}`
+    : '';
+}
 
 /** State for output windows and the relay: they never need the Back snapshot. */
 function publicState(state: EngineState): EngineState {
@@ -84,6 +111,10 @@ export interface HostSnapshot {
   goDroppedAt: number | null;
   /** Deliberate deviations from the script this run (forced results, edits, moved standby). */
   offScript: OffScriptEntry[];
+  /** A GO being held down until the show's hold time passes; null when nothing is held. */
+  goHold: { since: number; ms: number } | null;
+  /** When a held GO was let go too soon, so the operator view can say how long to hold. */
+  goHoldShortAt: number | null;
 }
 
 /** A controller press taken by Map mode instead of running its command. */
@@ -141,6 +172,11 @@ export class ShowHost {
   #goDroppedAt: number | null = null;
   #offScript: OffScriptEntry[] = [];
   #capture: ((input: CapturedInput) => void) | null = null;
+  /** Inputs held down for a hold-to-confirm GO, by physical input; the timer fires it. */
+  #holds = new Map<string, { since: number; timer: ReturnType<typeof setTimeout> | null }>();
+  #goHoldShortAt: number | null = null;
+  /** When each button last counted a vote, so a bouncing contact counts once. */
+  #lastCount = new Map<string, number>();
 
   constructor(
     show: Show,
@@ -194,6 +230,7 @@ export class ShowHost {
       listenGamepads(
         (button) => this.#gamepad(button),
         (names) => this.#set(() => (this.#gamepads = names)),
+        (button) => this.release(`pad:${button}`),
       ),
     );
     if (show.inputs.midi.length) void this.enableMidi();
@@ -310,6 +347,20 @@ export class ShowHost {
         if (!c.fire || this.#goGuard())
           this.dispatch({ type: 'jump', target: c.target, fire: c.fire, source });
         return;
+      case 'countVote': {
+        // A bouncing button contact must count one person once.
+        const key = `${source}:${c.option}`;
+        const now = Date.now();
+        if (now - (this.#lastCount.get(key) ?? 0) < DOUBLE_GO_MS) return;
+        this.#lastCount.set(key, now);
+        this.dispatch({
+          type: 'countVote',
+          option: c.option,
+          source: 'buttons',
+          ...(c.momentId ? { momentId: c.momentId } : {}),
+        });
+        return;
+      }
       case 'panic':
         return this.dispatch({ type: 'panic' });
       case 'hold':
@@ -353,8 +404,48 @@ export class ShowHost {
   key(key: string, source: InputSource = 'keyboard', code?: string): boolean {
     const c = keyCommand(this.engine.show.inputs, key, code);
     if (!c) return false;
-    this.command(c, source);
+    this.press(c, source, `key:${code || keyToCode(key)}`);
     return true;
+  }
+
+  keyUp(key: string, code?: string): void {
+    this.release(`key:${code || keyToCode(key)}`);
+  }
+
+  /**
+   * A key, pedal, pad or the GO button went down. With a hold time set, GO fires only once the
+   * same input has been held that long (UX_PRINCIPLES › inclusive operation); everything else
+   * acts on the press.
+   */
+  press(c: Command, source: InputSource, input: string): void {
+    const ms = this.engine.show.operator?.goHoldMs ?? 0;
+    if (c.type !== 'go' || ms <= 0) return this.command(c, source);
+    if (this.#holds.has(input)) return;
+    const hold = { since: Date.now(), timer: null as ReturnType<typeof setTimeout> | null };
+    hold.timer = setTimeout(() => {
+      hold.timer = null;
+      this.command({ type: 'go' }, source);
+      this.#build();
+    }, ms);
+    this.#holds.set(input, hold);
+    this.#build();
+  }
+
+  /** That input came back up. A GO let go before its hold time doesn't fire. */
+  release(input: string, early = true): void {
+    const hold = this.#holds.get(input);
+    if (!hold) return;
+    this.#holds.delete(input);
+    if (hold.timer) {
+      clearTimeout(hold.timer);
+      if (early) this.#goHoldShortAt = Date.now();
+    }
+    this.#build();
+  }
+
+  /** Let go of everything held, as when the window loses focus mid-press. */
+  releaseAll(): void {
+    for (const input of [...this.#holds.keys()]) this.release(input, false);
   }
 
   setMode(mode: RunMode): void {
@@ -394,9 +485,11 @@ export class ShowHost {
     try {
       const stop = await listenMidi(
         (e) => {
+          const input = `midi:${e.kind}:${e.channel}:${e.number}`;
+          if (e.release) return this.release(input);
           if (this.#capture) return this.#capture({ kind: 'midi', event: e });
           const c = midiCommand(this.engine.show.inputs, e);
-          if (c) this.command(c, 'midi');
+          if (c) this.press(c, 'midi', input);
         },
         (names) => this.#set(() => (this.#midi = names)),
       );
@@ -499,6 +592,7 @@ export class ShowHost {
     this.#channel.post({ t: 'closing', hostId: this.hostId });
     this.#timers.forEach(clearInterval);
     this.#mediaTimers.forEach(clearTimeout);
+    for (const h of this.#holds.values()) if (h.timer) clearTimeout(h.timer);
     this.#cleanups.forEach((c) => c());
     this.#audio.dispose();
     this.#relay?.close();
@@ -544,6 +638,9 @@ export class ShowHost {
         return;
       case 'key':
         this.key(msg.key, 'keyboard', msg.code);
+        return;
+      case 'keyUp':
+        this.keyUp(msg.key, msg.code);
         return;
       case 'audioBlocked':
         if (!this.#audioBlocked.has(msg.outputId)) {
@@ -848,7 +945,7 @@ export class ShowHost {
             : String(e.result ?? '');
         return this.#log(
           'moment',
-          `Closed "${name}": ${result}${e.usedDefault ? ' (default — no input)' : ''}`,
+          `Closed "${name}": ${result}${e.usedDefault ? ' (default — no input)' : ''}${sourceBreakdown(this.engine.state.moments[e.momentId], def?.type)}`,
         );
       }
       case 'trigger':
@@ -907,10 +1004,17 @@ export class ShowHost {
     void db().then((d) => d.put('runs', record));
   }
 
+  #goHold(): HostSnapshot['goHold'] {
+    const ms = this.engine.show.operator?.goHoldMs ?? 0;
+    const waiting = [...this.#holds.values()].filter((h) => h.timer);
+    if (!ms || !waiting.length) return null;
+    return { since: Math.min(...waiting.map((h) => h.since)), ms };
+  }
+
   #gamepad(button: number): void {
     if (this.#capture) return this.#capture({ kind: 'gamepad', button });
     const m = this.engine.show.inputs.gamepad.find((g) => g.button === button);
-    if (m) this.command(m.command, 'gamepad');
+    if (m) this.press(m.command, 'gamepad', `pad:${button}`);
   }
 
   async #acquireWakeLock(): Promise<void> {
@@ -963,6 +1067,8 @@ export class ShowHost {
       goLockedUntil: this.#lastGo + DOUBLE_GO_MS,
       goDroppedAt: this.#goDroppedAt,
       offScript: this.#offScript,
+      goHold: this.#goHold(),
+      goHoldShortAt: this.#goHoldShortAt,
     };
     for (const l of this.#listeners) l();
   }

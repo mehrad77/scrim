@@ -1,5 +1,6 @@
 import type { Action, Condition, JumpTarget, VarValue } from '@scrim/format';
 import type { RunOrder } from './order.js';
+import type { TallySource } from './state.js';
 
 export type InputSource =
   'operator' | 'keyboard' | 'midi' | 'gamepad' | 'remote' | 'rule' | 'follow' | 'system';
@@ -18,12 +19,27 @@ export type EngineInput =
   | {
       type: 'momentAgg';
       momentId: string;
+      /** Running totals for one source, which replace that source's; `relay` when absent. */
+      source?: TallySource;
       tally?: Record<string, number>;
       count?: number;
       sum?: number;
       sumSq?: number;
       n?: number;
       entries?: { id: string; text: string }[];
+    }
+  /**
+   * Count votes from the room, on top of what phones sent: an option (1-based, or by id) of the
+   * named moment or the newest open vote, or taps for a tap moment. Negative amounts correct a
+   * typed count, never below zero.
+   */
+  | {
+      type: 'countVote';
+      momentId?: string;
+      option?: number;
+      optionId?: string;
+      amount?: number;
+      source?: Extract<TallySource, 'buttons' | 'counted'>;
     }
   | { type: 'openMoment'; momentId: string }
   | { type: 'closeMoment'; momentId: string; result?: VarValue }

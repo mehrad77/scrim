@@ -321,8 +321,8 @@ type MomentAgg = Extract<EngineInput, { type: 'momentAgg' }>;
 type Aggregate = Pick<EngineState['moments'][string], 'tally' | 'count' | 'sum' | 'sumSq' | 'n'>;
 
 /**
- * Pretend `n` phones answered an open moment, on top of what has already arrived. Rehearsal
- * only: real phones' totals from the room replace these.
+ * Pretend `n` more phones answered an open moment. `current` is what pretend phones sent so far
+ * (the moment's `sim` source); real phones, buttons and counts add to them. Rehearsal only.
  */
 export function fakePhones(
   show: Show,
@@ -345,12 +345,18 @@ export function fakePhones(
         const k = weights.findIndex((w) => (r -= w) < 0);
         bump(m.options[Math.max(0, k)]!.id);
       }
-      return { type: 'momentAgg', momentId, tally, n: current.n + n };
+      return { type: 'momentAgg', momentId, source: 'sim', tally, n: current.n + n };
     }
     case 'tap': {
       let taps = 0;
       for (let i = 0; i < n; i++) taps += 5 + Math.floor(rand() * 35);
-      return { type: 'momentAgg', momentId, count: current.count + taps, n: current.n + n };
+      return {
+        type: 'momentAgg',
+        momentId,
+        source: 'sim',
+        count: current.count + taps,
+        n: current.n + n,
+      };
     }
     case 'slider': {
       let { sum, sumSq } = current;
@@ -360,12 +366,13 @@ export function fakePhones(
         sumSq += v * v;
         bump(String(v));
       }
-      return { type: 'momentAgg', momentId, sum, sumSq, n: current.n + n, tally };
+      return { type: 'momentAgg', momentId, source: 'sim', sum, sumSq, n: current.n + n, tally };
     }
     case 'text':
       return {
         type: 'momentAgg',
         momentId,
+        source: 'sim',
         n: current.n + n,
         entries: Array.from({ length: n }, (_, i) => ({
           id: uid('sim'),
@@ -380,7 +387,7 @@ export function fakePhones(
         const v = m.variants[Math.max(0, k)];
         if (v) bump(v.id);
       }
-      return { type: 'momentAgg', momentId, tally, n: current.n + n };
+      return { type: 'momentAgg', momentId, source: 'sim', tally, n: current.n + n };
     }
   }
 }

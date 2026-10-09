@@ -32,6 +32,15 @@ export function audienceUrl(room: RoomInfo): string {
   return `${appBase()}/audience.html?${new URLSearchParams({ r: room.code, relay: room.relay })}`;
 }
 
+/**
+ * The audience page for a tablet passed from person to person: each answer counts as its own
+ * person. Null for a room made before shared tablets existed.
+ */
+export function sharedUrl(room: RoomInfo): string | null {
+  if (!room.sharedKey) return null;
+  return `${appBase()}/audience.html?${new URLSearchParams({ r: room.code, relay: room.relay, s: room.sharedKey })}`;
+}
+
 export function remoteUrl(room: RoomInfo): string {
   return `${appBase()}/remote?${new URLSearchParams({ r: room.code, k: room.deviceKey, relay: room.relay })}`;
 }

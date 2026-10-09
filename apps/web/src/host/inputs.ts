@@ -6,11 +6,13 @@ export interface MidiEvent {
   channel: number;
   number: number;
   device: string;
+  /** The end of a press: a note-off, or a CC falling back below 64. Hold-to-confirm needs it. */
+  release?: boolean;
 }
 
 /**
  * Turn a raw MIDI message into a press event: note-on, a CC crossing 64 upward, or a program
- * change (a playback rig picking a song).
+ * change (a playback rig picking a song). Note-off and a CC falling below 64 are releases.
  */
 export function parseMidi(
   data: Uint8Array,
@@ -21,12 +23,15 @@ export function parseMidi(
   const type = status & 0xf0;
   const channel = (status & 0x0f) + 1;
   if (type === 0x90 && value > 0) return { kind: 'note', channel, number, device };
+  if (type === 0x80 || type === 0x90)
+    return { kind: 'note', channel, number, device, release: true };
   if (type === 0xc0) return { kind: 'program', channel, number, device };
   if (type === 0xb0) {
     const key = `${device}:${channel}:${number}`;
     const prev = lastCc.get(key) ?? 0;
     lastCc.set(key, value);
     if (prev < 64 && value >= 64) return { kind: 'cc', channel, number, device };
+    if (prev >= 64 && value < 64) return { kind: 'cc', channel, number, device, release: true };
   }
   return null;
 }
@@ -155,10 +160,11 @@ export async function listenMidi(
   };
 }
 
-/** Poll gamepads and report button presses (rising edges). */
+/** Poll gamepads and report button presses (rising edges) and releases (falling edges). */
 export function listenGamepads(
   onPress: (button: number, pad: string) => void,
   onDevices?: (names: string[]) => void,
+  onRelease?: (button: number, pad: string) => void,
 ): () => void {
   const prev = new Map<number, boolean[]>();
   let names = '';
@@ -171,7 +177,10 @@ export function listenGamepads(
       list.push(pad.id);
       const before = prev.get(pad.index) ?? [];
       const now = pad.buttons.map((b) => b.pressed);
-      now.forEach((pressed, i) => pressed && !before[i] && onPress(i, pad.id));
+      now.forEach((pressed, i) => {
+        if (pressed && !before[i]) onPress(i, pad.id);
+        else if (!pressed && before[i]) onRelease?.(i, pad.id);
+      });
       prev.set(pad.index, now);
     }
     const joined = list.join('|');
@@ -215,5 +224,7 @@ export function describeCommand(c: Command, show: Show): string {
       return 'Mute / unmute sound';
     case 'jump':
       return `${jumpTargetText(show, c.target)}${c.fire ? ', fired' : ' on standby'}`;
+    case 'countVote':
+      return `Count a vote: option ${c.option}`;
   }
 }

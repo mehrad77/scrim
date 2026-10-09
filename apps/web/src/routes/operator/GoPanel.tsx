@@ -18,6 +18,7 @@ import { epochNow } from '../../lib/clock.js';
 import { cn } from '../../lib/cn.js';
 import { Button } from '../../ui/Button.js';
 import { Lamp } from '../../ui/Lamp.js';
+import { notice } from '../../ui/notice.js';
 import { Mappable } from './MapMode.js';
 import { useHost } from './Operator.js';
 
@@ -91,7 +92,12 @@ export function GoPanel() {
               fired={state.fired}
               lockedUntil={snap.goLockedUntil}
               droppedAt={snap.goDroppedAt}
+              holdMs={show.operator?.goHoldMs ?? 0}
+              hold={snap.goHold}
+              shortAt={snap.goHoldShortAt}
               onGo={() => host.command({ type: 'go' }, 'operator')}
+              onPress={() => host.press({ type: 'go' }, 'operator', 'button:go')}
+              onRelease={() => host.release('button:go')}
             />
           </Mappable>
           <div className="flex gap-1">
@@ -272,18 +278,48 @@ function GoButton({
   fired,
   lockedUntil,
   droppedAt,
+  holdMs,
+  hold,
+  shortAt,
   onGo,
+  onPress,
+  onRelease,
 }: {
   ready: boolean;
   goKey: string | undefined;
   fired: number;
   lockedUntil: number;
   droppedAt: number | null;
+  /** Hold-to-confirm: GO fires after a press this long. 0: on click. */
+  holdMs: number;
+  hold: { since: number; ms: number } | null;
+  shortAt: number | null;
   onGo: () => void;
+  onPress: () => void;
+  onRelease: () => void;
 }) {
   const [pressed, setPressed] = useState(false);
   const [ring, setRing] = useState(false);
   const lastFired = useRef(fired);
+  const seconds = `${(holdMs / 1000).toLocaleString(undefined, { maximumFractionDigits: 1 })} s`;
+
+  // A hold fills four segments in steps set from here, never by a CSS transition.
+  const [lit, setLit] = useState(0);
+  useEffect(() => {
+    if (!hold) return setLit(0);
+    const step = () => setLit(Math.min(4, Math.floor(((Date.now() - hold.since) / hold.ms) * 4)));
+    step();
+    const id = setInterval(step, hold.ms / 4);
+    return () => clearInterval(id);
+  }, [hold]);
+
+  // Let go too soon: say how long to hold, in the message strip (once per early release).
+  const seenShort = useRef(shortAt);
+  useEffect(() => {
+    if (shortAt !== null && shortAt !== seenShort.current)
+      notice(`Hold GO for ${seconds} to fire it`);
+    seenShort.current = shortAt;
+  }, [shortAt, seconds]);
 
   // A GO from any source (key, pedal, remote) echoes on the button for 100 ms.
   useEffect(() => {
@@ -309,10 +345,24 @@ function GoButton({
     return () => clearTimeout(t);
   }, [droppedAt]);
 
+  const holding = holdMs > 0;
   return (
     <button
       type="button"
-      onClick={onGo}
+      onClick={holding ? undefined : onGo}
+      onPointerDown={
+        holding
+          ? (e) => {
+              e.currentTarget.setPointerCapture(e.pointerId);
+              onPress();
+            }
+          : undefined
+      }
+      onPointerUp={holding ? onRelease : undefined}
+      onPointerCancel={holding ? onRelease : undefined}
+      onKeyDown={holding ? (e) => e.key === 'Enter' && !e.repeat && onPress() : undefined}
+      onKeyUp={holding ? (e) => e.key === 'Enter' && onRelease() : undefined}
+      aria-description={holding ? `Hold for ${seconds} to fire` : undefined}
       data-pressed={pressed || undefined}
       className={cn(
         'flex h-28 w-full flex-col items-center justify-center rounded-control border-2 active:transition-none',
@@ -323,7 +373,21 @@ function GoButton({
       )}
     >
       <span className="text-display font-mono font-semibold">GO</span>
-      {goKey !== undefined && <span className="label-caps opacity-80">{keyLabel(goKey)}</span>}
+      {goKey !== undefined && (
+        <span className="label-caps opacity-80">
+          {holding ? `Hold ${keyLabel(goKey)} · ${seconds}` : keyLabel(goKey)}
+        </span>
+      )}
+      {holding && (
+        <span className="mt-1 flex gap-1" aria-hidden>
+          {[0, 1, 2, 3].map((i) => (
+            <span
+              key={i}
+              className={cn('h-1 w-6 rounded-full', i < lit ? 'bg-current' : 'bg-current/25')}
+            />
+          ))}
+        </span>
+      )}
     </button>
   );
 }

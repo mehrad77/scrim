@@ -82,4 +82,25 @@ describe('Aggregator', () => {
     expect(b.publicView('y')[0]!.prop?.label).toBe('Spy');
     expect(b.takeTotals(true)[0]!.tally).toEqual({ a: 1, b: 1 });
   });
+
+  it('counts each ballot of a shared tablet as its own person, up to a cap', () => {
+    const a = new Aggregator();
+    a.setOpen('Show', [vote]);
+    // One tablet, passed around: three people, the third changes their mind.
+    a.input('tab', { t: 'vote', momentId: 'v', optionId: 'l' }, 0, 1);
+    a.input('tab', { t: 'vote', momentId: 'v', optionId: 'r' }, 0, 2);
+    a.input('tab', { t: 'vote', momentId: 'v', optionId: 'l' }, 0, 3);
+    a.input('tab', { t: 'vote', momentId: 'v', optionId: 'r' }, 0, 3);
+    // Without a ballot, the tablet itself is one more person.
+    a.input('tab', { t: 'vote', momentId: 'v', optionId: 'r' }, 0);
+    expect(a.takeTotals()[0]).toMatchObject({ tally: { l: 1, r: 3 }, n: 4 });
+
+    const b = new Aggregator();
+    b.setOpen('Show', [vote]);
+    for (let i = 0; i < 1000; i++)
+      b.input('tab', { t: 'vote', momentId: 'v', optionId: 'l' }, 0, i);
+    expect(b.input('tab', { t: 'vote', momentId: 'v', optionId: 'l' }, 0, 1000)).toBe(false);
+    // Someone already counted can still change their answer.
+    expect(b.input('tab', { t: 'vote', momentId: 'v', optionId: 'r' }, 0, 5)).toBe(true);
+  });
 });

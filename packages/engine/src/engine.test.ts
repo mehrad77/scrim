@@ -1116,3 +1116,105 @@ describe('running order, jumps and sections', () => {
     expect(ids(show, run(show, [[40, { type: 'setOrder', order: null }]], s))[0]).toBe('g1');
   });
 });
+
+describe('counts from every source', () => {
+  const open = (show: Show) => run(show, [[0, { type: 'openMoment', momentId: 'vote' }]]);
+  const relay = (left: number, right: number): EngineInput => ({
+    type: 'momentAgg',
+    momentId: 'vote',
+    tally: { left, right },
+    n: left + right,
+  });
+
+  it('adds buttons and typed counts to the phones’ running totals', () => {
+    const show = demo();
+    const s = run(
+      show,
+      [
+        [10, relay(3, 1)],
+        [20, { type: 'countVote', option: 2, source: 'buttons' }],
+        [30, { type: 'countVote', option: 2, source: 'buttons' }],
+        [40, { type: 'countVote', optionId: 'left', amount: 5, source: 'counted' }],
+        // A later relay total replaces only the phones' share.
+        [50, relay(4, 1)],
+      ],
+      open(show),
+    );
+    const m = s.moments.vote!;
+    expect(m.tally).toEqual({ left: 9, right: 3 });
+    expect(m.n).toBe(12);
+    expect(m.sources).toMatchObject({
+      relay: { tally: { left: 4, right: 1 } },
+      buttons: { tally: { right: 2 } },
+      counted: { tally: { left: 5 } },
+    });
+    // Live tally on stage follows the sum.
+    expect(s.vars.tally).toEqual({ left: 9, right: 3 });
+    expect(run(show, [[60, { type: 'closeMoment', momentId: 'vote' }]], s).vars.door).toBe('left');
+  });
+
+  it('pretend phones add to real ones instead of replacing them', () => {
+    const show = demo();
+    const s = run(
+      show,
+      [
+        [10, relay(2, 0)],
+        [20, { type: 'momentAgg', momentId: 'vote', source: 'sim', tally: { right: 7 }, n: 7 }],
+        [30, relay(2, 1)],
+      ],
+      open(show),
+    );
+    expect(s.moments.vote!.tally).toEqual({ left: 2, right: 8 });
+  });
+
+  it('uses the default only when every source is empty, and corrections never go below zero', () => {
+    const show = demo();
+    const s = run(
+      show,
+      [
+        [10, { type: 'countVote', option: 1, amount: 2, source: 'counted' }],
+        [20, { type: 'countVote', option: 1, amount: -5, source: 'counted' }],
+      ],
+      open(show),
+    );
+    expect(s.moments.vote!.tally.left).toBe(0);
+    const closed = step(show, s, { type: 'closeMoment', momentId: 'vote' }, 30);
+    expect(closed.events).toContainEqual(
+      expect.objectContaining({ type: 'momentClosed', usedDefault: true, result: 'right' }),
+    );
+  });
+
+  it('warns when nothing is open to count, and counts taps on a tap moment', () => {
+    const show = demo();
+    const none = step(show, initialState(show), { type: 'countVote', option: 1 }, 0);
+    expect(none.events).toEqual([
+      { type: 'warning', message: 'A vote was counted, but no vote or tap moment is open' },
+    ]);
+    show.moments.push({
+      ...show.moments[0]!,
+      id: 'taps',
+      name: 'Taps',
+      type: 'tap',
+      resultVarId: 'score',
+      tallyVarId: null,
+    });
+    const s = run(show, [
+      [0, { type: 'openMoment', momentId: 'vote' }],
+      [10, { type: 'openMoment', momentId: 'taps' }],
+      [20, { type: 'countVote', option: 3 }],
+      [30, { type: 'momentAgg', momentId: 'taps', count: 10 }],
+    ]);
+    // The newest open moment takes the count.
+    expect(s.moments.taps!.count).toBe(11);
+    expect(s.vars.score).toBe(11);
+  });
+
+  it('a journal from before sources keeps what phones sent', () => {
+    const show = demo();
+    const s = run(show, [[10, relay(3, 2)]], open(show));
+    const older = structuredClone(s);
+    delete older.moments.vote!.sources;
+    const after = run(show, [[20, { type: 'countVote', option: 1 }]], older);
+    expect(after.moments.vote!.tally).toEqual({ left: 4, right: 2 });
+  });
+});

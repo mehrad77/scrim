@@ -3,6 +3,7 @@ import { ancestorsOf, descendantsOf, isFrame, layerTree } from '@scrim/format';
 import { evaluateAll, explain } from './conditions.js';
 import {
   counterValue,
+  emptyAggregate,
   idleMoment,
   initialState,
   mediaPosition,
@@ -10,6 +11,9 @@ import {
   type ClearPoint,
   type EngineState,
   type LayerState,
+  type MomentAggregate,
+  type MomentState,
+  type TallySource,
   type Timer,
 } from './state.js';
 import { resolveJump, runOrder, sceneSequence, type RunOrder } from './order.js';
@@ -176,6 +180,9 @@ function applyInput(ctx: Ctx, input: EngineInput): void {
     }
     case 'momentAgg':
       aggregate(ctx, input);
+      return;
+    case 'countVote':
+      countVote(ctx, input);
       return;
     case 'moderate': {
       const m = state.moments[input.momentId];
@@ -701,15 +708,66 @@ function tallyOf(def: Moment, m: MomentStateLike): Record<string, number> | null
   }
 }
 
+/** One source's totals, created empty. A moment from an older journal kept everything as relay. */
+function sourceOf(m: MomentState, source: TallySource): MomentAggregate {
+  if (!m.sources) {
+    const { tally, count, sum, sumSq, n } = m;
+    m.sources = { relay: { tally: { ...tally }, count, sum, sumSq, n } };
+  }
+  return (m.sources[source] ??= emptyAggregate());
+}
+
+/** The moment's totals are the sum of its sources; then its live values follow. */
+function settleSources(ctx: Ctx, def: Moment, m: MomentState): void {
+  const total = emptyAggregate();
+  for (const a of Object.values(m.sources ?? {})) {
+    for (const [k, n] of Object.entries(a.tally)) total.tally[k] = (total.tally[k] ?? 0) + n;
+    total.count += a.count;
+    total.sum += a.sum;
+    total.sumSq += a.sumSq;
+    total.n += a.n;
+  }
+  Object.assign(m, total);
+  liveValues(ctx, def, m);
+}
+
+function countVote(ctx: Ctx, input: Extract<EngineInput, { type: 'countVote' }>): void {
+  const countable = (id: string) => ['vote', 'tap'].includes(momentDef(ctx, id)?.type ?? '');
+  const newest = Object.entries(ctx.state.moments)
+    .filter(([id, m]) => m.status === 'open' && countable(id))
+    .sort(([, a], [, b]) => (b.openedAt ?? 0) - (a.openedAt ?? 0))[0]?.[0];
+  const id = input.momentId || newest;
+  const def = id ? momentDef(ctx, id) : undefined;
+  const m = id ? ctx.state.moments[id] : undefined;
+  if (!def || !m || m.status !== 'open' || !countable(def.id))
+    return warn(ctx, 'A vote was counted, but no vote or tap moment is open');
+  const amount = input.amount ?? 1;
+  const src = sourceOf(m, input.source ?? 'buttons');
+  if (def.type === 'tap') src.count = Math.max(0, src.count + amount);
+  else {
+    const opt = input.optionId
+      ? def.options.find((o) => o.id === input.optionId)
+      : def.options[(input.option ?? 1) - 1];
+    if (!opt) return warn(ctx, `${def.name} has no option ${input.optionId ?? input.option}`);
+    const before = src.tally[opt.id] ?? 0;
+    const after = Math.max(0, before + amount);
+    src.tally[opt.id] = after;
+    src.n = Math.max(0, src.n + after - before);
+  }
+  settleSources(ctx, def, m);
+}
+
 function aggregate(ctx: Ctx, input: Extract<EngineInput, { type: 'momentAgg' }>): void {
   const def = momentDef(ctx, input.momentId);
   const m = ctx.state.moments[input.momentId];
   if (!def || !m || m.status !== 'open') return;
-  m.tally = input.tally ?? m.tally;
-  m.count = input.count ?? m.count;
-  m.sum = input.sum ?? m.sum;
-  m.sumSq = input.sumSq ?? m.sumSq;
-  m.n = input.n ?? m.n;
+  // Running totals replace only their own source, so buttons and pretend phones add to phones.
+  const src = sourceOf(m, input.source ?? 'relay');
+  src.tally = input.tally ?? src.tally;
+  src.count = input.count ?? src.count;
+  src.sum = input.sum ?? src.sum;
+  src.sumSq = input.sumSq ?? src.sumSq;
+  src.n = input.n ?? src.n;
   for (const e of input.entries ?? []) {
     if (m.entries.some((x) => x.id === e.id)) continue;
     m.entries.push({
@@ -718,7 +776,11 @@ function aggregate(ctx: Ctx, input: Extract<EngineInput, { type: 'momentAgg' }>)
       status: def.moderated ? 'pending' : 'approved',
     });
   }
-  // Live values, so a tally bar or score on stage moves while the moment is open.
+  settleSources(ctx, def, m);
+}
+
+/** Live values, so a tally bar or score on stage moves while the moment is open. */
+function liveValues(ctx: Ctx, def: Moment, m: MomentState): void {
   const tally = tallyOf(def, m);
   if (def.tallyVarId && tally) setVar(ctx, def.tallyVarId, tally);
   if (def.resultVarId) {

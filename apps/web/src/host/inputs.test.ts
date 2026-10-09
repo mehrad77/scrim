@@ -54,9 +54,12 @@ describe('MIDI', () => {
       number: 36,
       channel: 1,
     });
-    expect(parseMidi(new Uint8Array([0x90, 36, 0]), cc, 'pad')).toBeNull();
+    // Note-on with no velocity is a note-off: the end of the press.
+    expect(parseMidi(new Uint8Array([0x90, 36, 0]), cc, 'pad')).toMatchObject({ release: true });
+    expect(parseMidi(new Uint8Array([0x80, 36, 64]), cc, 'pad')).toMatchObject({ release: true });
     expect(parseMidi(new Uint8Array([0xb0, 64, 127]), cc, 'pedal')).toMatchObject({ kind: 'cc' });
     expect(parseMidi(new Uint8Array([0xb0, 64, 127]), cc, 'pedal')).toBeNull();
+    expect(parseMidi(new Uint8Array([0xb0, 64, 0]), cc, 'pedal')).toMatchObject({ release: true });
     expect(parseMidi(new Uint8Array([0xc2, 4]), cc, 'rig')).toEqual({
       kind: 'program',
       number: 4,
