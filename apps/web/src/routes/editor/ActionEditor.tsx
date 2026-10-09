@@ -1,7 +1,15 @@
-import { cueOrder, type Action, type ActionType, type Condition, type Show } from '@scrim/format';
+import {
+  cueOrder,
+  layerTree,
+  type Action,
+  type ActionType,
+  type Condition,
+  type Show,
+} from '@scrim/format';
 import { ArrowDown, ArrowUp, GitBranch, Plus, Trash2 } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { cn } from '../../lib/cn.js';
+import { layerPath } from '../../lib/frames.js';
 import { OP_TEXT, valueLabel } from '../../lib/logic.js';
 import { IconButton } from '../../ui/Button.js';
 import { CommitInput, NumberInput, Select, Toggle } from '../../ui/Field.js';
@@ -191,6 +199,8 @@ function ActionFields({
   onChange: (a: Action) => void;
   depth: number;
 }) {
+  // "Lower third › Name", so layers with the same name in different frames can be told apart.
+  const tree = layerTree(show.layers);
   const layerPick = (filter?: (k: string) => boolean) =>
     'layerId' in a && (
       <Pick
@@ -202,7 +212,7 @@ function ActionFields({
           .filter((l) => !filter || filter(l.kind))
           .map((l) => (
             <option key={l.id} value={l.id}>
-              {l.name}
+              {layerPath(tree, l.id)}
               {show.outputs.length > 1 && l.outputId
                 ? ` (${show.outputs.find((o) => o.id === l.outputId)?.name})`
                 : ''}

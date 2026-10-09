@@ -1,6 +1,5 @@
-import { createCue, uid, type Cue, type Layer, type Output, type Show } from '@scrim/format';
-
-type Placed = Extract<Layer, { x: number }>;
+import { ancestorsOf, createCue, layerTree, type Cue, type Layer, type Show } from '@scrim/format';
+import type { Box } from './frames.js';
 
 /** A cue that brings `layer` in, placed after `afterCueId` (or at the end). */
 export function cueBringingIn(show: Show, layer: Layer, afterCueId: string | null): Cue | null {
@@ -9,6 +8,9 @@ export function cueBringingIn(show: Show, layer: Layer, afterCueId: string | nul
   if (!sceneId) return null;
   const cue = createCue(sceneId, `${layer.kind === 'audio' ? 'Sound' : 'Show'}: ${layer.name}`);
   const fade = show.defaultFade ?? { duration: 1, easing: 'easeInOut' as const };
+  // Frames around it that start hidden come in with it, or it would stay unseen.
+  for (const f of ancestorsOf(layerTree(show.layers), layer.id).reverse())
+    if (!f.visible) cue.actions.push({ type: 'show', layerId: f.id, ...fade });
   cue.actions.push({ type: 'show', layerId: layer.id, ...fade });
   if (layer.kind === 'video' || layer.kind === 'audio')
     cue.actions.push({ type: 'play', layerId: layer.id, restart: true });
@@ -20,62 +22,65 @@ export function insertCueAfter(d: Show, cue: Cue, afterCueId: string | null): vo
   d.cues.splice(i + 1, 0, cue);
 }
 
-export function duplicateOf(layer: Layer): Layer {
-  const copy = structuredClone(layer);
-  copy.id = uid('lyr');
-  copy.name = `${layer.name} copy`;
-  if ('x' in copy) {
-    copy.x += 40;
-    copy.y += 40;
-    copy.z += 1;
-  }
-  return copy;
-}
-
 export type Align = 'left' | 'center' | 'right' | 'top' | 'middle' | 'bottom';
 
 /**
- * Align layers. One layer aligns to the output; several align to their shared bounds, like
- * Figma.
+ * Where boxes go to line up. One aligns to its container (the output, or the frame it is in);
+ * several align to their shared bounds, like Figma. Boxes are what is drawn, so a layer that
+ * hugs its content lines up by its content.
  */
-export function alignLayers(d: Show, ids: string[], output: Output, how: Align): void {
-  const layers = d.layers.filter((l): l is Placed => ids.includes(l.id) && 'x' in l);
-  if (!layers.length) return;
-  const box =
-    layers.length === 1
-      ? { x0: 0, y0: 0, x1: output.width, y1: output.height }
-      : {
-          x0: Math.min(...layers.map((l) => l.x)),
-          y0: Math.min(...layers.map((l) => l.y)),
-          x1: Math.max(...layers.map((l) => l.x + l.w)),
-          y1: Math.max(...layers.map((l) => l.y + l.h)),
-        };
-  for (const l of layers) {
-    if (how === 'left') l.x = box.x0;
-    if (how === 'right') l.x = box.x1 - l.w;
-    if (how === 'center') l.x = Math.round((box.x0 + box.x1 - l.w) / 2);
-    if (how === 'top') l.y = box.y0;
-    if (how === 'bottom') l.y = box.y1 - l.h;
-    if (how === 'middle') l.y = Math.round((box.y0 + box.y1 - l.h) / 2);
-  }
+export function alignBoxes(boxes: Map<string, Box>, container: Box, how: Align): Map<string, Box> {
+  const list = [...boxes.values()];
+  const b = list.length === 1 ? container : bounds(list)!;
+  const x = (r: Box) =>
+    how === 'left'
+      ? b.x
+      : how === 'right'
+        ? b.x + b.w - r.w
+        : how === 'center'
+          ? b.x + (b.w - r.w) / 2
+          : r.x;
+  const y = (r: Box) =>
+    how === 'top'
+      ? b.y
+      : how === 'bottom'
+        ? b.y + b.h - r.h
+        : how === 'middle'
+          ? b.y + (b.h - r.h) / 2
+          : r.y;
+  return new Map([...boxes].map(([id, r]) => [id, { ...r, x: x(r), y: y(r) }]));
 }
 
-/** Spread three or more layers so the gaps between them are equal. */
-export function distributeLayers(d: Show, ids: string[], axis: 'x' | 'y'): void {
-  const layers = d.layers
-    .filter((l): l is Placed => ids.includes(l.id) && 'x' in l)
-    .sort((a, b) => a[axis] - b[axis]);
-  if (layers.length < 3) return;
-  const size = (l: Placed) => (axis === 'x' ? l.w : l.h);
-  const first = layers[0]!;
-  const last = layers.at(-1)!;
-  const span = last[axis] + size(last) - first[axis];
-  const gap = (span - layers.reduce((n, l) => n + size(l), 0)) / (layers.length - 1);
+/** The box around all of them; null for none. */
+export function bounds(list: Box[]): Box | null {
+  if (!list.length) return null;
+  const x = Math.min(...list.map((r) => r.x));
+  const y = Math.min(...list.map((r) => r.y));
+  return {
+    x,
+    y,
+    w: Math.max(...list.map((r) => r.x + r.w)) - x,
+    h: Math.max(...list.map((r) => r.y + r.h)) - y,
+  };
+}
+
+/** Spread three or more boxes so the gaps between them are equal. */
+export function distributeBoxes(boxes: Map<string, Box>, axis: 'x' | 'y'): Map<string, Box> {
+  const size = axis === 'x' ? 'w' : 'h';
+  const list = [...boxes].sort(([, a], [, b]) => a[axis] - b[axis]);
+  if (list.length < 3) return boxes;
+  const first = list[0]![1];
+  const last = list.at(-1)![1];
+  const span = last[axis] + last[size] - first[axis];
+  const gap = (span - list.reduce((n, [, r]) => n + r[size], 0)) / (list.length - 1);
   let at = first[axis];
-  for (const l of layers) {
-    l[axis] = Math.round(at);
-    at += size(l) + gap;
-  }
+  return new Map(
+    list.map(([id, r]) => {
+      const placed = { ...r, [axis]: at };
+      at += r[size] + gap;
+      return [id, placed];
+    }),
+  );
 }
 
 /** Move layers by a number of output pixels (arrow-key nudge). */

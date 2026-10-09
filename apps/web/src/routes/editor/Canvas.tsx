@@ -1,4 +1,4 @@
-import { cueOrder, type Layer, type Output } from '@scrim/format';
+import { cueOrder, descendantsOf, layerTree, type Layer, type Output } from '@scrim/format';
 import {
   AlignCenterHorizontal,
   AlignCenterVertical,
@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import {
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -29,10 +30,12 @@ import Moveable from 'react-moveable';
 import { isTyping, overlayOpen } from '../../host/inputs.js';
 import { cn } from '../../lib/cn.js';
 import { readPrefs } from '../../lib/prefs.js';
+import { handlesFor, outermost, pickLayer, type Box } from '../../lib/frames.js';
 import {
-  alignLayers,
+  alignBoxes,
+  bounds,
   cueBringingIn,
-  distributeLayers,
+  distributeBoxes,
   insertCueAfter,
   nudgeLayers,
   type Align,
@@ -47,6 +50,7 @@ import { Empty, Panel } from '../../ui/Panel.js';
 import { toast } from '../../ui/toast.js';
 import { previewState } from '../../lib/simulate.js';
 import { deleteLayers, duplicateSelection } from './layerCommands.js';
+import { CANVAS_ATTR, measureLayer, placeDrawn } from './measure.js';
 
 const PAD = 32;
 const RULER = 16;
@@ -101,7 +105,9 @@ export function Canvas() {
     [layerId, extra, show.layers, output?.id],
   );
   const primary = show.layers.find((l) => l.id === selectedIds[0]);
-  const placed = primary && 'x' in primary ? primary : null;
+  const tree = useMemo(() => layerTree(show.layers), [show.layers]);
+  // Moving a frame moves what is inside it, so only the outermost selected layers get handles.
+  const movable = useMemo(() => outermost(tree, selectedIds), [tree, selectedIds]);
 
   useEffect(() => {
     const el = viewport.current;
@@ -125,17 +131,52 @@ export function Canvas() {
   const boxLeft = (contentW - boxW) / 2;
   const boxTop = (contentH - boxH) / 2;
 
-  // DOM nodes of the selected layers, for the transform handles.
+  // What the selected layers look like on the canvas, in output pixels. Layers that hug their
+  // content or sit in a row have no size or place of their own, so handles, the task bar and
+  // zoom go by what is drawn. Moveable drives flat stand-ins for them; the layers follow.
+  const [drawn, setDrawn] = useState<Map<string, Box>>(new Map());
+  const remeasure = () => {
+    const next = new Map<string, Box>();
+    for (const id of movable) {
+      const b = measureLayer(id);
+      if (b) next.set(id, b);
+    }
+    setDrawn((prev) => (JSON.stringify([...prev]) === JSON.stringify([...next]) ? prev : next));
+  };
+  useLayoutEffect(remeasure);
+  useEffect(() => {
+    document.fonts.addEventListener('loadingdone', remeasure);
+    return () => document.fonts.removeEventListener('loadingdone', remeasure);
+  });
+  const proxies = useRef(new Map<string, HTMLDivElement>());
   useEffect(() => {
     const id = requestAnimationFrame(() =>
       setTargets(
-        selectedIds
-          .map((sid) => box.current?.querySelector<HTMLElement>(`[data-layer="${sid}"]`))
-          .filter((e): e is HTMLElement => !!e),
+        movable.map((sid) => proxies.current.get(sid)).filter((e): e is HTMLDivElement => !!e),
       ),
     );
     return () => cancelAnimationFrame(id);
-  }, [selectedIds, show.layers, scale, state]);
+  }, [movable, drawn]);
+  const nodeOf = (id: string | null) =>
+    id ? box.current?.querySelector<HTMLElement>(`[data-layer="${CSS.escape(id)}"]`) : null;
+  // During a gesture the layer follows its stand-in by `translate`, which React never sets.
+  const follow = (proxy: HTMLElement | SVGElement, dx: number, dy: number) => {
+    const el = nodeOf(proxy.getAttribute('data-proxy'));
+    if (el) el.style.translate = `${dx}px ${dy}px`;
+  };
+  // Once the move is in the show the layer is drawn in its new place; drop the offsets then.
+  const settle = () =>
+    requestAnimationFrame(() =>
+      box.current
+        ?.querySelectorAll<HTMLElement>('[data-layer]')
+        .forEach((el) => el.style.translate && (el.style.translate = '')),
+    );
+  const start = (id: string | null) => (id && drawn.get(id)) || null;
+  const handles = primary ? handlesFor(primary, tree.parent(primary.id)) : null;
+  const canDrag = movable.every((id) => {
+    const l = tree.byId.get(id);
+    return !!l && handlesFor(l, tree.parent(id)).drag;
+  });
 
   const zoomTo = (z: number, focus?: { x: number; y: number }) => {
     const el = viewport.current;
@@ -156,10 +197,11 @@ export function Canvas() {
     });
   };
 
+  const sel = bounds([...drawn.values()]);
   const zoomToSelection = () => {
-    if (!placed || !output) return;
-    const z = Math.min((vp.w * 0.8) / (placed.w * fit), (vp.h * 0.8) / (placed.h * fit));
-    zoomTo(z, { x: placed.x + placed.w / 2, y: placed.y + placed.h / 2 });
+    if (!sel || !output) return;
+    const z = Math.min((vp.w * 0.8) / (sel.w * fit), (vp.h * 0.8) / (sel.h * fit));
+    zoomTo(z, { x: sel.x + sel.w / 2, y: sel.y + sel.h / 2 });
   };
 
   // ⌘/Ctrl + scroll zooms around the pointer.
@@ -218,8 +260,8 @@ export function Canvas() {
       }[e.key];
       if (!d || e.altKey) return;
       e.preventDefault();
-      update((s) => nudgeLayers(s, selectedIds, d[0]!, d[1]!), {
-        coalesce: `nudge:${selectedIds.join(',')}`,
+      update((s) => nudgeLayers(s, movable, d[0]!, d[1]!), {
+        coalesce: `nudge:${movable.join(',')}`,
       });
     };
     const up = (e: KeyboardEvent) => {
@@ -272,10 +314,34 @@ export function Canvas() {
       fn(o.guides);
     });
 
+  // Snap to everything but what is moving, frames around it included.
+  const moving = new Set(
+    movable.flatMap((id) => [id, ...descendantsOf(tree, id).map((l) => l.id)]),
+  );
   const others = show.layers
-    .filter((l) => l.outputId === output.id && !selectedIds.includes(l.id))
-    .map((l) => box.current?.querySelector<HTMLElement>(`[data-layer="${l.id}"]`))
+    .filter((l) => l.outputId === output.id && l.kind !== 'audio' && !moving.has(l.id))
+    .map((l) => nodeOf(l.id))
     .filter((e): e is HTMLElement => !!e);
+
+  /** Line the selection up by what is drawn: one layer within its frame or the output. */
+  const lineUp = (how: Align | 'x' | 'y') => {
+    const ids = movable.filter((id) => handlesFor(tree.byId.get(id)!, tree.parent(id)).drag);
+    const boxes = new Map<string, Box>();
+    for (const id of ids) {
+      const b = measureLayer(id);
+      if (b) boxes.set(id, b);
+    }
+    const frame = ids.length === 1 ? tree.parent(ids[0]!) : undefined;
+    const within = (frame && measureLayer(frame.id)) || {
+      x: 0,
+      y: 0,
+      w: output.width,
+      h: output.height,
+    };
+    const next =
+      how === 'x' || how === 'y' ? distributeBoxes(boxes, how) : alignBoxes(boxes, within, how);
+    update((d) => next.forEach((b, id) => placeDrawn(d, id, b)));
+  };
   const gx = output.guides?.x ?? [];
   const gy = output.guides?.y ?? [];
   const atIndex = order.findIndex((c) => c.id === at);
@@ -355,7 +421,7 @@ export function Canvas() {
                   id: 'sel',
                   label: 'Zoom to selection',
                   shortcut: '⇧2',
-                  disabled: !placed,
+                  disabled: !sel,
                   onAction: zoomToSelection,
                 },
                 {
@@ -435,6 +501,7 @@ export function Canvas() {
           )}
           <div
             ref={box}
+            {...{ [CANVAS_ATTR]: '' }}
             className="absolute"
             style={{ left: boxLeft, top: boxTop, width: boxW, height: boxH }}
           >
@@ -445,9 +512,11 @@ export function Canvas() {
               variant="editor"
               ghostHidden={ghost}
               onBackgroundPointerDown={() => !space && select({ layerId: null })}
-              onLayerPointerDown={(id, e) => {
+              onLayerPointerDown={(hit, e) => {
                 if (space) return;
                 e.stopPropagation();
+                // The outermost frame first, like Figma; double-click goes inside.
+                const id = pickLayer(tree, hit, selectedIds);
                 if (e.shiftKey && layerId) {
                   // Shift-click adds or removes a layer from the selection.
                   const all = [layerId, ...extra];
@@ -455,37 +524,56 @@ export function Canvas() {
                   select({ layerId: next[0] ?? null, extra: next.slice(1) });
                 } else if (!selectedIds.includes(id)) select({ layerId: id });
               }}
-              overlay={() =>
-                guides && (
-                  <>
-                    <div
-                      className="pointer-events-none absolute border border-dashed border-info/50"
-                      style={{
-                        left: output.width * output.safeArea,
-                        top: output.height * output.safeArea,
-                        right: output.width * output.safeArea,
-                        bottom: output.height * output.safeArea,
-                      }}
-                    />
-                    {gx.map((x, i) => (
-                      <Guide
-                        key={`x${i}`}
-                        style={{ left: x, top: 0, bottom: 0, width: 1 }}
-                        scale={scale}
-                        onRemove={() => setGuidesOf((g) => void g.x.splice(i, 1))}
+              overlay={() => (
+                <>
+                  {movable.map((id) => {
+                    const b = drawn.get(id);
+                    return (
+                      b && (
+                        <div
+                          key={id}
+                          data-proxy={id}
+                          ref={(el) => {
+                            if (el) proxies.current.set(id, el);
+                            else proxies.current.delete(id);
+                          }}
+                          className="pointer-events-none absolute"
+                          style={{ left: b.x, top: b.y, width: b.w, height: b.h }}
+                        />
+                      )
+                    );
+                  })}
+                  {guides && (
+                    <>
+                      <div
+                        className="pointer-events-none absolute border border-dashed border-info/50"
+                        style={{
+                          left: output.width * output.safeArea,
+                          top: output.height * output.safeArea,
+                          right: output.width * output.safeArea,
+                          bottom: output.height * output.safeArea,
+                        }}
                       />
-                    ))}
-                    {gy.map((y, i) => (
-                      <Guide
-                        key={`y${i}`}
-                        style={{ top: y, left: 0, right: 0, height: 1 }}
-                        scale={scale}
-                        onRemove={() => setGuidesOf((g) => void g.y.splice(i, 1))}
-                      />
-                    ))}
-                  </>
-                )
-              }
+                      {gx.map((x, i) => (
+                        <Guide
+                          key={`x${i}`}
+                          style={{ left: x, top: 0, bottom: 0, width: 1 }}
+                          scale={scale}
+                          onRemove={() => setGuidesOf((g) => void g.x.splice(i, 1))}
+                        />
+                      ))}
+                      {gy.map((y, i) => (
+                        <Guide
+                          key={`y${i}`}
+                          style={{ top: y, left: 0, right: 0, height: 1 }}
+                          scale={scale}
+                          onRemove={() => setGuidesOf((g) => void g.y.splice(i, 1))}
+                        />
+                      ))}
+                    </>
+                  )}
+                </>
+              )}
             />
           </div>
 
@@ -493,8 +581,9 @@ export function Canvas() {
             <Moveable
               target={targets.length === 1 ? targets[0] : targets}
               dragArea
-              draggable
-              resizable={targets.length === 1 && !!placed}
+              draggable={canDrag}
+              resizable={targets.length === 1 && !!handles?.dirs.length}
+              renderDirections={handles?.dirs ?? []}
               snappable={!noSnap}
               snapThreshold={8}
               snapGap
@@ -519,75 +608,100 @@ export function Canvas() {
               verticalGuidelines={[0, output.width / 2, output.width, ...gx]}
               horizontalGuidelines={[0, output.height / 2, output.height, ...gy]}
               keepRatio={
-                placed && (placed.kind === 'image' || placed.kind === 'video') ? undefined : false
+                primary && (primary.kind === 'image' || primary.kind === 'video')
+                  ? undefined
+                  : false
               }
               origin={false}
+              onClick={(e) => {
+                // Double-click goes one frame deeper, to what is under the pointer.
+                if (!e.isDouble) return;
+                const { clientX, clientY } = e.inputEvent as MouseEvent;
+                const hit = document
+                  .elementsFromPoint(clientX, clientY)
+                  .map((el) => el.closest('[data-layer]'))
+                  .find((el) => el && box.current?.contains(el))
+                  ?.getAttribute('data-layer');
+                if (hit) select({ layerId: pickLayer(tree, hit, selectedIds, true) });
+              }}
               onDragStart={() => setDragging(true)}
               onDrag={(e) => {
+                const b = start(e.target.getAttribute('data-proxy'));
                 e.target.style.left = `${e.left}px`;
                 e.target.style.top = `${e.top}px`;
+                if (b) follow(e.target, e.left - b.x, e.top - b.y);
               }}
               onDragEnd={(e) => {
                 setDragging(false);
-                if (!e.lastEvent || !placed) return;
-                commitOne(placed.id, {
-                  x: Math.round(e.lastEvent.left),
-                  y: Math.round(e.lastEvent.top),
-                });
+                const id = e.target.getAttribute('data-proxy');
+                const b = start(id);
+                if (e.lastEvent && id && b)
+                  update((d) =>
+                    placeDrawn(d, id, { ...b, x: e.lastEvent.left, y: e.lastEvent.top }),
+                  );
+                settle();
               }}
               onDragGroupStart={() => setDragging(true)}
               onDragGroup={(e) =>
                 e.events.forEach((ev) => {
+                  const b = start(ev.target.getAttribute('data-proxy'));
                   ev.target.style.left = `${ev.left}px`;
                   ev.target.style.top = `${ev.top}px`;
+                  if (b) follow(ev.target, ev.left - b.x, ev.top - b.y);
                 })
               }
               onDragGroupEnd={(e) => {
                 setDragging(false);
-                const moves = e.events
-                  .map((ev) => ({ id: ev.target.getAttribute('data-layer'), last: ev.lastEvent }))
-                  .filter((m) => m.id && m.last);
                 update((d) => {
-                  for (const m of moves) {
-                    const l = d.layers.find((x) => x.id === m.id);
-                    if (l && 'x' in l) {
-                      l.x = Math.round(m.last!.left);
-                      l.y = Math.round(m.last!.top);
-                    }
+                  for (const ev of e.events) {
+                    const id = ev.target.getAttribute('data-proxy');
+                    const b = start(id);
+                    if (id && b && ev.lastEvent)
+                      placeDrawn(d, id, { ...b, x: ev.lastEvent.left, y: ev.lastEvent.top });
                   }
                 });
+                settle();
               }}
               onResizeStart={() => setDragging(true)}
               onResize={(e) => {
-                if (!placed) return;
-                e.target.style.width = `${e.width}px`;
-                e.target.style.height = `${e.height}px`;
-                e.target.style.left = `${placed.x + e.drag.beforeTranslate[0]!}px`;
-                e.target.style.top = `${placed.y + e.drag.beforeTranslate[1]!}px`;
+                const b = start(e.target.getAttribute('data-proxy'));
+                if (!b) return;
+                const [dx, dy] = e.drag.beforeTranslate as [number, number];
+                Object.assign(e.target.style, {
+                  width: `${e.width}px`,
+                  height: `${e.height}px`,
+                  left: `${b.x + dx}px`,
+                  top: `${b.y + dy}px`,
+                });
+                const el = nodeOf(e.target.getAttribute('data-proxy'));
+                if (el) Object.assign(el.style, { width: `${e.width}px`, height: `${e.height}px` });
+                follow(e.target, dx, dy);
               }}
               onResizeEnd={(e) => {
                 setDragging(false);
+                const id = e.target.getAttribute('data-proxy');
+                const b = start(id);
                 const last = e.lastEvent;
-                if (!last || !placed) return;
-                commitOne(placed.id, {
-                  w: Math.max(1, Math.round(last.width)),
-                  h: Math.max(1, Math.round(last.height)),
-                  x: Math.round(placed.x + last.drag.beforeTranslate[0]!),
-                  y: Math.round(placed.y + last.drag.beforeTranslate[1]!),
-                });
+                if (id && b && last) {
+                  const [dx, dy] = last.drag.beforeTranslate as [number, number];
+                  update((d) =>
+                    placeDrawn(d, id, { x: b.x + dx, y: b.y + dy, w: last.width, h: last.height }),
+                  );
+                }
+                settle();
               }}
             />
           )}
 
-          {placed && !dragging && !space && (
+          {primary && sel && !dragging && !space && (
             <TaskBar
-              ids={selectedIds}
-              layer={placed}
-              output={output}
+              ids={movable}
+              layer={primary}
               style={{
-                left: boxLeft + Math.max(0, placed.x * scale),
-                top: Math.max(4, boxTop + placed.y * scale - 40),
+                left: boxLeft + Math.max(0, sel.x * scale),
+                top: Math.max(4, boxTop + sel.y * scale - 40),
               }}
+              onLineUp={lineUp}
               onDuplicate={duplicate}
               onDelete={deleteSelected}
             />
@@ -716,15 +830,15 @@ function Guide({
 function TaskBar({
   ids,
   layer,
-  output,
   style,
+  onLineUp,
   onDuplicate,
   onDelete,
 }: {
   ids: string[];
-  layer: Extract<Layer, { x: number }>;
-  output: Output;
+  layer: Layer;
   style: React.CSSProperties;
+  onLineUp: (how: Align | 'x' | 'y') => void;
   onDuplicate: () => void;
   onDelete: () => void;
 }) {
@@ -732,7 +846,7 @@ function TaskBar({
   const update = useEditor((s) => s.update);
   const select = useEditor((s) => s.select);
   const media = 'mediaId' in layer ? show.media.filter((m) => m.kind === layer.kind) : [];
-  const align = (how: Align) => update((d) => alignLayers(d, ids, output, how));
+  const align = onLineUp;
   return (
     <div
       role="toolbar"
@@ -842,14 +956,14 @@ function TaskBar({
             label: 'Distribute horizontally',
             icon: <StretchHorizontal size={13} />,
             disabled: ids.length < 3,
-            onAction: () => update((d) => distributeLayers(d, ids, 'x')),
+            onAction: () => onLineUp('x'),
           },
           {
             id: 'dy',
             label: 'Distribute vertically',
             icon: <StretchVertical size={13} />,
             disabled: ids.length < 3,
-            onAction: () => update((d) => distributeLayers(d, ids, 'y')),
+            onAction: () => onLineUp('y'),
           },
         ]}
       >

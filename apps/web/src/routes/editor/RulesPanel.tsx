@@ -1,4 +1,12 @@
-import { cueOrder, uid, type Condition, type Rule, type RuleWhen, type Show } from '@scrim/format';
+import {
+  cueOrder,
+  layerTree,
+  uid,
+  type Condition,
+  type Rule,
+  type RuleWhen,
+  type Show,
+} from '@scrim/format';
 import {
   ArrowDown,
   ArrowUp,
@@ -12,6 +20,7 @@ import {
 import { useState } from 'react';
 import { cn } from '../../lib/cn.js';
 import { summarizeActions } from '../../lib/cueSummary.js';
+import { layerPath } from '../../lib/frames.js';
 import {
   flatActions,
   OP_TEXT,
@@ -623,7 +632,7 @@ function WhenChips({
               .filter((l) => l.kind === 'video' || l.kind === 'audio')
               .map((l) => (
                 <option key={l.id} value={l.id}>
-                  {l.name}
+                  {layerPath(layerTree(show.layers), l.id)}
                 </option>
               ))}
           </Select>

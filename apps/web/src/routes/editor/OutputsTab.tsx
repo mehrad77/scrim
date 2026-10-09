@@ -3,6 +3,7 @@ import { Monitor, Plus, Speaker, Trash2, Volume2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { audioOutputs, testTone, unlockDeviceLabels } from '../../host/audio.js';
 import { AUDIO_DEVICES_KEY, readLocal, writeLocal } from '../../lib/local.js';
+import { resizeOutput } from '../../lib/frames.js';
 import { removeOutput } from '../../lib/refs.js';
 import { useEditor, useShow } from '../../state/editor.js';
 import { Button, IconButton } from '../../ui/Button.js';
@@ -40,6 +41,9 @@ function OutputsPanel() {
       },
       coalesce ? { coalesce: `${id}:${coalesce}` } : undefined,
     );
+  // Pinned layers keep their distance to the edges they are pinned to.
+  const resize = (o: Output, to: { width: number; height: number }) =>
+    update((d) => resizeOutput(d, o.id, to));
   return (
     <Panel
       title="Outputs"
@@ -99,7 +103,7 @@ function OutputsPanel() {
                   }
                   onChange={(e) => {
                     const [w, h] = e.target.value.split('x').map(Number);
-                    if (w && h) set(o.id, { width: w, height: h });
+                    if (w && h) resize(o, { width: w, height: h });
                   }}
                 >
                   {PRESETS.map(([w, h, label]) => (
@@ -114,7 +118,7 @@ function OutputsPanel() {
                 <NumberInput
                   value={o.width}
                   min={64}
-                  onCommit={(width) => set(o.id, { width })}
+                  onCommit={(width) => resize(o, { width, height: o.height })}
                   suffix="px"
                 />
               </Field>
@@ -122,7 +126,7 @@ function OutputsPanel() {
                 <NumberInput
                   value={o.height}
                   min={64}
-                  onCommit={(height) => set(o.id, { height })}
+                  onCommit={(height) => resize(o, { width: o.width, height })}
                   suffix="px"
                 />
               </Field>

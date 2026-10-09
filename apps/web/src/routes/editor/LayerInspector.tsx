@@ -1,14 +1,26 @@
-import type { Layer, Show } from '@scrim/format';
+import {
+  hugAxes,
+  isFrame,
+  layerTree,
+  type FrameLayer,
+  type Layer,
+  type Pin,
+  type Show,
+} from '@scrim/format';
 import { AlignCenter, Copy, Maximize, Trash2, Zap } from 'lucide-react';
 import type { ReactNode } from 'react';
-import { createCue, uid } from '@scrim/format';
-import { layerUsage, removeLayer } from '../../lib/refs.js';
+import { cn } from '../../lib/cn.js';
+import { moveToOutput, placeAt } from '../../lib/frames.js';
+import { cueBringingIn, insertCueAfter } from '../../lib/layerActions.js';
+import { layerUsage } from '../../lib/refs.js';
 import { fontFamilyOf } from '../../render/useShowFonts.js';
 import { useEditor, useShow } from '../../state/editor.js';
 import { Button } from '../../ui/Button.js';
 import { CommitInput, Field, NumberInput, Select, TextArea, Toggle } from '../../ui/Field.js';
 import { ColorInput } from '../../ui/ColorInput.js';
 import { toast } from '../../ui/toast.js';
+import { deleteLayers, duplicateSelection } from './layerCommands.js';
+import { keepDrawn, measureLayer } from './measure.js';
 
 const FONTS = [
   ['system-ui, sans-serif', 'System sans'],
@@ -39,6 +51,17 @@ function Inspector({ show, layer }: { show: Show; layer: Layer }) {
       coalesce ? { coalesce: `${layer.id}:${coalesce}` } : undefined,
     );
   const usage = layerUsage(show, layer.id);
+  const tree = layerTree(show.layers);
+  const parent = tree.parent(layer.id);
+  const flowChild = !!parent && parent.layout.mode !== 'free';
+  const hug = hugAxes(layer);
+  // Changing how a layer sizes or lays out starts from what is drawn, so nothing jumps.
+  const resize = (patch: Partial<Layer>) =>
+    update((d) => {
+      keepDrawn(d, layer.id);
+      const l = d.layers.find((x) => x.id === layer.id);
+      if (l) Object.assign(l, patch);
+    });
   // Fonts added to the show travel in its bundle; others may be missing on the show machine.
   const showFonts = show.media.filter((m) => m.kind === 'font').map(fontFamilyOf);
   const visual = layer.kind !== 'audio';
@@ -77,37 +100,83 @@ function Inspector({ show, layer }: { show: Show; layer: Layer }) {
 
       {visual && (
         <Section title="Position">
+          {flowChild && (
+            <p className="text-caption text-fg-subtle">
+              “{parent.name}” lines it up: change its place in the layers list.
+            </p>
+          )}
           <div className="grid grid-cols-2 gap-2">
-            <NumberInput
-              label="X"
-              value={layer.x}
-              onCommit={(x, live) => set({ x }, live ? 'x' : undefined)}
-              suffix="px"
-            />
-            <NumberInput
-              label="Y"
-              value={layer.y}
-              onCommit={(y, live) => set({ y }, live ? 'y' : undefined)}
-              suffix="px"
-            />
-            <NumberInput
-              label="W"
-              aria-label="Width"
-              value={layer.w}
-              min={1}
-              onCommit={(w, live) => set({ w }, live ? 'w' : undefined)}
-              suffix="px"
-            />
-            <NumberInput
-              label="H"
-              aria-label="Height"
-              value={layer.h}
-              min={1}
-              onCommit={(h, live) => set({ h }, live ? 'h' : undefined)}
-              suffix="px"
-            />
+            {!flowChild && (
+              <>
+                <NumberInput
+                  label="X"
+                  value={layer.x}
+                  onCommit={(x, live) => set({ x }, live ? 'x' : undefined)}
+                  suffix="px"
+                />
+                <NumberInput
+                  label="Y"
+                  value={layer.y}
+                  onCommit={(y, live) => set({ y }, live ? 'y' : undefined)}
+                  suffix="px"
+                />
+              </>
+            )}
+            {hug.w ? (
+              <p className="self-center text-caption text-fg-subtle">Width fits the content</p>
+            ) : (
+              <NumberInput
+                label="W"
+                aria-label="Width"
+                value={layer.w}
+                min={1}
+                onCommit={(w, live) => set({ w }, live ? 'w' : undefined)}
+                suffix="px"
+              />
+            )}
+            {hug.h ? (
+              <p className="self-center text-caption text-fg-subtle">Height fits the content</p>
+            ) : (
+              <NumberInput
+                label="H"
+                aria-label="Height"
+                value={layer.h}
+                min={1}
+                onCommit={(h, live) => set({ h }, live ? 'h' : undefined)}
+                suffix="px"
+              />
+            )}
           </div>
-          {output && (
+          {!parent && (
+            <Field
+              label="Pin to the output"
+              hint="Keeps its distance to these edges when the output changes size, and grows away from them when it fits its content."
+            >
+              <PinPicker
+                pin={layer.pin ?? { x: 'left', y: 'top' }}
+                onChange={(pin) => set({ pin })}
+              />
+            </Field>
+          )}
+          {!parent && show.outputs.length > 1 && (
+            <Field label="Output">
+              <Select
+                value={layer.outputId ?? ''}
+                onChange={(e) => {
+                  const to = e.target.value;
+                  update((d) => moveToOutput(d, layer.id, to));
+                  useEditor.getState().select({ outputId: to, layerId: layer.id });
+                }}
+              >
+                {show.outputs.map((o) => (
+                  <option key={o.id} value={o.id}>
+                    {o.name}
+                  </option>
+                ))}
+              </Select>
+            </Field>
+          )}
+          {output && !parent && !hug.w && !hug.h && (
             <div className="flex gap-2">
               <Button
                 size="sm"
@@ -216,6 +285,23 @@ function Inspector({ show, layer }: { show: Show; layer: Layer }) {
           </>
         )}
       </Section>
+
+      {isFrame(layer) && <FrameSection frame={layer} tree={tree} set={set} />}
+
+      {(layer.kind === 'text' ||
+        layer.kind === 'counter' ||
+        (layer.kind === 'state' && layer.display === 'value')) && (
+        <Field label="Size">
+          <Select
+            value={layer.sizing ?? 'fixed'}
+            onChange={(e) => resize({ sizing: e.target.value as 'fixed' } as Partial<Layer>)}
+          >
+            <option value="fixed">Fixed box</option>
+            <option value="autoWidth">Fit the text</option>
+            <option value="autoHeight">Fixed width, fit the height</option>
+          </Select>
+        </Field>
+      )}
 
       {layer.kind === 'counter' && (
         <Section title="Counter">
@@ -394,43 +480,17 @@ function Inspector({ show, layer }: { show: Show; layer: Layer }) {
           icon={<Zap size={13} />}
           title="Add a cue that brings this layer in"
           onClick={() => {
-            const cueId = useEditor.getState().selection.cueId;
-            const after = show.cues.find((c) => c.id === cueId) ?? show.cues.at(-1);
-            const sceneId = after?.sceneId ?? show.scenes[0]?.id;
-            if (!sceneId) return;
-            const cue = createCue(
-              sceneId,
-              `${layer.kind === 'audio' ? 'Sound' : 'Show'}: ${layer.name}`,
-            );
-            cue.actions.push({ type: 'show', layerId: layer.id, duration: 1, easing: 'easeInOut' });
-            if (layer.kind === 'video' || layer.kind === 'audio')
-              cue.actions.push({ type: 'play', layerId: layer.id, restart: true });
-            update((d) => {
-              const i = after ? d.cues.findIndex((c) => c.id === after.id) : -1;
-              d.cues.splice(i + 1, 0, cue);
-            });
+            const after = useEditor.getState().selection.cueId;
+            const cue = cueBringingIn(show, layer, after);
+            if (!cue) return;
+            update((d) => insertCueAfter(d, cue, after ?? d.cues.at(-1)?.id ?? null));
             select({ cueId: cue.id });
             toast(`Added cue “${cue.name}”`, 'good');
           }}
         >
           New cue
         </Button>
-        <Button
-          size="sm"
-          icon={<Copy size={13} />}
-          onClick={() => {
-            const copy = {
-              ...structuredClone(layer),
-              id: uid('lyr'),
-              name: `${layer.name} copy`,
-              x: layer.x + 40,
-              y: layer.y + 40,
-              z: layer.z + 1,
-            };
-            update((d) => void d.layers.push(copy));
-            select({ layerId: copy.id });
-          }}
-        >
+        <Button size="sm" icon={<Copy size={13} />} onClick={() => duplicateSelection([layer.id])}>
           Duplicate
         </Button>
         <Button
@@ -438,15 +498,184 @@ function Inspector({ show, layer }: { show: Show; layer: Layer }) {
           variant="ghost"
           className="text-fault"
           icon={<Trash2 size={13} />}
-          onClick={() => {
-            update((d) => removeLayer(d, layer.id));
-            select({ layerId: null });
-          }}
+          onClick={() => deleteLayers([layer.id])}
         >
           Delete
         </Button>
       </div>
     </div>
+  );
+}
+
+const PIN_X = ['left', 'center', 'right'] as const;
+const PIN_Y = ['top', 'center', 'bottom'] as const;
+
+/** Nine anchors: the output edges a top-level layer keeps its distance to. */
+function PinPicker({ pin, onChange }: { pin: Pin; onChange: (pin: Pin) => void }) {
+  return (
+    <div
+      role="group"
+      aria-label="Pin to the output"
+      className="grid w-fit grid-cols-3 gap-0.5 border border-line-control p-0.5"
+    >
+      {PIN_Y.flatMap((y) =>
+        PIN_X.map((x) => {
+          const on = pin.x === x && pin.y === y;
+          const name =
+            x === 'center' && y === 'center'
+              ? 'centre'
+              : `${y === 'center' ? 'middle' : y} ${x === 'center' ? 'centre' : x}`;
+          return (
+            <button
+              key={`${x}${y}`}
+              type="button"
+              aria-pressed={on}
+              aria-label={`Pin to the ${name}`}
+              data-info={`Pin to the ${name}`}
+              onClick={() => onChange({ x, y })}
+              className={cn(
+                'size-5 outline-none focus-visible:outline-2 focus-visible:outline-focus',
+                on ? 'bg-accent' : 'bg-control hover:bg-control-hover',
+              )}
+            />
+          );
+        }),
+      )}
+    </div>
+  );
+}
+
+/** A frame's fill and layout. Switching layout keeps everything where it is drawn. */
+function FrameSection({
+  frame,
+  tree,
+  set,
+}: {
+  frame: FrameLayer;
+  tree: ReturnType<typeof layerTree>;
+  set: (patch: Partial<Layer>, coalesce?: string) => void;
+}) {
+  const update = useEditor((s) => s.update);
+  const { layout } = frame;
+  const flow = layout.mode !== 'free';
+  const setLayout = (patch: Partial<FrameLayer['layout']>) =>
+    update((d) => {
+      const f = d.layers.find((x) => x.id === frame.id);
+      if (!f || f.kind !== 'frame') return;
+      keepDrawn(d, frame.id);
+      // Out of a row or column, children stay where they were drawn.
+      if (patch.mode === 'free') {
+        const at = measureLayer(frame.id) ?? undefined;
+        for (const c of tree.children(frame.id)) {
+          const drawn = measureLayer(c.id);
+          const dc = d.layers.find((x) => x.id === c.id);
+          if (drawn && dc) Object.assign(dc, placeAt(undefined, drawn, at));
+        }
+      }
+      Object.assign(f.layout, patch);
+    });
+  const num = (key: 'gap' | 'padX' | 'padY', label: string) => (
+    <Field label={label}>
+      <NumberInput
+        aria-label={label}
+        value={layout[key]}
+        min={0}
+        suffix="px"
+        onCommit={(v, live) =>
+          update(
+            (d) => {
+              const f = d.layers.find((x) => x.id === frame.id);
+              if (f?.kind === 'frame') f.layout[key] = v;
+            },
+            live ? { coalesce: `${frame.id}:${key}` } : undefined,
+          )
+        }
+      />
+    </Field>
+  );
+  return (
+    <Section title="Frame">
+      <Field label="Fill">
+        <div className="flex gap-2">
+          <ColorInput
+            aria-label="Fill colour"
+            className="flex-1"
+            value={frame.fill.startsWith('#') ? frame.fill : '#000000'}
+            onChange={(fill) => set({ fill } as Partial<Layer>, 'fill')}
+          />
+          <Button size="sm" onClick={() => set({ fill: 'transparent' } as Partial<Layer>)}>
+            None
+          </Button>
+        </div>
+      </Field>
+      <div className="grid grid-cols-2 items-end gap-2">
+        <Field label="Corners">
+          <NumberInput
+            aria-label="Corners"
+            value={frame.radius}
+            min={0}
+            suffix="px"
+            onCommit={(radius, live) =>
+              set({ radius } as Partial<Layer>, live ? 'radius' : undefined)
+            }
+          />
+        </Field>
+        <Toggle
+          checked={frame.clip}
+          onChange={(clip) => set({ clip } as Partial<Layer>)}
+          label="Clip content"
+        />
+      </div>
+      <Field label="Layout">
+        <Select value={layout.mode} onChange={(e) => setLayout({ mode: e.target.value as 'free' })}>
+          <option value="free">Free: children stay where you put them</option>
+          <option value="row">Row: children line up left to right</option>
+          <option value="column">Column: children stack top to bottom</option>
+        </Select>
+      </Field>
+      {flow && (
+        <>
+          <div className="grid grid-cols-3 gap-2">
+            {num('gap', 'Gap')}
+            {num('padX', 'Sides')}
+            {num('padY', 'Top, bottom')}
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <Field label="Across">
+              <Select
+                value={layout.align}
+                onChange={(e) => setLayout({ align: e.target.value as 'start' })}
+              >
+                <option value="start">{layout.mode === 'row' ? 'Top' : 'Left'}</option>
+                <option value="center">Centre</option>
+                <option value="end">{layout.mode === 'row' ? 'Bottom' : 'Right'}</option>
+              </Select>
+            </Field>
+            <Field label="Along">
+              <Select
+                value={layout.justify}
+                onChange={(e) => setLayout({ justify: e.target.value as 'start' })}
+              >
+                <option value="start">{layout.mode === 'row' ? 'Left' : 'Top'}</option>
+                <option value="center">Centre</option>
+                <option value="end">{layout.mode === 'row' ? 'Right' : 'Bottom'}</option>
+                <option value="between">Spread out</option>
+              </Select>
+            </Field>
+          </div>
+          <Toggle
+            checked={layout.hugW}
+            onChange={(hugW) => setLayout({ hugW })}
+            label="Width fits the content"
+          />
+          <Toggle
+            checked={layout.hugH}
+            onChange={(hugH) => setLayout({ hugH })}
+            label="Height fits the content"
+          />
+        </>
+      )}
+    </Section>
   );
 }
 

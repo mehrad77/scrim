@@ -82,20 +82,48 @@ export function layerForMedia(show: Show, output: Output | undefined, media: Med
   };
 }
 
-export type SyntheticKind = Exclude<LayerKind, 'image' | 'video' | 'audio' | 'frame'> | 'countdown';
+export type SyntheticKind = Exclude<LayerKind, 'image' | 'video' | 'audio'> | 'countdown';
 
 export function syntheticLayer(show: Show, output: Output, kind: SyntheticKind): Layer {
   const z = topZ(show, output.id);
-  const common = {
+  const base = {
     id: uid('lyr'),
     outputId: output.id,
     opacity: 1,
     visible: false,
     crop: { top: 0, right: 0, bottom: 0, left: 0 },
     z,
-    ...TEXT,
   };
+  const common = { ...base, ...TEXT };
   switch (kind) {
+    case 'frame': {
+      // A lower-third bar: on from the start, so one cue showing it shows what it holds.
+      const w = Math.round(output.width * 0.4);
+      const h = Math.round(output.height * 0.14);
+      return {
+        ...base,
+        visible: true,
+        x: Math.round((output.width - w) / 2),
+        y: Math.round(output.height * 0.78),
+        w,
+        h,
+        name: 'Frame',
+        kind: 'frame',
+        fill: '#202020',
+        radius: 0,
+        clip: false,
+        layout: {
+          mode: 'row',
+          gap: 24,
+          padX: 32,
+          padY: 16,
+          align: 'center',
+          justify: 'start',
+          hugW: true,
+          hugH: true,
+        },
+      };
+    }
     case 'text':
       return {
         ...common,

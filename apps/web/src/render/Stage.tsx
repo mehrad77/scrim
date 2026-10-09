@@ -163,6 +163,7 @@ export function Stage(props: StageProps) {
     >
       {scale > 0 && (
         <div
+          data-stage-canvas
           className="absolute top-0 left-0 overflow-hidden"
           style={{
             width: output.width,

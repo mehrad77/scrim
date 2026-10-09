@@ -1,8 +1,10 @@
 import type { Layer } from '@scrim/format';
-import { Eye, EyeOff, Hash, Music, Plus, Timer, Type, Variable } from 'lucide-react';
+import { layerTree } from '@scrim/format';
+import { Eye, EyeOff, Frame, Hash, Music, Plus, Timer, Type, Variable } from 'lucide-react';
 import { useEffect, useRef } from 'react';
 import type { PanelImperativeHandle } from 'react-resizable-panels';
 import { cn } from '../../lib/cn.js';
+import { putInFrame } from '../../lib/frames.js';
 import { layerKindLabel, syntheticLayer, type SyntheticKind } from '../../lib/layers.js';
 import { useEditor, useShow } from '../../state/editor.js';
 import { IconButton } from '../../ui/Button.js';
@@ -67,6 +69,7 @@ const ADD: { kind: SyntheticKind; label: string; icon: typeof Type }[] = [
   { kind: 'countdown', label: 'Countdown', icon: Timer },
   { kind: 'counter', label: 'Counter', icon: Hash },
   { kind: 'state', label: 'State value', icon: Variable },
+  { kind: 'frame', label: 'Frame', icon: Frame },
 ];
 
 function LayersPanel() {
@@ -121,7 +124,14 @@ function LayersPanel() {
               icon: <a.icon size={14} />,
               onAction: () => {
                 const layer = syntheticLayer(show, output, a.kind);
-                update((d) => void d.layers.push(layer));
+                // Into the selected frame, or the frame the selected layer is in.
+                const tree = layerTree(show.layers);
+                const picked = layerId ? tree.byId.get(layerId) : undefined;
+                const into = picked?.kind === 'frame' ? picked : tree.parent(layerId ?? '');
+                update((d) => {
+                  d.layers.push(layer);
+                  if (into && into.outputId === output.id) putInFrame(d, layer, into.id);
+                });
                 select({ layerId: layer.id });
               },
             }))}
