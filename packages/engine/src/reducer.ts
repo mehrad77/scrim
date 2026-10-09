@@ -10,11 +10,14 @@ import {
   type ClearPoint,
   type EngineState,
   type LayerState,
+  type Timer,
 } from './state.js';
 import { retarget, still } from './tween.js';
 import type { ClearKind, EngineEvent, EngineInput, InputSource } from './types.js';
 
 const MAX_RULE_EVENTS = 200;
+/** Cues one input may fire through jumps and zero-second follows before the engine calls it a loop. */
+const MAX_CUE_FIRES = 64;
 
 interface Ctx {
   show: Show;
@@ -22,6 +25,12 @@ interface Ctx {
   now: number;
   events: EngineEvent[];
   order: Cue[];
+  /** Cues fired in this step. */
+  fires: number;
+  /** Events rules have looked at in this step. */
+  ruleEvents: number;
+  /** Delayed actions scheduled in this step, which a Fade all in the same step keeps. */
+  scheduled: Set<Timer>;
 }
 
 export interface StepResult {
@@ -34,9 +43,27 @@ export interface StepResult {
  * time always give the same result. Rules run on the events the input causes.
  */
 export function step(show: Show, prev: EngineState, input: EngineInput, now: number): StepResult {
-  const ctx: Ctx = { show, state: structuredClone(prev), now, events: [], order: cueOrder(show) };
+  const ctx: Ctx = {
+    show,
+    state: structuredClone(prev),
+    now,
+    events: [],
+    order: cueOrder(show),
+    fires: 0,
+    ruleEvents: 0,
+    scheduled: new Set(),
+  };
   applyInput(ctx, input);
-  runRules(ctx);
+  let ruled = runRules(ctx, 0);
+  // A zero-second follow fires in this step, after the rules of the cue before it, so a loop of
+  // them meets the cue cap instead of spinning one tick after another. Only a cue fired in this
+  // step can have set it: every fire replaces the follow, and older ones wait for their tick.
+  while (ctx.fires > 0 && ctx.state.follow && ctx.state.follow.at <= ctx.now && !ctx.state.held) {
+    const { cueId } = ctx.state.follow;
+    ctx.state.follow = null;
+    fireCue(ctx, cueId, 'follow');
+    ruled = runRules(ctx, ruled);
+  }
   // Remember where an operator GO started from, so Back can return there.
   const fired = ctx.events.find((e) => e.type === 'cueFired');
   if ((input.type === 'go' || input.type === 'fireCue') && fired?.type === 'cueFired') {
@@ -360,6 +387,11 @@ function tick(ctx: Ctx): void {
 }
 
 function fireCue(ctx: Ctx, cueId: string, source: InputSource): void {
+  if (++ctx.fires > MAX_CUE_FIRES) {
+    if (ctx.fires === MAX_CUE_FIRES + 1) warn(ctx, cueLoopWarning(ctx));
+    ctx.state.follow = null;
+    return;
+  }
   const { state, now } = ctx;
   const i = ctx.order.findIndex((c) => c.id === cueId);
   const cue = ctx.order[i];
@@ -376,15 +408,30 @@ function fireCue(ctx: Ctx, cueId: string, source: InputSource): void {
   applyActions(ctx, cue.actions);
 }
 
+/** "Cues stopped: “A” and “B” fire each other with no time between (loop?)" */
+function cueLoopWarning(ctx: Ctx): string {
+  const fired = ctx.events.flatMap((e) => (e.type === 'cueFired' ? [`“${e.name}”`] : []));
+  const names = [...new Set(fired.slice(-8))];
+  if (names.length === 1)
+    return `Cues stopped: ${names[0]} fires itself with no time between (loop?)`;
+  if (names.length > 3) return `Cues stopped: more than ${MAX_CUE_FIRES} fired at once (loop?)`;
+  const list = `${names.slice(0, -1).join(', ')} and ${names.at(-1)}`;
+  return `Cues stopped: ${list} fire each other with no time between (loop?)`;
+}
+
 function applyActions(ctx: Ctx, actions: Action[]): void {
   for (const action of actions) {
+    // Past the cue cap, the loop's remaining actions stop too, as its jumps unwind.
+    if (ctx.fires > MAX_CUE_FIRES) return;
     const delay = 'delay' in action ? (action.delay ?? 0) : 0;
     if (delay > 0) {
-      ctx.state.timers.push({
+      const timer: Timer = {
         at: ctx.now + delay * 1000,
         kind: 'action',
         action: { ...action, delay: 0 } as Action,
-      });
+      };
+      ctx.state.timers.push(timer);
+      ctx.scheduled.add(timer);
     } else applyAction(ctx, action);
   }
 }
@@ -413,24 +460,28 @@ function applyAction(ctx: Ctx, action: Action): void {
     }
     case 'pause': {
       const media = state.layers[action.layerId]?.media;
-      if (!media) return;
+      if (!media) return warn(ctx, `Layer ${action.layerId} has no media to pause`);
       Object.assign(media, { playing: false, position: mediaPosition(media, now), anchor: now });
       return;
     }
     case 'seek': {
       const media = state.layers[action.layerId]?.media;
-      if (media) Object.assign(media, { position: action.time, anchor: now });
+      if (!media) return warn(ctx, `Layer ${action.layerId} has no media to seek`);
+      Object.assign(media, { position: action.time, anchor: now });
       return;
     }
     case 'setText': {
       const ls = state.layers[action.layerId];
-      if (ls) ls.text = action.text;
+      const layer = show.layers.find((l) => l.id === action.layerId);
+      if (!ls || layer?.kind !== 'text') return warn(ctx, `Layer ${action.layerId} has no text`);
+      ls.text = action.text;
       return;
     }
     case 'counter': {
       const ls = state.layers[action.layerId];
       const layer = show.layers.find((l) => l.id === action.layerId);
-      if (!ls?.counter || layer?.kind !== 'counter') return;
+      if (!ls?.counter || layer?.kind !== 'counter')
+        return warn(ctx, `Layer ${action.layerId} is not a counter`);
       const c = ls.counter;
       const current = counterValue(c, layer.mode, now);
       if (action.op === 'start') Object.assign(c, { running: true, base: current, anchor: now });
@@ -466,6 +517,8 @@ function applyAction(ctx: Ctx, action: Action): void {
       openMoment(ctx, action.momentId);
       return;
     case 'closeMoment':
+      if (!momentDef(ctx, action.momentId))
+        return warn(ctx, `Audience moment ${action.momentId} not found`);
       closeMoment(ctx, action.momentId);
       return;
     case 'stopAll': {
@@ -479,6 +532,9 @@ function applyAction(ctx: Ctx, action: Action): void {
           state.timers.push({ at: now + action.duration * 1000, kind: 'pause', layerId: id });
         }
       }
+      // Delayed actions from earlier cues would bring layers back after the fade; the ones this
+      // step scheduled (this cue's own) still run.
+      state.timers = state.timers.filter((t) => t.kind !== 'action' || ctx.scheduled.has(t));
       state.follow = null;
       return;
     }
@@ -619,20 +675,20 @@ function round(n: number): number {
   return Math.round(n * 100) / 100;
 }
 
-function runRules(ctx: Ctx): void {
+/** Run rules on the events from index `from` on; returns how far they got. */
+function runRules(ctx: Ctx, from: number): number {
   const rules = ctx.show.rules.filter((r) => r.enabled);
-  if (!rules.length) return;
-  let seen = 0;
-  for (let i = 0; i < ctx.events.length; i++) {
+  if (!rules.length || ctx.ruleEvents > MAX_RULE_EVENTS) return ctx.events.length;
+  for (let i = from; i < ctx.events.length; i++) {
     const event = ctx.events[i]!;
     // Traces describe rules; they never trigger them.
     if (event.type === 'ruleEvaluated') continue;
-    if (++seen > MAX_RULE_EVENTS) {
+    if (++ctx.ruleEvents > MAX_RULE_EVENTS) {
       ctx.events.push({
         type: 'warning',
         message: 'Rules stopped: too many chained events (loop?)',
       });
-      return;
+      return ctx.events.length;
     }
     for (const rule of rules) {
       if (!matches(rule.when, event)) continue;
@@ -642,6 +698,7 @@ function runRules(ctx: Ctx): void {
       if (ran) applyActions(ctx, rule.then);
     }
   }
+  return ctx.events.length;
 }
 
 function matches(when: Show['rules'][number]['when'], e: EngineEvent): boolean {

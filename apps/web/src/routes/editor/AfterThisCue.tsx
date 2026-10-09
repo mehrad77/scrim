@@ -1,4 +1,4 @@
-import { formatValue, step, type EngineState } from '@scrim/engine';
+import { formatVar, step, type EngineState } from '@scrim/engine';
 import { type Show, type VarValue } from '@scrim/format';
 import { Bookmark, CircleCheck, MoreHorizontal, Play, Route, TriangleAlert, X } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
@@ -252,7 +252,7 @@ function AssumeChips({
 const shown = (show: Show, varId: string, v: VarValue | undefined) =>
   typeof v === 'string' || typeof v === 'number'
     ? valueLabel(show, varId, v) || '—'
-    : formatValue(v) || '—';
+    : formatVar(show, varId, v) || '—';
 
 /** State as values people read, with what this cue changed marked. */
 function StateValues({

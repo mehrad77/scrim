@@ -64,11 +64,12 @@ The five primary users come from the [product proposal](https://claude.ai/code/a
 - Autosave every 400 ms.
 - Versions every 5 minutes, with restore.
 - `.scrim` export and import.
+- A start gallery with the demo and three starters (an audience vote that branches, slides with cues, a performer button counter), and **Save as template** on this machine.
 
 **Gaps.**
 
 - No collaboration: one person edits a show on one machine.
-- No reusable templates beyond the demo.
+- No templates for the use cases below; saved templates stay on one machine.
 - Effects, blend modes and projection warping wait for the [GPU compositor](research/gpu-compositor.md).
 
 ### Director
@@ -103,7 +104,7 @@ The five primary users come from the [product proposal](https://claude.ai/code/a
 
 - No comments or threaded notes on cues.
 - No remote viewing: the director has to be at the show machine.
-- No way to save a "rehearsal bookmark" (a scene plus a state setup).
+- Rehearsal bookmarks are partial. **Save this path** in the editor's _After this cue_ keeps a cue and the moment results that lead there, and **Rehearse from here** hands them to the operator view. A path can't hold other values, and the operator view can't open one.
 
 ### Stage manager / operator
 
@@ -178,11 +179,13 @@ The five primary users come from the [product proposal](https://claude.ai/code/a
 **Today.**
 
 - All of the above. When the room is replaced, the phone says **Link no longer valid** and explains what to do.
+- The phone vibrates on a press and shows **Sent ✓** once the operator has it.
+- A trigger that a cue waits for reads **Not yet** until that cue is on standby, then **Your cue · tap Ready**.
 
 **Gaps.**
 
 - No per-performer view: every remote sees all triggers.
-- No haptic or "armed" state to stop accidental presses.
+- Other triggers fire on the first touch, with no "armed" state.
 
 ### Audience member
 
@@ -222,7 +225,7 @@ The five primary users come from the [product proposal](https://claude.ai/code/a
 **Gaps.**
 
 - No language switching.
-- No accessibility review yet (screen readers, contrast, motion).
+- Accessibility is partial: the page follows the phone's reduced-motion and contrast settings, but nothing is announced to screen readers and there is no access menu.
 - No custom branding.
 
 ## Supporting users
@@ -236,10 +239,11 @@ The five primary users come from the [product proposal](https://claude.ai/code/a
   - Sets keystone with corner pin.
   - Brings a dedicated Wi-Fi router for large audiences.
   - Imports the `.scrim` file onto remote output devices.
-- **Today:** the Outputs & audio tab, Identify, the pre-show check, and per-machine settings that are not saved in the show.
+- **Today:** the Outputs & audio tab, Identify, the pre-show check, and per-machine settings that are not saved in the show (display assignments and audio devices). The corner pin is saved in the show.
 - **Gaps:**
   - No mesh warp, edge blending or test patterns ([GPU compositor research](research/gpu-compositor.md)).
   - Media must be copied to remote outputs by hand.
+  - Identify works only for output windows on the show machine, not for remote outputs.
 
 ### Lighting and sound designers
 
@@ -355,7 +359,7 @@ Design and rehearsal loop many times. Review feeds the next rehearsal. Touring r
   - References can be left unfinished while designing; the engine skips them and warns.
 - **Risks and gaps:**
   - Single-user only.
-  - No templates.
+  - Only three starters; no templates for the use cases below.
   - Visual effects and mapping are limited by the DOM renderer.
 
 ### 3. Rehearse
@@ -393,7 +397,7 @@ Design and rehearsal loop many times. Review feeds the next rehearsal. Touring r
   12. Work through the pre-show check.
 - **Moment of truth:** the pre-show check says **READY** on the real machine, in the real room.
 - **Today:**
-  - The pre-show check covers media, storage, outputs, sound, sleep, controllers and the audience room.
+  - The pre-show check covers the logic check, media, storage, outputs, sound, wake lock and sleep, controllers, the audience room, the offline cache and Show mode.
   - Display assignments are remembered per machine.
 - **Risks and gaps:**
   - Lighting and sound consoles are not connected ([research](research/show-control-output.md)).
@@ -450,7 +454,7 @@ Design and rehearsal loop many times. Review feeds the next rehearsal. Touring r
 - **Steps:**
   1. Export the `.scrim` file.
   2. Import it on the new machine.
-  3. Redo the per-machine setup: display assignments, audio devices, keystone.
+  3. Redo the per-machine setup (display assignments, audio devices), and adjust the corner pin, which travels in the show, for the new room's projectors.
   4. Go back to tech.
 - **Moment of truth:** the show opens on a fresh machine with all its media, and runs.
 - **Today:**
@@ -458,7 +462,7 @@ Design and rehearsal loop many times. Review feeds the next rehearsal. Touring r
   - Media is bundled byte for byte.
 - **Risks and gaps:**
   - No cloud sync.
-  - Keystone and display setup are per machine and must be redone for each new venue.
+  - Display setup is per machine and must be redone for each new venue, and the corner pin readjusted.
 
 ## Music and live events
 
@@ -534,7 +538,7 @@ For each user, **Ideas** links to the cross-cutting ideas in [Accessible to all]
   - Runs on ChromeOS.
   - No accounts.
   - Text moments are moderated.
-  - The demo show is a starting point.
+  - The demo show and the starters are a starting point.
 - **Gaps:**
   - Templates and a simple mode.
   - Merging work from several groups into one show.

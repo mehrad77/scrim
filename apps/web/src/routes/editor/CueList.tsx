@@ -27,7 +27,7 @@ import {
 import { cn } from '../../lib/cn.js';
 import { summarizeCue } from '../../lib/cueSummary.js';
 import { readLocal, writeLocal } from '../../lib/local.js';
-import { cueExits, sceneGraph } from '../../lib/logic.js';
+import { checkLogic, cueExits, sceneGraph, type LogicIssue } from '../../lib/logic.js';
 import { removeScene } from '../../lib/refs.js';
 import { TAPES, tapeOf } from '../../lib/tape.js';
 import { useEditor, useShow } from '../../state/editor.js';
@@ -37,6 +37,7 @@ import { MenuButton } from '../../ui/Menu.js';
 import { Panel } from '../../ui/Panel.js';
 import { Tabs } from '../../ui/Tabs.js';
 import { toast } from '../../ui/toast.js';
+import { LogicCheckList } from './LogicCheckList.js';
 import { SceneMap } from './SceneMap.js';
 
 /** Move a cue before or after another cue (possibly in another scene), or to the end of a scene. */
@@ -82,6 +83,9 @@ export function CueList() {
   const cueId = useEditor((s) => s.selection.cueId);
   const numbers = useMemo(() => new Map(cueOrder(show).map((c, i) => [c.id, i + 1])), [show]);
   const reachable = useMemo(() => sceneGraph(show).reachable, [show]);
+  const issues = useMemo(() => checkLogic(show).filter((i) => i.area === 'cues'), [show]);
+  const issueCue = (i: LogicIssue) =>
+    i.cueId ?? show.cues.find((c) => c.sceneId === i.sceneId)?.id ?? null;
   const [announce, setAnnounce] = useState('');
   const [view, setViewState] = useState<'list' | 'map'>(() => readLocal('scrim.cues.view', 'list'));
   const setView = (v: 'list' | 'map') => {
@@ -274,6 +278,16 @@ export function CueList() {
       <span className="sr-only" aria-live="polite">
         {announce}
       </span>
+      {issues.length > 0 && (
+        <LogicCheckList
+          issues={issues}
+          canReveal={(i) => !!issueCue(i)}
+          onReveal={(i) => {
+            const id = issueCue(i);
+            if (id) select({ cueId: id });
+          }}
+        />
+      )}
       {view === 'map' && <SceneMap show={show} />}
       {view === 'list' && (
         <div onKeyDownCapture={onKeys}>

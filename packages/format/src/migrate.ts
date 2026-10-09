@@ -35,5 +35,22 @@ export function parseShow(input: unknown): Show {
       `Invalid show: ${issue ? `${issue.path.join('.')}: ${issue.message}` : 'unknown error'}`,
     );
   }
-  return result.data;
+  return keepUnknown(doc, result.data) as Show;
+}
+
+const isRecord = (x: unknown): x is Record<string, unknown> =>
+  typeof x === 'object' && x !== null && !Array.isArray(x);
+
+/**
+ * Put back the fields validation dropped because this app doesn't know them, so a show made
+ * with a newer Scrim keeps them when it is saved here. Types only describe the known fields.
+ */
+function keepUnknown(raw: unknown, parsed: unknown): unknown {
+  if (Array.isArray(raw) && Array.isArray(parsed) && raw.length === parsed.length)
+    return parsed.map((item, i) => keepUnknown(raw[i], item));
+  if (!isRecord(raw) || !isRecord(parsed)) return parsed;
+  const out: Record<string, unknown> = { ...parsed };
+  for (const [key, value] of Object.entries(raw))
+    out[key] = key in parsed ? keepUnknown(value, parsed[key]) : structuredClone(value);
+  return out;
 }

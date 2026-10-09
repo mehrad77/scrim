@@ -94,6 +94,22 @@ describe('parseShow', () => {
     });
     expect(parseShow(JSON.parse(JSON.stringify(show))).cues[0]!.actions[0]!.type).toBe('branch');
   });
+
+  it('keeps fields from a newer Scrim that this app doesn’t know, at any depth', () => {
+    const raw = JSON.parse(JSON.stringify(createShow('x')));
+    raw.setlists = [{ id: 'set_a', name: 'Friday', scenes: [raw.scenes[0].id] }];
+    raw.cues[0].section = 'Chorus';
+    raw.cues[0].access = { caption: 'Hello', i18n: { fr: { caption: 'Bonjour' } } };
+    delete raw.outputs[0].safeArea;
+    const show = parseShow(raw) as Show & { setlists?: unknown };
+    expect(show.setlists).toEqual(raw.setlists);
+    expect(show.cues[0]).toMatchObject({ section: 'Chorus', access: raw.cues[0].access });
+    // Known fields are still validated and defaulted.
+    expect(show.outputs[0]!.safeArea).toBe(0.05);
+    expect(() => parseShow({ ...raw, cues: [{ ...raw.cues[0], follow: 'soon' }] })).toThrow(
+      ShowFormatError,
+    );
+  });
 });
 
 describe('cueOrder', () => {

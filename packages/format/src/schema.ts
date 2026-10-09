@@ -153,7 +153,8 @@ export const StateLayerSchema = z.object({
   ...LayerBase,
   kind: z.literal('state'),
   varId: Ref,
-  display: z.enum(['value', 'bars']).default('value'),
+  /** value: one line of text. bars: a vote's tally as bars. list: one entry per line, newest last. */
+  display: z.enum(['value', 'bars', 'list']).default('value'),
   ...TextStyle,
 });
 

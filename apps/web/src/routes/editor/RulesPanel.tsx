@@ -37,6 +37,7 @@ import { MenuButton } from '../../ui/Menu.js';
 import { Panel } from '../../ui/Panel.js';
 import { toast } from '../../ui/toast.js';
 import { ActionList } from './ActionEditor.js';
+import { LogicCheckList } from './LogicCheckList.js';
 import { RECIPES, RecipeCards } from './recipes.js';
 
 const groupId = (key: string) => `rules-${key.replace(/[^a-z0-9]/gi, '-')}`;
@@ -125,7 +126,13 @@ export function RulesPanel({
       }
     >
       <Overview show={show} groups={groups} onPickMoment={onPickMoment} />
-      {mine.length > 0 && <LogicCheckList issues={mine} onReveal={reveal} />}
+      {mine.length > 0 && (
+        <LogicCheckList
+          issues={mine}
+          canReveal={(i) => !!i.ruleId || !!i.momentId}
+          onReveal={reveal}
+        />
+      )}
       <div className="flex flex-col gap-4 p-3">
         {show.rules.length === 0 && (
           <div className="mx-auto flex max-w-md flex-col gap-3 py-4">
@@ -227,37 +234,6 @@ function Overview({
         );
       })}
     </div>
-  );
-}
-
-function LogicCheckList({
-  issues,
-  onReveal,
-}: {
-  issues: LogicIssue[];
-  onReveal: (i: LogicIssue) => void;
-}) {
-  return (
-    <details className="group shrink-0 border-b border-line-subtle px-3 py-2" open>
-      <summary className="flex cursor-default list-none items-center gap-1.5 text-caption text-warn [&::-webkit-details-marker]:hidden">
-        <ChevronRight size={12} className="group-open:rotate-90" aria-hidden />
-        <TriangleAlert size={13} aria-hidden />
-        Logic check: {issues.length} thing{issues.length > 1 ? 's' : ''} to look at
-      </summary>
-      <ul className="mt-1 flex flex-col">
-        {issues.map((i) => (
-          <li key={i.id}>
-            <button
-              onClick={() => onReveal(i)}
-              disabled={!i.ruleId && !i.momentId}
-              className="w-full rounded-control px-2 py-0.5 text-left text-caption text-fg-muted enabled:hover:bg-control-hover enabled:hover:text-fg"
-            >
-              {i.text}
-            </button>
-          </li>
-        ))}
-      </ul>
-    </details>
   );
 }
 

@@ -4,12 +4,17 @@ import {
   counterValue,
   effectiveOpacity,
   Engine,
+  formatValue,
+  formatVar,
   initialState,
   interpolate,
   mediaPosition,
   nextWakeup,
+  optionLabels,
   step,
   tweenValue,
+  valueLines,
+  type EngineEvent,
   type EngineInput,
   type EngineState,
 } from './index.js';
@@ -476,7 +481,7 @@ describe('Engine', () => {
   it('interpolates state into text', () => {
     const show = demo();
     const s = run(show, [[0, { type: 'setVar', varId: 'door', value: 'left' }]]);
-    expect(interpolate('Door: {{door}} {{nope}}', show, s.vars)).toBe('Door: left {{nope}}');
+    expect(interpolate('Door: {{door}} {{nope}}', show, s.vars)).toBe('Door: Left {{nope}}');
   });
 });
 
@@ -793,5 +798,142 @@ describe('frames', () => {
     ]);
     expect(() => step(show, s, { type: 'clear', what: 'text' }, 10)).not.toThrow();
     expect(() => step(show, s, act({ type: 'stopAll', duration: 1 }), 10)).not.toThrow();
+  });
+});
+
+describe('loops and timing', () => {
+  const act = (action: Action): EngineInput => ({ type: 'action', action });
+  const warnings = (events: EngineEvent[]) =>
+    events.flatMap((e) => (e.type === 'warning' ? [e.message] : []));
+
+  it('stops cues that fire each other with no time between, naming them', () => {
+    const show = demo();
+    show.cues[2]!.actions = [
+      { type: 'goToCue', cueId: 'c4', fire: true },
+      { type: 'openMoment', momentId: 'vote' },
+    ];
+    show.cues[3]!.actions = [{ type: 'goToCue', cueId: 'c3', fire: true }];
+    const { state, events } = step(show, initialState(show), { type: 'fireCue', cueId: 'c3' }, 0);
+    expect(events.filter((e) => e.type === 'cueFired')).toHaveLength(64);
+    // What the loop's cues would have done after their jumps stops too.
+    expect(events.some((e) => e.type === 'momentOpened')).toBe(false);
+    expect(warnings(events)).toEqual([
+      'Cues stopped: “Cellar” and “Attic” fire each other with no time between (loop?)',
+    ]);
+    expect(state.follow).toBeNull();
+  });
+
+  it('bounds a loop of zero-second follows in one step instead of spinning on ticks', () => {
+    const show = demo();
+    show.cues[0]!.follow = { auto: true, delay: 0 };
+    show.rules.push({
+      id: 'again',
+      name: 'Again',
+      enabled: true,
+      when: { type: 'cueFired', cueId: 'c2' },
+      if: [],
+      then: [{ type: 'goToCue', cueId: 'c1', fire: true }],
+    });
+    const { state, events } = step(show, initialState(show), { type: 'go' }, 0);
+    expect(warnings(events)[0]).toMatch(/^Cues stopped: “Title up” and “Open vote”/);
+    expect(state.follow).toBeNull();
+    expect(nextWakeup(state)).not.toBe(0);
+  });
+
+  it('fires a zero-second follow in the same step, after the rules of the cue before it', () => {
+    const show = demo();
+    show.cues[0]!.follow = { auto: true, delay: 0 };
+    show.cues[1]!.actions = [
+      {
+        type: 'branch',
+        if: [{ varId: 'door', op: 'eq', value: 'left' }],
+        then: [{ type: 'addVar', varId: 'score', amount: 1 }],
+        else: [],
+      },
+    ];
+    show.rules.push({
+      id: 'pick',
+      name: 'Pick',
+      enabled: true,
+      when: { type: 'cueFired', cueId: 'c1' },
+      if: [],
+      then: [{ type: 'setVar', varId: 'door', value: 'left' }],
+    });
+    const { state, events } = step(show, initialState(show), { type: 'go' }, 1000);
+    expect(events.filter((e) => e.type === 'cueFired').map((e) => e.source)).toEqual([
+      'operator',
+      'follow',
+    ]);
+    expect(state.lastFired).toBe('c2');
+    expect(state.vars.score).toBe(1);
+    // Back still returns to before the operator's GO.
+    expect(state.back?.cueId).toBe('c1');
+  });
+
+  it('leaves a follow that is due to its tick when another input arrives first', () => {
+    const show = demo();
+    const s = run(show, [
+      [0, { type: 'go' }],
+      [6000, { type: 'setVar', varId: 'score', value: 3 }],
+    ]);
+    expect(s.lastFired).toBe('c1');
+    expect(run(show, [[6000, { type: 'tick' }]], s).lastFired).toBe('c2');
+  });
+
+  it('Fade all cancels delayed actions from earlier cues and keeps its own cue’s', () => {
+    const show = demo();
+    show.cues[0]!.actions = [
+      { type: 'show', layerId: 'title', duration: 0, easing: 'linear', delay: 10 },
+    ];
+    show.cues[0]!.follow = { auto: false, delay: 0 };
+    show.cues[3]!.actions = [
+      { type: 'stopAll', duration: 1 },
+      { type: 'show', layerId: 'clock', duration: 0, easing: 'linear', delay: 3 },
+    ];
+    const s = run(show, [
+      [0, { type: 'go' }],
+      [1000, { type: 'fireCue', cueId: 'c4' }],
+    ]);
+    const pending = s.timers.flatMap((t) =>
+      t.kind === 'action' && 'layerId' in t.action ? [t.action.layerId] : [],
+    );
+    expect(pending).toEqual(['clock']);
+    const later = run(show, [[12_000, { type: 'tick' }]], s);
+    expect(later.layers.title!.opacity.to).toBe(0);
+  });
+
+  it('warns when an action has nothing to act on', () => {
+    const show = demo();
+    const msgs = (action: Action) =>
+      warnings(step(show, initialState(show), act(action), 0).events);
+    expect(msgs({ type: 'pause', layerId: 'title' })).toEqual([
+      'Layer title has no media to pause',
+    ]);
+    expect(msgs({ type: 'seek', layerId: '', time: 2 })).toEqual(['Layer  has no media to seek']);
+    expect(msgs({ type: 'setText', layerId: 'clock', text: 'x' })).toEqual([
+      'Layer clock has no text',
+    ]);
+    expect(msgs({ type: 'counter', layerId: 'title', op: 'start' })).toEqual([
+      'Layer title is not a counter',
+    ]);
+    expect(msgs({ type: 'closeMoment', momentId: '' })).toEqual(['Audience moment  not found']);
+    // Closing a moment that isn't open is normal, not a mistake.
+    expect(msgs({ type: 'closeMoment', momentId: 'vote' })).toEqual([]);
+  });
+});
+
+describe('labels', () => {
+  it('shows vote results and tallies by their option labels', () => {
+    const show = demo();
+    expect(formatVar(show, 'door', 'left')).toBe('Left');
+    expect(formatVar(show, 'tally', { left: 2, right: 1 })).toBe('Left: 2, Right: 1');
+    expect(valueLines({ left: 2, right: 1 }, optionLabels(show, 'tally'))).toEqual([
+      'Left: 2',
+      'Right: 1',
+    ]);
+    // Values no vote writes keep what they hold, even words an object already has.
+    expect(formatVar(show, 'score', 2.25)).toBe('2.3');
+    expect(formatValue(['constructor', 'toString'])).toBe('constructor, toString');
+    expect(optionLabels(show, '')).toEqual({});
   });
 });

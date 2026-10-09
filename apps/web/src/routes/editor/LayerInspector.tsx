@@ -295,7 +295,7 @@ function Inspector({ show, layer }: { show: Show; layer: Layer }) {
 
       {(layer.kind === 'text' ||
         layer.kind === 'counter' ||
-        (layer.kind === 'state' && layer.display === 'value')) && (
+        (layer.kind === 'state' && layer.display !== 'bars')) && (
         <Field label="Size">
           <Select
             value={layer.sizing ?? 'fixed'}
@@ -370,6 +370,7 @@ function Inspector({ show, layer }: { show: Show; layer: Layer }) {
               onChange={(e) => set({ display: e.target.value as 'bars' } as Partial<Layer>)}
             >
               <option value="value">As text</option>
+              <option value="list">As a list, one per line</option>
               <option value="bars">As tally bars (for votes)</option>
             </Select>
           </Field>

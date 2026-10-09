@@ -1,4 +1,4 @@
-import { formatValue, mediaPosition } from '@scrim/engine';
+import { formatValue, formatVar, mediaPosition } from '@scrim/engine';
 import type { AudioLayer, Var, VarValue, VideoLayer } from '@scrim/format';
 import { Pause, Pin, PinOff, Play, Zap } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -26,7 +26,7 @@ export function StatePanel() {
   const text = (varId: string, v: VarValue | undefined) =>
     typeof v === 'string' || typeof v === 'number'
       ? valueLabel(show, varId, v) || '—'
-      : formatValue(v) || '—';
+      : formatVar(show, varId, v) || '—';
   const vars = show.vars.filter(
     (v) => !changedOnly || text(v.id, state.vars[v.id]) !== text(v.id, v.initial),
   );

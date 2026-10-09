@@ -211,7 +211,7 @@ export async function createDemoShow(): Promise<Show> {
       h: 320,
       z: 15,
       fontSize: 96,
-      text: 'You chose the {{door}} door.\nThank you for playing.',
+      text: '{{door}} it was.\nThank you for playing.',
     },
     {
       ...base,

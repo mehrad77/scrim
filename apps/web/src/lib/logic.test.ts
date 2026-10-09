@@ -7,6 +7,7 @@ import {
   sceneGraph,
   unhandledOptions,
   usage,
+  zeroTimeLoops,
 } from './logic.js';
 import { removeLayer } from './refs.js';
 import {
@@ -165,6 +166,36 @@ describe('logic', () => {
     expect(ids).toContain('broken:c6:a cue that was deleted');
     expect(ids).toContain('loop:r3');
     expect(unhandledOptions(show, 'vote').map((o) => o.id)).toEqual(['right', 'up']);
+  });
+
+  it('finds cues that fire each other with no time between', () => {
+    const show = doors();
+    const names = () => zeroTimeLoops(show).map((loop) => loop.map((c) => c.name));
+    // Ending jumps back to the hallway and fires it; Lights up follows on at once to Ask, whose
+    // rule fires the Ending again.
+    show.cues[5]!.actions.push({ type: 'jumpScene', sceneId: 'hall', fire: true });
+    show.cues[0]!.follow = { auto: true, delay: 0 };
+    show.rules.push({
+      id: 'r3',
+      name: 'Straight to the end',
+      enabled: true,
+      when: { type: 'cueFired', cueId: 'c2' },
+      if: [],
+      then: [{ type: 'goToCue', cueId: 'c6', fire: true }],
+    });
+    expect(names()).toEqual([['Lights up', 'Ask', 'Ending']]);
+    expect(checkLogic(show).map((i) => i.text)).toContain(
+      'Cues “Lights up”, “Ask” and “Ending” fire each other with no time between, so the show stops them',
+    );
+    // A follow delay breaks it, and so does a jump that only puts the cue on standby.
+    show.cues[0]!.follow = { auto: true, delay: 2 };
+    expect(names()).toEqual([]);
+    show.cues[0]!.follow = { auto: true, delay: 0 };
+    show.cues[5]!.actions = [{ type: 'jumpScene', sceneId: 'hall', fire: false }];
+    expect(names()).toEqual([]);
+    // A cue that fires itself.
+    show.cues[4]!.actions = [{ type: 'goToCue', cueId: 'c5', fire: true }];
+    expect(names()).toEqual([['Attic']]);
   });
 
   it('counts uses', () => {

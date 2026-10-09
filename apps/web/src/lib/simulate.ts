@@ -1,5 +1,5 @@
 import {
-  formatValue,
+  formatVar,
   initialState,
   step,
   type EngineEvent,
@@ -214,7 +214,7 @@ export function tryOutcomes(show: Show, momentId: string, assume: Assume = {}): 
         const shown = (x: VarValue | undefined) =>
           typeof x === 'string' || typeof x === 'number'
             ? valueLabel(show, v.id, x)
-            : formatValue(x);
+            : formatVar(show, v.id, x);
         const before = shown(start.vars[v.id]);
         const after = shown(state.vars[v.id]);
         return before === after ? [] : [{ name: v.name, before, after }];

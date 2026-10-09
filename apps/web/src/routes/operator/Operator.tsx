@@ -1,4 +1,4 @@
-import { formatValue } from '@scrim/engine';
+import { formatVar } from '@scrim/engine';
 import { cueOrder, type Show } from '@scrim/format';
 import { ClipboardCheck, Keyboard, Lock, LockOpen, Pencil, RotateCcw } from 'lucide-react';
 import {
@@ -520,7 +520,7 @@ function MessageStrip({ typing }: { typing: boolean }) {
                 <span className="text-fg tabular-nums">
                   {typeof val === 'string' || typeof val === 'number'
                     ? valueLabel(snap.show, v.id, val) || '—'
-                    : formatValue(val) || '—'}
+                    : formatVar(snap.show, v.id, val) || '—'}
                 </span>
               </span>
             );

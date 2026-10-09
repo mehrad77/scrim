@@ -1,3 +1,4 @@
+import { optionLabels } from '@scrim/engine';
 import {
   cueOrder,
   descendantsOf,
@@ -38,17 +39,9 @@ export const OP_TEXT: Record<Condition['op'], string> = {
 
 /** A condition value as people read it: a vote option's label, never its key. */
 export function valueLabel(show: Show, varId: string, value: string | number): string {
-  for (const m of show.moments) {
-    if (m.resultVarId === varId && m.type === 'vote') {
-      const o = m.options.find((x) => x.id === String(value));
-      if (o) return o.label;
-    }
-    if (m.tallyVarId === varId && m.type === 'prop') {
-      const v = m.variants.find((x) => x.id === String(value));
-      if (v) return v.label;
-    }
-  }
-  return String(value);
+  const labels = optionLabels(show, varId);
+  const key = String(value);
+  return Object.hasOwn(labels, key) ? labels[key]! : key;
 }
 
 export function conditionText(show: Show, c: Condition): string {
@@ -363,6 +356,71 @@ function loopingRules(show: Show): Set<string> {
 }
 
 /**
+ * Groups of cues that can fire each other with no time between: jumps that fire, zero-second
+ * follows, and rules on a cue firing that jump. The engine stops such a loop, but it is a mistake.
+ */
+export function zeroTimeLoops(show: Show): Cue[][] {
+  const order = cueOrder(show);
+  const index = new Map(order.map((c, i) => [c.id, i]));
+  const fires = (actions: Action[]) =>
+    flatActions(actions).flatMap((a) => {
+      if (a.type === 'goToCue' && a.fire && index.has(a.cueId)) return [a.cueId];
+      if (a.type === 'jumpScene' && a.fire) {
+        const first = order.find((c) => c.sceneId === a.sceneId);
+        return first ? [first.id] : [];
+      }
+      return [];
+    });
+  const next = new Map<string, string[]>();
+  order.forEach((cue, i) => {
+    const out = fires(cue.actions);
+    // A jump or Fade all at the top of the cue cancels its follow.
+    const cancels = cue.actions.some(
+      (a) => a.type === 'jumpScene' || a.type === 'goToCue' || a.type === 'stopAll',
+    );
+    const after = order[i + 1];
+    if (cue.follow.auto && cue.follow.delay === 0 && after && !cancels) out.push(after.id);
+    for (const r of show.rules)
+      if (r.enabled && r.when.type === 'cueFired' && r.when.cueId === cue.id)
+        out.push(...fires(r.then));
+    next.set(cue.id, out);
+  });
+
+  // Tarjan's strongly connected components; a component is a loop if it has a cycle.
+  const loops: Cue[][] = [];
+  const low = new Map<string, number>();
+  const seen = new Map<string, number>();
+  const stack: string[] = [];
+  const onStack = new Set<string>();
+  let counter = 0;
+  const visit = (id: string): void => {
+    seen.set(id, counter);
+    low.set(id, counter++);
+    stack.push(id);
+    onStack.add(id);
+    for (const to of next.get(id) ?? []) {
+      if (!seen.has(to)) {
+        visit(to);
+        low.set(id, Math.min(low.get(id)!, low.get(to)!));
+      } else if (onStack.has(to)) low.set(id, Math.min(low.get(id)!, seen.get(to)!));
+    }
+    if (low.get(id) !== seen.get(id)) return;
+    const group: string[] = [];
+    for (let top = stack.pop()!; ; top = stack.pop()!) {
+      onStack.delete(top);
+      group.push(top);
+      if (top === id) break;
+    }
+    if (group.length > 1 || next.get(id)!.includes(id))
+      loops.push(
+        group.map((g) => order[index.get(g)!]!).sort((a, b) => index.get(a.id)! - index.get(b.id)!),
+      );
+  };
+  for (const cue of order) if (!seen.has(cue.id)) visit(cue.id);
+  return loops;
+}
+
+/**
  * Problems a creative author should know about before an audience finds them: unhandled options,
  * unreachable scenes, broken references, values written but never read, and possible loops.
  */
@@ -500,6 +558,19 @@ export function checkLogic(show: Show): LogicIssue[] {
         ruleId: r.id,
         text: `Rule “${r.name}” may loop: it changes a value that sets it off again`,
       });
+  }
+
+  for (const loop of zeroTimeLoops(show)) {
+    const names = loop.map((c) => `“${c.name}”`);
+    issues.push({
+      id: `cueloop:${loop.map((c) => c.id).join(':')}`,
+      area: 'cues',
+      cueId: loop[0]!.id,
+      text:
+        names.length === 1
+          ? `Cue ${names[0]} fires itself with no time between, so the show stops it`
+          : `Cues ${names.slice(0, -1).join(', ')} and ${names.at(-1)} fire each other with no time between, so the show stops them`,
+    });
   }
 
   issues.push(...frameIssues(show));

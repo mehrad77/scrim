@@ -46,6 +46,7 @@ step(show, state, input, now) → { state, events }
 - **Inputs** are what can happen: `go`, `fireCue`, `standby*`, `hold`, `panic`/`release`, `trigger`, `tick`, audience totals (`momentAgg`), moment control, `mediaEnded`, `setVar`, `seek`, a direct `action`, and `reset`.
 - **Events** describe what happened: `cueFired`, `momentOpened`/`momentClosed`, `varChanged`, `trigger`, `mediaEnded`, `panic`, `cleared`, `mute`, `warning`, and so on.
 - **Rules** run after every input on the events it produced. A rule's actions may cause further events, up to 200 per input; past that the engine stops and emits a warning, so a looping rule cannot hang the show.
+- **Cues fired at once.** A zero-second auto-follow fires in the same step as the cue before it, after that cue's rules. One input may fire at most 64 cues through jumps that fire and zero-second follows; past that the engine stops the rest of that step's cue and rule actions, names the cues, and warns. The logic check flags such loops in the editor.
 - **Rule traces.** Every rule whose `when` matched emits `ruleEvaluated` with whether it ran and each check with the value it saw. Traces never trigger rules and don't count toward the 200.
 
 Time never advances inside the engine. Instead, state stores _when_ things happen:
@@ -53,7 +54,7 @@ Time never advances inside the engine. Instead, state stores _when_ things happe
 - **Fades** are tweens: `{from, to, t0, dur, easing}`. Renderers interpolate them on their own frame loop.
 - **Media** is a clock: `{playing, position, anchor}`. Its position at time `t` is `position + (t - anchor)`.
 - **Counters** are `{running, base, anchor}`.
-- **Pending things** (auto-follow, moment time-outs, delayed pauses) carry an epoch time. `nextWakeup(state)` says when a `tick` is due, and the `Engine` wrapper schedules exactly one timer for it.
+- **Pending things** (auto-follow, moment time-outs, delayed actions and pauses) carry an epoch time. `nextWakeup(state)` says when a `tick` is due, and the `Engine` wrapper schedules exactly one timer for it.
 
 The engine is therefore deterministic and cheap to unit-test, and every window that receives the same state draws the same picture at the same moment.
 

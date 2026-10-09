@@ -1,4 +1,4 @@
-import { formatValue } from '@scrim/engine';
+import { formatValue, optionLabels, valueLines } from '@scrim/engine';
 import type { StateLayer } from '@scrim/format';
 import type { LayerViewProps } from './LayerView.js';
 import { sizingClass, textStyle } from './text.js';
@@ -6,8 +6,8 @@ import { sizingClass, textStyle } from './text.js';
 export function StateLayerView({ layer, show, state }: LayerViewProps<StateLayer>) {
   const def = show.vars.find((v) => v.id === layer.varId);
   const value = state.vars[layer.varId];
+  const labels = optionLabels(show, layer.varId);
   if (layer.display === 'bars' && value && typeof value === 'object' && !Array.isArray(value)) {
-    const labels = labelsFor(show, layer.varId);
     const entries = Object.entries(value);
     const total = entries.reduce((n, [, v]) => n + v, 0) || 1;
     return (
@@ -30,23 +30,23 @@ export function StateLayerView({ layer, show, state }: LayerViewProps<StateLayer
       </div>
     );
   }
+  if (layer.display === 'list') {
+    // Newest last, held to the bottom edge, so a fixed box always shows the latest entries.
+    return (
+      <div
+        className={`flex flex-col justify-end ${sizingClass(layer.sizing, 'overflow-hidden whitespace-pre-wrap')}`}
+        style={textStyle(layer)}
+      >
+        {def && valueLines(value, labels).map((line, i) => <span key={i}>{line}</span>)}
+      </div>
+    );
+  }
   return (
     <div
       className={`flex items-center ${sizingClass(layer.sizing, 'whitespace-pre-wrap')}`}
       style={textStyle(layer)}
     >
-      <span className="w-full">{def ? formatValue(value) : ''}</span>
+      <span className="w-full">{def ? formatValue(value, labels) : ''}</span>
     </div>
   );
-}
-
-/** Option labels for tally vars filled by a vote or prop moment. */
-function labelsFor(show: LayerViewProps['show'], varId: string): Record<string, string> {
-  const out: Record<string, string> = {};
-  for (const m of show.moments) {
-    if (m.tallyVarId !== varId) continue;
-    for (const o of m.options) out[o.id] = o.label;
-    for (const v of m.variants) out[v.id] = v.label;
-  }
-  return out;
 }

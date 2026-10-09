@@ -1,17 +1,6 @@
 import type { Condition, Show, VarValue } from '@scrim/format';
+import { formatValue, formatVar } from './labels.js';
 import type { ConditionCheck } from './types.js';
-
-export function formatValue(value: VarValue | null | undefined): string {
-  if (value === null || value === undefined) return '';
-  if (Array.isArray(value)) return value.join(', ');
-  if (typeof value === 'object') {
-    return Object.entries(value)
-      .map(([k, n]) => `${k}: ${n}`)
-      .join(', ');
-  }
-  if (typeof value === 'number') return Number.isInteger(value) ? String(value) : value.toFixed(1);
-  return value;
-}
 
 function scalar(value: VarValue | undefined): string | number {
   if (value === undefined) return '';
@@ -59,15 +48,15 @@ export function explain(conds: Condition[], vars: Record<string, VarValue>): Con
   }));
 }
 
-/** Replace {{varName}} placeholders with current values. */
+/** Replace {{varName}} placeholders with current values, vote options by their labels. */
 export function interpolate(
   text: string,
-  show: Pick<Show, 'vars'>,
+  show: Pick<Show, 'vars' | 'moments'>,
   vars: Record<string, VarValue>,
 ): string {
   if (!text.includes('{{')) return text;
   return text.replace(/\{\{\s*([A-Za-z_][A-Za-z0-9_]*)\s*\}\}/g, (whole, name: string) => {
     const def = show.vars.find((v) => v.name === name);
-    return def ? formatValue(vars[def.id]) : whole;
+    return def ? formatVar(show, def.id, vars[def.id]) : whole;
   });
 }

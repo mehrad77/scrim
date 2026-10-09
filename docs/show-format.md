@@ -85,8 +85,10 @@ Common fields: `id, name, kind, outputId (null for audio), x, y, w, h, z, opacit
 | `audio`   | `mediaId`, `loop`, `volume`, `bus` — played by the operator tab; opacity acts as a level       |
 | `text`    | `text` (may contain `{{varName}}`), text style                                                 |
 | `counter` | `mode` (`countdown` · `countup` · `count`), `start`, `format` (`clock` · `number`), text style |
-| `state`   | `varId`, `display` (`value` · `bars`), text style                                              |
+| `state`   | `varId`, `display` (`value` · `bars` · `list`), text style                                     |
 | `frame`   | `fill`, `radius`, `clip`, `layout`                                                             |
+
+A `state` layer shows a value as one line of text (`value`), a vote's or prop's tally as bars (`bars`), or one entry per line, newest last and held to the bottom of a fixed box (`list`). Older apps can't open shows that use `list`.
 
 Text style: `fontSize, color, fontFamily, fontWeight, align, background, sizing?`. `sizing` is `fixed` (the default: a `w` × `h` box), `autoWidth` (one line per line of text, as wide as it needs) or `autoHeight` (`w` wide, as tall as the wrapped text).
 
@@ -106,25 +108,25 @@ Scene { id, name, tape? }
 Cue   { id, sceneId, name, actions: Action[], follow: { auto, delay }, notes, tape?, waitFor?, updatedAt }
 ```
 
-When `follow.auto` is true, the next cue fires `delay` seconds after this one. `updatedAt` drives "changed since the last run" in rehearsal. `tape` (1–8) is an optional spike-tape colour that tags a scene, or overrides it for one cue, in the editor and on printed sheets; the operator view never shows it. `waitFor` names a trigger whose performer the cue waits for: while the cue is on standby, that trigger's remotes read "Your cue · tap Ready", and the operator sees when they are ready. It never fires anything by itself.
+When `follow.auto` is true, the next cue fires `delay` seconds after this one; with a delay of 0 it fires at once, after the rules of the cue before it. One input fires at most 64 cues through zero-second follows and jumps that fire; past that the engine stops the loop, and the rest of that input's actions, and warns. `updatedAt` drives "changed since the last run" in rehearsal. `tape` (1–8) is an optional spike-tape colour that tags a scene, or overrides it for one cue, in the editor and on printed sheets; the operator view never shows it. `waitFor` names a trigger whose performer the cue waits for: while the cue is on standby, that trigger's remotes read "Your cue · tap Ready", and the operator sees when they are ready. It never fires anything by itself.
 
 ### Actions
 
 Layer and media actions (`show`, `hide`, `fade`, `play`, `pause`, `seek`, `setText`, `counter`) take an optional `delay` in seconds: they start that long after the cue fires. Hold postpones pending delayed actions; PANIC and Back cancel them.
 
-| `type`                       | Fields                                                        | Effect                                |
-| ---------------------------- | ------------------------------------------------------------- | ------------------------------------- |
-| `show` · `hide`              | `layerId, duration, easing`                                   | Fade to the layer's opacity, or to 0  |
-| `fade`                       | `layerId, opacity, duration, easing`                          | Fade to a given opacity               |
-| `play` · `pause`             | `layerId`, `restart` (play)                                   | Control a video or audio layer        |
-| `seek`                       | `layerId, time`                                               | Jump media to `time` seconds          |
-| `setText`                    | `layerId, text`                                               | Replace a text layer's text           |
-| `counter`                    | `layerId, op` (`start` · `pause` · `reset` · `add`), `value?` | Control a counter                     |
-| `setVar` · `addVar`          | `varId, value` · `varId, amount`                              | Change state                          |
-| `jumpScene` · `goToCue`      | `sceneId` · `cueId`, `fire`                                   | Put a cue on standby, or fire it      |
-| `openMoment` · `closeMoment` | `momentId`                                                    | Control an audience moment            |
-| `stopAll`                    | `duration`                                                    | Fade everything out, then pause media |
-| `branch`                     | `if: Condition[], then: Action[], else: Action[]`             | Conditional actions (nestable)        |
+| `type`                       | Fields                                                        | Effect                                                                      |
+| ---------------------------- | ------------------------------------------------------------- | --------------------------------------------------------------------------- |
+| `show` · `hide`              | `layerId, duration, easing`                                   | Fade to the layer's opacity, or to 0                                        |
+| `fade`                       | `layerId, opacity, duration, easing`                          | Fade to a given opacity                                                     |
+| `play` · `pause`             | `layerId`, `restart` (play)                                   | Control a video or audio layer                                              |
+| `seek`                       | `layerId, time`                                               | Jump media to `time` seconds                                                |
+| `setText`                    | `layerId, text`                                               | Replace a text layer's text                                                 |
+| `counter`                    | `layerId, op` (`start` · `pause` · `reset` · `add`), `value?` | Control a counter                                                           |
+| `setVar` · `addVar`          | `varId, value` · `varId, amount`                              | Change state                                                                |
+| `jumpScene` · `goToCue`      | `sceneId` · `cueId`, `fire`                                   | Put a cue on standby, or fire it                                            |
+| `openMoment` · `closeMoment` | `momentId`                                                    | Control an audience moment                                                  |
+| `stopAll`                    | `duration`                                                    | Fade everything out, cancel earlier cues' delayed actions, then pause media |
+| `branch`                     | `if: Condition[], then: Action[], else: Action[]`             | Conditional actions (nestable)                                              |
 
 Easing is one of `linear`, `easeIn`, `easeOut` or `easeInOut`. Durations are in seconds.
 
@@ -132,7 +134,7 @@ Easing is one of `linear`, `easeIn`, `easeOut` or `easeInOut`. Durations are in 
 
 `Var { id, name, type, initial, options? }`
 
-- `name` is an identifier (`[A-Za-z_][A-Za-z0-9_]*`), used in `{{name}}` placeholders.
+- `name` is an identifier (`[A-Za-z_][A-Za-z0-9_]*`), used in `{{name}}` placeholders. A placeholder shows a vote's result and tally by the options' labels (and a prop's by its variants' labels), not their ids; a list reads `a, b, c`.
 - `type` is `number`, `text`, `choice`, `tally` (a record of counts) or `list` (an array of strings).
 
 `Condition { varId, op, value }`, where `op` is one of `eq`, `neq`, `gt`, `gte`, `lt`, `lte` or `contains`. For tallies and lists, `contains` tests membership. Numeric comparisons use the sum of a tally or the length of a list.
@@ -175,3 +177,4 @@ inputs  = { keys: {key, command}[], midi: {kind: note|cc, channel|null, number, 
 - `parseShow` refuses newer versions and upgrades older ones step by step through `migrations[n]` in `packages/format/src/migrate.ts`.
 - Any change that existing documents would fail to parse needs a new version and a migration.
 - Adding an optional field, or one with a default, does not.
+- `parseShow` keeps fields it doesn't know, at any depth, so a show made with a newer Scrim keeps them when an older app saves it. A new action type, layer kind or enum value still makes older apps refuse the show.
