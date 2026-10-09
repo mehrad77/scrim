@@ -1,5 +1,5 @@
 import { ancestorsOf, createCue, layerTree, type Cue, type Layer, type Show } from '@scrim/format';
-import type { Box } from './frames.js';
+import { bounds, type Box } from './frames.js';
 
 /** A cue that brings `layer` in, placed after `afterCueId` (or at the end). */
 export function cueBringingIn(show: Show, layer: Layer, afterCueId: string | null): Cue | null {
@@ -49,19 +49,6 @@ export function alignBoxes(boxes: Map<string, Box>, container: Box, how: Align):
           ? b.y + (b.h - r.h) / 2
           : r.y;
   return new Map([...boxes].map(([id, r]) => [id, { ...r, x: x(r), y: y(r) }]));
-}
-
-/** The box around all of them; null for none. */
-export function bounds(list: Box[]): Box | null {
-  if (!list.length) return null;
-  const x = Math.min(...list.map((r) => r.x));
-  const y = Math.min(...list.map((r) => r.y));
-  return {
-    x,
-    y,
-    w: Math.max(...list.map((r) => r.x + r.w)) - x,
-    h: Math.max(...list.map((r) => r.y + r.h)) - y,
-  };
 }
 
 /** Spread three or more boxes so the gaps between them are equal. */

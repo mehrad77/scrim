@@ -1,7 +1,11 @@
-import { createShow, layerTree, type Layer, type Show } from '@scrim/format';
+import { ancestorsOf, createShow, layerTree, type Layer, type Show } from '@scrim/format';
 import { describe, expect, it } from 'vitest';
 import {
   duplicateLayers,
+  frameLayers,
+  moveLayers,
+  ungroupFrame,
+  type Measure,
   handlesFor,
   layerPath,
   moveToOutput,
@@ -235,5 +239,87 @@ describe('lining up drawn boxes', () => {
     const out = distributeBoxes(three, 'x');
     // Span 10–350 holds 160 of boxes, so each of the two gaps is 90.
     expect(out.get('c')).toMatchObject({ x: 200 });
+  });
+});
+
+describe('framing and nesting', () => {
+  /** Where layers are drawn, from the model: right for free frames, which is all stack() has. */
+  const drawnIn =
+    (show: Show): Measure =>
+    (id) => {
+      const tree = layerTree(show.layers);
+      const l = tree.byId.get(id);
+      if (!l) return null;
+      const around = ancestorsOf(tree, id);
+      return {
+        x: l.x + around.reduce((n, f) => n + f.x, 0),
+        y: l.y + around.reduce((n, f) => n + f.y, 0),
+        w: l.w,
+        h: l.h,
+      };
+    };
+  const everywhere = (show: Show) => show.layers.map((l) => [l.id, drawnIn(show)(l.id)]);
+
+  it('frames siblings where they are drawn, and ungrouping puts them back', () => {
+    const show = stack();
+    show.layers.find((l) => l.id === 'a')!.x = 300;
+    const before = everywhere(show);
+    const id = frameLayers(show, ['a', 'b'], drawnIn(show));
+    expect(typeof id).toBe('string');
+    const frame = show.layers.find((l) => l.id === id)!;
+    expect(frame).toMatchObject({ kind: 'frame', x: 10, y: 10, w: 390, h: 100, visible: true });
+    expect(order(show)).toEqual(['f', id]);
+    expect(order(show, id as string)).toEqual(['b', 'a']);
+    expect(everywhere(show).filter(([l]) => l !== id)).toEqual(before);
+
+    expect(ungroupFrame(show, id as string, drawnIn(show))).toEqual(['b', 'a']);
+    expect(everywhere(show)).toEqual(before);
+    expect(order(show)).toEqual(['f', 'b', 'a']);
+  });
+
+  it('refuses to frame layers from different frames', () => {
+    const show = stack();
+    expect(frameLayers(show, ['a', 'x'], drawnIn(show))).toHaveProperty('why');
+  });
+
+  it('wraps one layer that fits its text in a row that hugs it and takes its pin', () => {
+    const show = stack();
+    Object.assign(
+      show.layers.find((l) => l.id === 'a')!,
+      {
+        sizing: 'autoWidth',
+        pin: { x: 'right', y: 'top' },
+      },
+    );
+    const id = frameLayers(show, ['a'], drawnIn(show)) as string;
+    expect(show.layers.find((l) => l.id === id)).toMatchObject({
+      pin: { x: 'right', y: 'top' },
+      layout: { mode: 'row', hugW: true, hugH: true },
+    });
+  });
+
+  it('ungrouping keeps the content hidden if its frame started hidden', () => {
+    const show = stack();
+    Object.assign(
+      show.layers.find((l) => l.id === 'f')!,
+      { visible: false, opacity: 0.5 },
+    );
+    show.cues[0]!.actions.push({ type: 'show', layerId: 'f', duration: 0, easing: 'linear' });
+    ungroupFrame(show, 'f', drawnIn(show));
+    expect(show.layers.find((l) => l.id === 'x')).toMatchObject({ visible: false, opacity: 0.5 });
+    expect(show.layers.some((l) => l.id === 'f')).toBe(false);
+    expect(show.cues[0]!.actions).toEqual([]);
+  });
+
+  it('moves layers into and out of frames where they are drawn, but never into themselves', () => {
+    const show = stack();
+    const before = everywhere(show);
+    expect(moveLayers(show, ['a'], 'f', 'on', drawnIn(show))).toBe(true);
+    expect(order(show, 'f')).toEqual(['a', 'y', 'x']);
+    expect(moveLayers(show, ['y'], 'b', 'after', drawnIn(show))).toBe(true);
+    expect(order(show)).toEqual(['f', 'b', 'y']);
+    expect(everywhere(show)).toEqual(before);
+    expect(moveLayers(show, ['f'], 'x', 'before', drawnIn(show))).toBe(false);
+    expect(moveLayers(show, ['f'], 'f', 'on', drawnIn(show))).toBe(false);
   });
 });

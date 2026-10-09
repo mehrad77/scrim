@@ -20,17 +20,24 @@ import {
   type Selection as AriaSelection,
 } from 'react-aria-components';
 import { cn } from '../../lib/cn.js';
-import { reorderLayers, stepLayer } from '../../lib/frames.js';
+import { moveLayers, stepLayer } from '../../lib/frames.js';
 import { layerKindLabel } from '../../lib/layers.js';
 import { checkLogic } from '../../lib/logic.js';
 import { useEditor, useShow } from '../../state/editor.js';
 import { IconButton } from '../../ui/Button.js';
-import { deleteLayers, duplicateSelection, focusLayerName } from './layerCommands.js';
+import {
+  deleteLayers,
+  duplicateSelection,
+  focusLayerName,
+  frameSelection,
+  ungroupSelection,
+} from './layerCommands.js';
+import { measureLayer } from './measure.js';
 
 /**
  * One output's layers as a tree, front first; frames fold open to show what is inside them.
- * Drag, or Alt+↑/↓, restacks a layer among its siblings. Enter, double-click or F2 renames it in
- * the inspector; Delete and ⌘D work here as on the canvas.
+ * Drag to restack or nest, or Alt+↑/↓ among siblings. Enter, double-click or F2 renames in the
+ * inspector; Delete, ⌘D, ⌘G and ⇧⌘G work here as on the canvas.
  */
 export function LayersTree({ outputId }: { outputId: string }) {
   const show = useShow();
@@ -67,26 +74,27 @@ export function LayersTree({ outputId }: { outputId: string }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selected.join()]);
 
+  // Dragging restacks, moves a layer in or out of a frame, or drops it onto a frame to nest it;
+  // it stays where it is drawn. Never into itself.
   const dragged = useRef<string[]>([]);
+  const inside = (key: string) =>
+    dragged.current.some((id) => id === key || ancestorsOf(tree, key).some((f) => f.id === id));
   const { dragAndDropHooks } = useDragAndDrop({
     getItems: (keys) => [...keys].map((k) => ({ 'text/plain': String(k) })),
     onDragStart: (e) => void (dragged.current = [...e.keys].map(String)),
-    // Restacking stays among siblings.
     getDropOperation: (target) =>
-      target.type === 'item' &&
-      target.dropPosition !== 'on' &&
-      dragged.current.every((id) => tree.parent(id)?.id === tree.parent(String(target.key))?.id)
-        ? 'move'
-        : 'cancel',
-    shouldAcceptItemDrop: () => false,
+      target.type === 'item' && !inside(String(target.key)) ? 'move' : 'cancel',
+    shouldAcceptItemDrop: (target) => isFrame(tree.byId.get(String(target.key))),
     onMove: (e) =>
-      update((d) =>
-        reorderLayers(
-          d,
-          [...e.keys].map(String),
-          String(e.target.key),
-          e.target.dropPosition === 'after' ? 'after' : 'before',
-        ),
+      update(
+        (d) =>
+          void moveLayers(
+            d,
+            [...e.keys].map(String),
+            String(e.target.key),
+            e.target.dropPosition,
+            measureLayer,
+          ),
       ),
     renderDropIndicator: (target) => <DropIndicator target={target} className="h-0.5 bg-accent" />,
   });
@@ -115,6 +123,9 @@ export function LayersTree({ outputId }: { outputId: string }) {
     } else if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'd') {
       handled();
       duplicateSelection(selected);
+    } else if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'g') {
+      handled();
+      (e.shiftKey ? ungroupSelection : frameSelection)(selected);
     } else if (e.key === 'F2') {
       handled();
       focusLayerName();

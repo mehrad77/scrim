@@ -4,6 +4,7 @@ import { Eye, EyeOff, Frame, Hash, Music, Plus, Timer, Type, Variable } from 'lu
 import { useEffect, useRef } from 'react';
 import type { PanelImperativeHandle } from 'react-resizable-panels';
 import { cn } from '../../lib/cn.js';
+import { useCommands } from '../../lib/commands.js';
 import { putInFrame } from '../../lib/frames.js';
 import { layerKindLabel, syntheticLayer, type SyntheticKind } from '../../lib/layers.js';
 import { useEditor, useShow } from '../../state/editor.js';
@@ -14,6 +15,7 @@ import { Empty, Panel } from '../../ui/Panel.js';
 import { Canvas } from './Canvas.js';
 import { CueDock } from './CueDock.js';
 import { LayerInspector } from './LayerInspector.js';
+import { frameSelection, ungroupSelection } from './layerCommands.js';
 import { LayersTree } from './LayersTree.js';
 import { MediaPanel } from './MediaPanel.js';
 
@@ -35,33 +37,68 @@ export function StageTab() {
   }, []);
 
   return (
-    <Columns id="editor.stage" preview>
-      <Pane id="assets" size={260} min={200} side collapsible paneRef={left}>
-        <div className="flex h-full min-h-0 flex-col gap-px bg-line-subtle">
-          <MediaPanel />
-          <LayersPanel />
-        </div>
-      </Pane>
-      <Divider />
-      <Pane id="canvas" min={320}>
-        <Columns id="editor.stage.dock" vertical>
-          <Pane id="view" min={200}>
-            <Canvas />
-          </Pane>
-          <Divider vertical />
-          <Pane id="dock" size="28%" min={120} max="60%" collapsible>
-            <CueDock />
-          </Pane>
-        </Columns>
-      </Pane>
-      <Divider />
-      <Pane id="inspector" size={288} min={240} max={420} side collapsible paneRef={right}>
-        <Panel title="Layer" className="h-full">
-          <LayerInspector />
-        </Panel>
-      </Pane>
-    </Columns>
+    <>
+      <StageCommands />
+      <Columns id="editor.stage" preview>
+        <Pane id="assets" size={260} min={200} side collapsible paneRef={left}>
+          <div className="flex h-full min-h-0 flex-col gap-px bg-line-subtle">
+            <MediaPanel />
+            <LayersPanel />
+          </div>
+        </Pane>
+        <Divider />
+        <Pane id="canvas" min={320}>
+          <Columns id="editor.stage.dock" vertical>
+            <Pane id="view" min={200}>
+              <Canvas />
+            </Pane>
+            <Divider vertical />
+            <Pane id="dock" size="28%" min={120} max="60%" collapsible>
+              <CueDock />
+            </Pane>
+          </Columns>
+        </Pane>
+        <Divider />
+        <Pane id="inspector" size={288} min={240} max={420} side collapsible paneRef={right}>
+          <Panel title="Layer" className="h-full">
+            <LayerInspector />
+          </Panel>
+        </Pane>
+      </Columns>
+    </>
   );
+}
+
+/** Framing, for the palette and the `?` sheet; the canvas and the layers tree take the keys. */
+function StageCommands() {
+  const show = useShow();
+  const { layerId, extra } = useEditor((s) => s.selection);
+  const ids = [layerId, ...extra].filter((id): id is string => !!id);
+  const frames = ids.filter((id) => show.layers.some((l) => l.id === id && l.kind === 'frame'));
+  useCommands(
+    [
+      {
+        id: 'frame',
+        group: 'Layers',
+        title: 'Frame selection',
+        aliases: ['group', 'wrap', 'lower third'],
+        shortcut: '⌘G',
+        disabled: !ids.length,
+        run: () => frameSelection(ids),
+      },
+      {
+        id: 'ungroup',
+        group: 'Layers',
+        title: 'Ungroup frame',
+        aliases: ['unframe', 'remove frame'],
+        shortcut: '⇧⌘G',
+        disabled: !frames.length,
+        run: () => ungroupSelection(frames),
+      },
+    ],
+    [ids.join(), frames.join()],
+  );
+  return null;
 }
 
 const ADD: { kind: SyntheticKind; label: string; icon: typeof Type }[] = [

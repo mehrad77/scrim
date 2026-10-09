@@ -2,6 +2,7 @@ import {
   ancestorsOf,
   descendantsOf,
   hugAxes,
+  isFrame,
   layerTree,
   uid,
   type FrameLayer,
@@ -11,6 +12,7 @@ import {
   type Pin,
   type Show,
 } from '@scrim/format';
+import { removeLayer } from './refs.js';
 
 /**
  * Editing frames and the order of layers. Lists are front first, like the layers panel; `z`
@@ -238,4 +240,166 @@ export function layerPath(tree: LayerTree, id: string): string {
   const l = tree.byId.get(id);
   if (!l) return '';
   return [...ancestorsOf(tree, id).reverse(), l].map((x) => x.name).join(' › ');
+}
+
+/** The box around all of them; null for none. */
+export function bounds(list: Box[]): Box | null {
+  if (!list.length) return null;
+  const x = Math.min(...list.map((r) => r.x));
+  const y = Math.min(...list.map((r) => r.y));
+  return {
+    x,
+    y,
+    w: Math.max(...list.map((r) => r.x + r.w)) - x,
+    h: Math.max(...list.map((r) => r.y + r.h)) - y,
+  };
+}
+
+/** Reads where a layer is drawn, in output pixels: the editor canvas, or a test's stand-in. */
+export type Measure = (id: string) => Box | null;
+
+/**
+ * Wrap sibling layers in a new frame that sits where they are drawn, so nothing moves on stage.
+ * The frame takes the front layer's place and the topmost one's pin. A single layer that fits
+ * its content gets a row that hugs it, so it still grows away from its pin.
+ */
+export function frameLayers(show: Show, ids: string[], measure: Measure): string | { why: string } {
+  const tree = layerTree(show.layers);
+  const picked = outermost(tree, ids).flatMap((id) => tree.byId.get(id) ?? []);
+  const first = picked[0];
+  if (!first) return { why: 'Select the layers to frame first' };
+  const parent = tree.parent(first.id);
+  if (picked.some((l) => l.kind === 'audio' || tree.parent(l.id)?.id !== parent?.id))
+    return { why: 'Frame layers that sit together: in the same frame, or all on the output' };
+  const drawn = picked.map((l) => measure(l.id));
+  const around = bounds(drawn.filter((b): b is Box => !!b));
+  if (!around || drawn.some((b) => !b))
+    return { why: 'Show the layers on the canvas to frame them' };
+
+  const list = siblingsOf(tree, first);
+  const top = list.find((l) => picked.includes(l))!;
+  const fit = picked.length === 1 ? hugAxes(first) : { w: false, h: false };
+  const hugs = fit.w || fit.h;
+  const frame: FrameLayer = {
+    id: uid('lyr'),
+    name: 'Frame',
+    kind: 'frame',
+    outputId: first.outputId,
+    x: 0,
+    y: 0,
+    w: 1,
+    h: 1,
+    z: top.z,
+    opacity: 1,
+    visible: true,
+    crop: { top: 0, right: 0, bottom: 0, left: 0 },
+    fill: 'transparent',
+    radius: 0,
+    clip: false,
+    layout: {
+      mode: hugs ? 'row' : 'free',
+      gap: 0,
+      padX: 0,
+      padY: 0,
+      align: 'start',
+      justify: 'start',
+      hugW: fit.w,
+      hugH: fit.h,
+    },
+  };
+  Object.assign(
+    frame,
+    placeAt(parent, around, parent ? (measure(parent.id) ?? undefined) : undefined),
+  );
+  if (parent) frame.parentId = parent.id;
+  if (top.pin && !parent) frame.pin = top.pin;
+  show.layers.push(frame);
+  picked.forEach((l, i) => {
+    Object.assign(l, placeAt(hugs ? frame : undefined, drawn[i]!, around));
+    l.parentId = frame.id;
+  });
+  const order = list.map((l) => l.id).filter((id) => !picked.some((l) => l.id === id));
+  order.splice(list.indexOf(top), 0, frame.id);
+  restack(show, order);
+  return frame.id;
+}
+
+/**
+ * Take a frame's content out where it is drawn and remove the frame and the actions that used
+ * it. The content keeps how it looked at the start: hidden if the frame was, at the frame's
+ * opacity, and pinned like it. Returns the content's ids.
+ */
+export function ungroupFrame(show: Show, frameId: string, measure: Measure): string[] {
+  const tree = layerTree(show.layers);
+  const frame = tree.byId.get(frameId);
+  if (!isFrame(frame)) return [];
+  const parent = tree.parent(frameId);
+  const parentAt = parent ? (measure(parent.id) ?? undefined) : undefined;
+  const kids = tree.children(frameId);
+  for (const c of kids) {
+    const drawn = measure(c.id);
+    if (drawn) Object.assign(c, placeAt(parent, drawn, parentAt));
+    if (parent) c.parentId = parent.id;
+    else {
+      delete c.parentId;
+      if (frame.pin) c.pin = frame.pin;
+    }
+    c.visible = c.visible && frame.visible;
+    c.opacity *= frame.opacity;
+  }
+  restack(
+    show,
+    siblingsOf(tree, frame).flatMap((l) => (l.id === frameId ? kids : [l]).map((x) => x.id)),
+  );
+  removeLayer(show, frameId);
+  return kids.map((c) => c.id);
+}
+
+/**
+ * Move layers next to `targetId`, or into it when it is a frame and `position` is 'on', keeping
+ * where they are drawn. Refuses a move into a layer's own content. Returns whether it moved.
+ */
+export function moveLayers(
+  show: Show,
+  ids: string[],
+  targetId: string,
+  position: 'before' | 'after' | 'on',
+  measure: Measure,
+): boolean {
+  const tree = layerTree(show.layers);
+  const target = tree.byId.get(targetId);
+  if (!target) return false;
+  const into = position === 'on' ? (isFrame(target) ? target : null) : tree.parent(targetId);
+  if (into === null) return false;
+  const moving = outermost(tree, ids).flatMap((id) => tree.byId.get(id) ?? []);
+  const inside = new Set(
+    moving.flatMap((l) => [l.id, ...descendantsOf(tree, l.id).map((d) => d.id)]),
+  );
+  if (
+    !moving.length ||
+    (into && inside.has(into.id)) ||
+    (position !== 'on' && inside.has(targetId)) ||
+    moving.some((l) => l.outputId !== target.outputId || l.kind === 'audio')
+  )
+    return false;
+  const intoAt = into ? (measure(into.id) ?? undefined) : undefined;
+  for (const l of moving) {
+    if (tree.parent(l.id)?.id === into?.id) continue;
+    const drawn = measure(l.id);
+    if (drawn) Object.assign(l, placeAt(into, drawn, intoAt));
+    if (into) l.parentId = into.id;
+    else delete l.parentId;
+  }
+  const order = (into ? tree.children(into.id) : siblingsOf(tree, target))
+    .map((l) => l.id)
+    .filter((id) => !moving.some((l) => l.id === id));
+  const at =
+    position === 'on'
+      ? isFlow(into)
+        ? order.length
+        : 0
+      : order.indexOf(targetId) + (position === 'after' ? 1 : 0);
+  order.splice(at, 0, ...moving.map((l) => l.id));
+  restack(show, order);
+  return true;
 }

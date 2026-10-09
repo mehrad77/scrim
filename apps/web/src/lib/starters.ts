@@ -1,5 +1,6 @@
 import { createCue, createShow, uid, type Cue, type Layer, type Show } from '@scrim/format';
 import { readLocal } from './local.js';
+import { putInFrame } from './frames.js';
 import { syntheticLayer } from './layers.js';
 import { createResultVars, newMoment } from './moments.js';
 
@@ -157,8 +158,26 @@ function performerCounter(): Show {
   show.triggers.push(bell);
   const varId = uid('var');
   show.vars.push({ id: varId, name: 'bells', type: 'number', initial: 0 });
-  const count = text(show, 'Bell count', 'Bells rung: {{bells}}', 0.375);
-  show.layers.push(count);
+  // A bar that grows with the count, centred at the bottom whatever size the output is.
+  const out = show.outputs[0]!;
+  const bar = syntheticLayer(show, out, 'frame');
+  if (bar.kind === 'frame') {
+    Object.assign(bar, {
+      name: 'Count bar',
+      visible: false,
+      fill: '#b45309',
+      radius: 16,
+      pin: { x: 'center', y: 'bottom' },
+    });
+    bar.layout = { ...bar.layout, padX: 48, padY: 20 };
+  }
+  show.layers.push(bar);
+  const count = {
+    ...text(show, 'Bell count', 'Bells rung: {{bells}}', 0.375),
+    sizing: 'autoWidth',
+  };
+  show.layers.push(count as Layer);
+  putInFrame(show, count as Layer, bar.id);
   show.rules.push({
     id: uid('rul'),
     name: 'Bell counts',
@@ -172,7 +191,7 @@ function performerCounter(): Show {
     cue(
       scene.id,
       'Show the count',
-      [{ type: 'show', layerId: count.id, ...fade }],
+      [{ type: 'show', layerId: bar.id, ...fade }],
       'Ring the bell from a performer phone (Audience panel › Performer remote QR) or press B.',
     ),
     { ...cue(scene.id, 'Big finish', [{ type: 'stopAll', duration: 2 }]), waitFor: bell.id },

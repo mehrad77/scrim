@@ -345,9 +345,12 @@ The principles applied to each screen. Rows marked _today_ describe a gap found 
   - An outputs strip shows every output as a live mini-frame.
   - _Today: one output at a time, and every layer at once by default._
 - **Layers.**
-  - Add-layer buttons show their names (Text, Countdown, Counter, State value), or sit in an Add menu.
+  - Add-layer buttons show their names (Text, Countdown, Counter, State value, Frame), or sit in an Add menu.
   - Lock and Hide are visible, and the list is ordered front-to-back.
-  - _Today: four icon-only buttons with hover titles._
+  - The list is a tree: **frames** group layers that move, fade and clear as one. A frame can lay its content out in a row or column and fit it, so a background grows with `{{value}}` text. Drag a row onto a frame to nest it; ⌘G frames the selection and ⇧⌘G ungroups it. Nothing moves on stage when you do.
+  - On the canvas a click picks the outermost frame and a double-click goes inside, as in Figma.
+  - Top-level layers pin to output edges, and keep them when the output changes size.
+  - _Today: Lock is not there yet._
 - **Inspector.** It follows the selection; with nothing selected it shows output and show defaults. Basic properties come first, with **More** for crop, bus and loop.
 - **The precision kit and task bar** are described in principle 6.
 

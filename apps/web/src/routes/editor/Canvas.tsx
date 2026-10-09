@@ -30,10 +30,9 @@ import Moveable from 'react-moveable';
 import { isTyping, overlayOpen } from '../../host/inputs.js';
 import { cn } from '../../lib/cn.js';
 import { readPrefs } from '../../lib/prefs.js';
-import { handlesFor, outermost, pickLayer, type Box } from '../../lib/frames.js';
+import { bounds, handlesFor, outermost, pickLayer, type Box } from '../../lib/frames.js';
 import {
   alignBoxes,
-  bounds,
   cueBringingIn,
   distributeBoxes,
   insertCueAfter,
@@ -49,7 +48,12 @@ import { MenuButton } from '../../ui/Menu.js';
 import { Empty, Panel } from '../../ui/Panel.js';
 import { toast } from '../../ui/toast.js';
 import { previewState } from '../../lib/simulate.js';
-import { deleteLayers, duplicateSelection } from './layerCommands.js';
+import {
+  deleteLayers,
+  duplicateSelection,
+  frameSelection,
+  ungroupSelection,
+} from './layerCommands.js';
 import { CANVAS_ATTR, measureLayer, placeDrawn } from './measure.js';
 
 const PAD = 32;
@@ -248,6 +252,8 @@ export function Canvas() {
       if (keys && e.shiftKey && e.code === 'Digit2') return (e.preventDefault(), zoomToSelection());
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'd')
         return (e.preventDefault(), duplicate());
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'g')
+        return (e.preventDefault(), (e.shiftKey ? ungroupSelection : frameSelection)(movable));
       if (!selectedIds.length) return;
       if (e.key === 'Delete' || e.key === 'Backspace')
         return (e.preventDefault(), deleteSelected());
