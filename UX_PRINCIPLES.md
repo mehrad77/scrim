@@ -358,7 +358,8 @@ The principles applied to each screen. Rows marked _today_ describe a gap found 
 
 - **Cue rows** show the number, name, a generated summary, exits, auto-follow timing and the scene's tape colour.
   - Reorder by dragging a grip, with Alt+↑/↓ and a **Move to…** menu as alternatives.
-  - _Today: ↑/↓ buttons only._
+  - Scenes and their cues are one tree: scenes fold, a cue drags into another scene or onto one, and a scene drags to reorder scenes. Alt+↑/↓ moves whichever row has focus. Scenes rename with F2 or a double-click.
+  - _Today: no Move to… menu yet; ↑/↓ buttons on hover._
 - **The list header** has List | Map.
 - **The cue editor** keeps today's sentence-like action rows ("Show / fade in [Attic] over [4] s [Smooth]"), which are a strength.
 - **"After this cue"** previews the picture and state, with **Assume** chips and Play/scrub using the real fades. _Today: state shows as raw JSON._

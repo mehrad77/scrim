@@ -24,7 +24,7 @@ interface EditorState {
   saving: 'idle' | 'pending' | 'saved' | 'error';
   savedAt: number | null;
   selection: Selection;
-  /** Frames folded shut in the layers tree; kept here because the Stage tab unmounts. */
+  /** Frames and scenes folded shut in the editor's trees; kept here because tabs unmount. */
   collapsed: string[];
   /** Set by a running host in Show mode; editing is locked unless overridden. */
   showModeLock: boolean;

@@ -257,7 +257,12 @@ export function LayersTree({ outputId }: { outputId: string }) {
         selectedKeys={selected}
         onSelectionChange={onSelect}
         expandedKeys={frames.filter((id) => !collapsed.includes(id))}
-        onExpandedChange={(keys) => setCollapsed(frames.filter((id) => !keys.has(id)))}
+        onExpandedChange={(keys) =>
+          setCollapsed([
+            ...collapsed.filter((id) => !frames.includes(id)),
+            ...frames.filter((id) => !keys.has(id)),
+          ])
+        }
         onAction={() => focusLayerName()}
         dragAndDropHooks={dragAndDropHooks}
         className="outline-none"
