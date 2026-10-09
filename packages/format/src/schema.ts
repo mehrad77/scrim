@@ -257,6 +257,7 @@ type ActionShape =
   | { type: 'addVar'; varId: string; amount: number }
   | { type: 'jumpScene'; sceneId: string; fire: boolean }
   | { type: 'goToCue'; cueId: string; fire: boolean }
+  | { type: 'jumpSection'; section: string; fire: boolean }
   | { type: 'openMoment'; momentId: string }
   | { type: 'closeMoment'; momentId: string }
   | { type: 'stopAll'; duration: number }
@@ -293,6 +294,12 @@ export const ActionSchema: z.ZodType<ActionShape, unknown> = z.lazy(() =>
     z.object({ type: z.literal('addVar'), varId: Ref, amount: z.number() }),
     z.object({ type: z.literal('jumpScene'), sceneId: Ref, fire: z.boolean().default(false) }),
     z.object({ type: z.literal('goToCue'), cueId: Ref, fire: z.boolean().default(false) }),
+    /** The next cue in the current scene with this section (Chorus), or the latest one. */
+    z.object({
+      type: z.literal('jumpSection'),
+      section: z.string(),
+      fire: z.boolean().default(false),
+    }),
     z.object({ type: z.literal('openMoment'), momentId: Ref }),
     z.object({ type: z.literal('closeMoment'), momentId: Ref }),
     z.object({ type: z.literal('stopAll'), duration: z.number().nonnegative().default(1) }),
@@ -313,6 +320,10 @@ export const TapeSchema = z.number().int().min(1).max(8);
 export const SceneSchema = z.object({ id: Id, name: z.string(), tape: TapeSchema.optional() });
 export type Scene = z.infer<typeof SceneSchema>;
 
+/** A prepared running order: these scenes, in this order; the others are skipped. */
+export const SetlistSchema = z.object({ id: Id, name: z.string(), scenes: z.array(Ref) });
+export type Setlist = z.infer<typeof SetlistSchema>;
+
 export const CueSchema = z.object({
   id: Id,
   sceneId: Id,
@@ -325,6 +336,8 @@ export const CueSchema = z.object({
   notes: z.string().default(''),
   /** Overrides the scene's tape colour. */
   tape: TapeSchema.optional(),
+  /** The part of a song or scene this cue is (Verse, Chorus), so a key can jump to it. */
+  section: z.string().optional(),
   /**
    * A performer trigger this cue waits for. While the cue is on standby, that trigger's remotes
    * show "Your cue · tap Ready" and the operator sees when the performer is ready.
@@ -393,6 +406,20 @@ export const RuleSchema = z.object({
 });
 export type Rule = z.infer<typeof RuleSchema>;
 
+/**
+ * Where a jump command goes: a scene or cue, the current scene's next cue with a section, or the
+ * scene after, before or of the cue that is live, in tonight's running order.
+ */
+export const JumpTargetSchema = z.discriminatedUnion('to', [
+  z.object({ to: z.literal('scene'), sceneId: Ref }),
+  z.object({ to: z.literal('cue'), cueId: Ref }),
+  z.object({ to: z.literal('section'), section: z.string() }),
+  z.object({ to: z.literal('nextScene') }),
+  z.object({ to: z.literal('prevScene') }),
+  z.object({ to: z.literal('restartScene') }),
+]);
+export type JumpTarget = z.infer<typeof JumpTargetSchema>;
+
 export const CommandSchema = z.discriminatedUnion('type', [
   z.object({ type: z.literal('go') }),
   z.object({ type: z.literal('panic') }),
@@ -405,6 +432,8 @@ export const CommandSchema = z.discriminatedUnion('type', [
   z.object({ type: z.literal('clearText') }),
   z.object({ type: z.literal('clearMedia') }),
   z.object({ type: z.literal('mute') }),
+  /** Put a cue on standby, or fire it at once (through the double-GO guard). */
+  z.object({ type: z.literal('jump'), target: JumpTargetSchema, fire: z.boolean().default(false) }),
 ]);
 export type Command = z.infer<typeof CommandSchema>;
 
@@ -412,7 +441,7 @@ export const InputsSchema = z.object({
   keys: z.array(z.object({ key: z.string(), command: CommandSchema })),
   midi: z.array(
     z.object({
-      kind: z.enum(['note', 'cc']),
+      kind: z.enum(['note', 'cc', 'program']),
       channel: z.number().int().min(1).max(16).nullable(),
       number: z.number().int().min(0).max(127),
       command: CommandSchema,
@@ -442,6 +471,8 @@ export const ShowSchema = z.object({
   rules: z.array(RuleSchema),
   inputs: InputsSchema,
   audioBuses: z.array(AudioBusSchema),
+  /** Prepared running orders the operator can switch to; the show order is the default. */
+  setlists: z.array(SetlistSchema).optional(),
   /** The fade new show/hide actions start with (the editor's default; 1 s ease in-out if unset). */
   defaultFade: z.object({ duration: z.number().nonnegative(), easing: EasingSchema }).optional(),
 });

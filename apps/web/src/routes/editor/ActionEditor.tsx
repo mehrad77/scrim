@@ -10,9 +10,11 @@ import { ArrowDown, ArrowUp, GitBranch, Plus, Trash2 } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { cn } from '../../lib/cn.js';
 import { layerPath } from '../../lib/frames.js';
+import { sectionsOf } from '../../lib/jumps.js';
 import { OP_TEXT, valueLabel } from '../../lib/logic.js';
 import { IconButton } from '../../ui/Button.js';
 import { CommitInput, NumberInput, Select, Toggle } from '../../ui/Field.js';
+import { SectionInput } from './SectionInput.js';
 
 const ACTION_LABELS: Record<ActionType, string> = {
   show: 'Show / fade in',
@@ -27,6 +29,7 @@ const ACTION_LABELS: Record<ActionType, string> = {
   addVar: 'Add to state value',
   jumpScene: 'Go to scene',
   goToCue: 'Go to cue',
+  jumpSection: 'Go to section',
   openMoment: 'Open audience moment',
   closeMoment: 'Close audience moment',
   stopAll: 'Stop everything',
@@ -36,7 +39,7 @@ const ACTION_LABELS: Record<ActionType, string> = {
 const GROUPS: { label: string; types: ActionType[] }[] = [
   { label: 'Layers', types: ['show', 'hide', 'fade', 'setText'] },
   { label: 'Media & timers', types: ['play', 'pause', 'seek', 'counter'] },
-  { label: 'Show flow', types: ['jumpScene', 'goToCue', 'branch', 'stopAll'] },
+  { label: 'Show flow', types: ['jumpScene', 'goToCue', 'jumpSection', 'branch', 'stopAll'] },
   { label: 'State & audience', types: ['setVar', 'addVar', 'openMoment', 'closeMoment'] },
 ];
 
@@ -76,6 +79,8 @@ export function defaultAction(type: ActionType, show: Show): Action {
       return { type, sceneId: show.scenes[0]?.id ?? '', fire: false };
     case 'goToCue':
       return { type, cueId: show.cues[0]?.id ?? '', fire: false };
+    case 'jumpSection':
+      return { type, section: sectionsOf(show)[0] ?? 'Chorus', fire: false };
     case 'openMoment':
     case 'closeMoment':
       return { type, momentId: show.moments[0]?.id ?? '' };
@@ -452,6 +457,23 @@ function ActionFields({
             </option>
           ))}
         </Pick>
+      );
+    case 'jumpSection':
+      return (
+        <>
+          <SectionInput
+            show={show}
+            className="w-36"
+            value={a.section}
+            onCommit={(section) => onChange({ ...a, section })}
+          />
+          <span className="text-caption text-fg-subtle">in this scene</span>
+          <Toggle
+            checked={a.fire}
+            onChange={(fire) => onChange({ ...a, fire })}
+            label={<span className="text-caption">fire it now</span>}
+          />
+        </>
       );
     case 'stopAll':
       return (

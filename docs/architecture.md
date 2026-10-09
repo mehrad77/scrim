@@ -54,6 +54,7 @@ Time never advances inside the engine. Instead, state stores _when_ things happe
 - **Fades** are tweens: `{from, to, t0, dur, easing}`. Renderers interpolate them on their own frame loop.
 - **Media** is a clock: `{playing, position, anchor}`. Its position at time `t` is `position + (t - anchor)`.
 - **Counters** are `{running, base, anchor}`.
+- **Running order.** Tonight's order (`order: {scenes, skipped}`) is engine state, like standby, so the show never changes when a setlist does, and the journal keeps it. GO, follows and standby next follow it. A jump or standby into a skipped scene brings it back after the live one; what is live can't be skipped; Back and Reset keep the order.
 - **Pending things** (auto-follow, moment time-outs, delayed actions and pauses) carry an epoch time. `nextWakeup(state)` says when a `tick` is due, and the `Engine` wrapper schedules exactly one timer for it.
 
 The engine is therefore deterministic and cheap to unit-test, and every window that receives the same state draws the same picture at the same moment.

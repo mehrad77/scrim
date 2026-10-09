@@ -48,6 +48,7 @@ Readers must:
   inputs: { keys, midi, gamepad },
   audioBuses: { id, name }[],
   defaultFade?: { duration, easing },  // the fade new show/hide actions start with
+  setlists?: Setlist[],                // prepared running orders
 }
 ```
 
@@ -104,11 +105,14 @@ Older apps can't open shows that contain frames.
 ### Scene and cue
 
 ```ts
-Scene { id, name, tape? }
-Cue   { id, sceneId, name, actions: Action[], follow: { auto, delay }, notes, tape?, waitFor?, updatedAt }
+Scene   { id, name, tape? }
+Cue     { id, sceneId, name, actions: Action[], follow: { auto, delay }, notes, tape?, waitFor?, section?, updatedAt }
+Setlist { id, name, scenes: sceneId[] }   // show.setlists?: Setlist[]
 ```
 
 When `follow.auto` is true, the next cue fires `delay` seconds after this one; with a delay of 0 it fires at once, after the rules of the cue before it. One input fires at most 64 cues through zero-second follows and jumps that fire; past that the engine stops the loop, and the rest of that input's actions, and warns. `updatedAt` drives "changed since the last run" in rehearsal. `tape` (1–8) is an optional spike-tape colour that tags a scene, or overrides it for one cue, in the editor and on printed sheets; the operator view never shows it. `waitFor` names a trigger whose performer the cue waits for: while the cue is on standby, that trigger's remotes read "Your cue · tap Ready", and the operator sees when they are ready. It never fires anything by itself.
+
+`section` (optional) names the part of a scene a cue is, such as `Verse` or `Chorus`, so a key or a rule can jump to it. **Setlists** are prepared running orders: the listed scenes, in that order, with every other scene skipped. Tonight's running order itself is performance state, not part of the show. Older apps can't open shows whose actions or keys jump to sections.
 
 ### Actions
 
@@ -124,6 +128,7 @@ Layer and media actions (`show`, `hide`, `fade`, `play`, `pause`, `seek`, `setTe
 | `counter`                    | `layerId, op` (`start` · `pause` · `reset` · `add`), `value?` | Control a counter                                                           |
 | `setVar` · `addVar`          | `varId, value` · `varId, amount`                              | Change state                                                                |
 | `jumpScene` · `goToCue`      | `sceneId` · `cueId`, `fire`                                   | Put a cue on standby, or fire it                                            |
+| `jumpSection`                | `section`, `fire`                                             | The live scene's next cue with that section, or the last one again          |
 | `openMoment` · `closeMoment` | `momentId`                                                    | Control an audience moment                                                  |
 | `stopAll`                    | `duration`                                                    | Fade everything out, cancel earlier cues' delayed actions, then pause media |
 | `branch`                     | `if: Condition[], then: Action[], else: Action[]`             | Conditional actions (nestable)                                              |
@@ -162,13 +167,16 @@ Trigger { id, name, color }
 Rule    { id, name, enabled, when, if: Condition[], then: Action[] }
 when    = trigger(triggerId) | momentClosed(momentId) | varChanged(varId) | cueFired(cueId) | mediaEnded(layerId)
 Command = go | panic | hold | back | standbyNext | standbyPrev | trigger(triggerId) | clearText | clearMedia | mute
-inputs  = { keys: {key, command}[], midi: {kind: note|cc, channel|null, number, command}[], gamepad: {button, command}[] }
+        | jump(target, fire)
+target  = scene(sceneId) | cue(cueId) | section(section) | nextScene | prevScene | restartScene
+inputs  = { keys: {key, command}[], midi: {kind: note|cc|program, channel|null, number, command}[], gamepad: {button, command}[] }
 ```
 
 - **Every matching rule runs**, top to bottom in `rules` order. The editor groups rules by `when` and numbers them in that order.
 - **`keys[].key` is a physical key**, a `KeyboardEvent.code` such as `Space`, `KeyH` or `BracketLeft`, so a map survives non-US layouts. Shows saved before this store the key's value (`' '`, `h`); those still match the typed character.
 - **Esc is always PANIC.** The app adds it at runtime whatever `keys` says; a show can map extra panic keys.
 - **PANIC's secondary clears.** `clearText` fades text, counter and live-value layers off stage, and `clearMedia` fades pictures and video (pausing video). Pressed again before the next cue, each brings back what it took. `mute` silences all sound until pressed again; it is separate from the blackout. Older apps can't open shows that map them.
+- **`jump`** puts its target on standby, or fires it when `fire` is true (through the double-GO guard). Sections, and the next, previous and same scene, are found from the live cue in tonight's running order. MIDI `program` matches a program change, so a playback rig can start each song. Older apps can't open shows that map a jump or a program change.
 - **`back`** returns to the state before the operator's last GO (one step). Older apps don't know this command, so they can't open shows that map a key to it.
 
 ## Versioning

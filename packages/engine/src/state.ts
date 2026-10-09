@@ -1,5 +1,6 @@
 import type { Action, Show, VarValue } from '@scrim/format';
 import { cueOrder } from '@scrim/format';
+import type { RunOrder } from './order.js';
 import { still, type Tween } from './tween.js';
 import type { ClearKind } from './types.js';
 
@@ -83,6 +84,8 @@ export interface EngineState {
   mute?: Tween;
   /** What the secondary clears took off, for undo until the next cue fires. */
   cleared?: Partial<Record<ClearKind, ClearPoint>>;
+  /** Tonight's running order; absent or null: the show's own order. */
+  order?: RunOrder | null;
 }
 
 export function emptyAggregate(): MomentAggregate {
@@ -128,6 +131,7 @@ export function initialState(show: Show): EngineState {
     back: null,
     mute: still(0),
     cleared: {},
+    order: null,
   };
 }
 

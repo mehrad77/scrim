@@ -1,4 +1,4 @@
-import { formatVar } from '@scrim/engine';
+import { formatVar, initialState, runOrder } from '@scrim/engine';
 import { cueOrder, type Show } from '@scrim/format';
 import { ClipboardCheck, Keyboard, Lock, LockOpen, Pencil, RotateCcw } from 'lucide-react';
 import {
@@ -39,6 +39,7 @@ import { MediaPanel, StatePanel } from './LivePanels.js';
 import { OutputsPanel } from './OutputsPanel.js';
 import { usePins } from './pins.js';
 import { PreshowCheck } from './PreshowCheck.js';
+import { SetlistPanel } from './SetlistPanel.js';
 import { StatusChips } from './StatusChips.js';
 
 const HostContext = createContext<ShowHost | null>(null);
@@ -75,6 +76,8 @@ export default function Operator() {
       const [journal, runs] = await Promise.all([(await db()).get('journal', id), listRuns(id)]);
       if (cancelled) return release();
       const resumable = journal && journal.state.lastFired !== null;
+      // Nothing ran yet, but tonight's running order was set: start at the top, in that order.
+      const order = !resumable ? (journal?.state.order ?? null) : null;
       const lastRunAt = runs.find((r) => r.cuesFired > 0)?.startedAt ?? null;
       // "Rehearse from here" in the editor leaves a hand-off that wins over the crash journal.
       const handoff = takeRehearsal(id);
@@ -86,7 +89,11 @@ export default function Operator() {
             from: handoff.cueName,
           })
         : new ShowHost(show, {
-            state: resumable ? journal.state : undefined,
+            state: resumable
+              ? journal.state
+              : order
+                ? { ...initialState(show), order, standby: runOrder(show, order)[0]?.id ?? null }
+                : undefined,
             mode: journal?.mode,
             lastRunAt,
             resumed: !!resumable,
@@ -320,7 +327,7 @@ function OperatorView() {
         <main className="min-h-0 flex-1 border-t border-line-subtle">
           <Columns id="operator" locked={showMode}>
             <Pane id="cues" size="25%" min={280}>
-              <CueStack />
+              <CuesPane />
             </Pane>
             <Divider />
             <Pane id="go" min={420}>
@@ -371,6 +378,29 @@ function OperatorView() {
       </div>
     </MapProvider>
   );
+}
+
+/**
+ * The cue list, and beside it tonight's running order for shows with more than one scene: the
+ * order is the cue list's own, so it lives in the same pane.
+ */
+function CuesPane() {
+  const [, snap] = useHost();
+  const [view, setView] = useState<'cues' | 'order'>('cues');
+  const scenes = new Set(snap.show.cues.map((c) => c.sceneId)).size;
+  if (scenes < 2) return <CueStack />;
+  const toggle = (
+    <Tabs
+      label="Cue list or running order"
+      value={view}
+      onChange={setView}
+      tabs={[
+        { id: 'cues', label: 'Cues' },
+        { id: 'order', label: 'Order' },
+      ]}
+    />
+  );
+  return view === 'order' ? <SetlistPanel toggle={toggle} /> : <CueStack toggle={toggle} />;
 }
 
 /** The show's running keys, for the top of the `?` sheet. */

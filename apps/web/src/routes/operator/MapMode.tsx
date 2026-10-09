@@ -1,7 +1,13 @@
 import type { Command, Inputs } from '@scrim/format';
 import { X } from 'lucide-react';
 import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
-import { keyLabel, sameKey, type MidiEvent } from '../../host/inputs.js';
+import {
+  describeCommand,
+  keyLabel,
+  midiLabel,
+  sameKey,
+  type MidiEvent,
+} from '../../host/inputs.js';
 import type { CapturedInput, ShowHost } from '../../host/ShowHost.js';
 import { cn } from '../../lib/cn.js';
 import { Button } from '../../ui/Button.js';
@@ -72,7 +78,7 @@ export const PRESETS: Record<'scrim' | 'qlab', { label: string; keys: [string, R
 
 function pressedLabel(p: Pressed): string {
   if (p.kind === 'key') return keyLabel(p.code);
-  if (p.kind === 'midi') return `MIDI ${p.event.kind === 'note' ? 'note' : 'CC'} ${p.event.number}`;
+  if (p.kind === 'midi') return `MIDI ${midiLabel(p.event)}`;
   return `Pad ${p.button + 1}`;
 }
 
@@ -85,9 +91,7 @@ function all(inputs: Inputs, c: Command): string[] {
   return [
     ...(c.type === 'panic' ? ['Esc'] : []),
     ...inputs.keys.filter((k) => same(k.command, c)).map((k) => keyLabel(k.key)),
-    ...inputs.midi
-      .filter((m) => same(m.command, c))
-      .map((m) => `MIDI ${m.kind === 'note' ? 'note' : 'CC'} ${m.number}`),
+    ...inputs.midi.filter((m) => same(m.command, c)).map((m) => `MIDI ${midiLabel(m)}`),
     ...inputs.gamepad.filter((g) => same(g.command, c)).map((g) => `Pad ${g.button + 1}`),
   ];
 }
@@ -246,6 +250,8 @@ export function commandName(host: ShowHost, c: Command): string {
       return 'Clear media';
     case 'mute':
       return 'Mute sound';
+    case 'jump':
+      return describeCommand(c, host.engine.show);
   }
 }
 

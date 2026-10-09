@@ -500,11 +500,11 @@ The same set of users covers a band's live show, but in a different shape. Theat
 
 ### What Scrim would need
 
-None of these exist yet:
+Only setlist mode exists so far:
 
 1. **Tempo sync:** cues, follows and effects timed in beats and bars, locked to MIDI clock or Ableton Link.
 2. **Timecode chase:** cues fire at timecode positions sent by the playback rig. This needs care, because browser timers jitter.
-3. **Setlist mode:** reorder, skip and jump between songs live, safely.
+3. **Setlist mode:** reorder, skip and jump between songs live, safely. _Built:_ the operator's **Order** view changes tonight's running order in Show mode without editing the show, prepared setlists, keys and MIDI program changes that start a song, and keys that jump to a section such as the chorus.
 4. **Audio-reactive visuals:** a live audio input analysed for level, bands and beat, driving effects. This depends on the [GPU compositor](research/gpu-compositor.md).
 5. **Lyrics and captions:** a text layer that follows the song's timeline.
 6. **Fast venue setup:** saved per-venue output profiles that can be reapplied in minutes.
@@ -597,10 +597,12 @@ For each user, **Ideas** links to the cross-cutting ideas in [Accessible to all]
   - **Licence compliance:** song lyrics are usually licensed, for example through CCLI. Scrim should store the copyright line for each song and display it.
 - **Today:**
   - Text layers, cues, scenes and jumping between scenes.
+  - Cues can name their section (Verse, Chorus); one key or pedal jumps to the next chorus of the song that's playing, or repeats the last one.
+  - Songs can be reordered or skipped live, and a prepared order kept as a setlist.
   - Notices can loop with auto-follow.
 - **Gaps:**
   - The song library and lyrics import.
-  - Jumping to a section, and a simple operator view.
+  - A simple operator view.
 - **Ideas:** [5 simple modes and templates](#5-simple-modes-and-templates), [1 personal access channel](#1-a-personal-access-channel-on-the-audience-phone), [3 inclusive operation](#3-inclusive-operation).
 
 ### Drama therapist or care-home activity leader

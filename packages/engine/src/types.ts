@@ -1,4 +1,5 @@
-import type { Action, Condition, VarValue } from '@scrim/format';
+import type { Action, Condition, JumpTarget, VarValue } from '@scrim/format';
+import type { RunOrder } from './order.js';
 
 export type InputSource =
   'operator' | 'keyboard' | 'midi' | 'gamepad' | 'remote' | 'rule' | 'follow' | 'system';
@@ -41,7 +42,11 @@ export type EngineInput =
   /** Bring back what the last clear of that kind took off, until the next cue fires. */
   | { type: 'unclear'; what: ClearKind; fade?: number }
   /** Mute every sound, like a blackout for audio; toggles when `on` is left out. */
-  | { type: 'mute'; on?: boolean; fade?: number };
+  | { type: 'mute'; on?: boolean; fade?: number }
+  /** Put a scene, cue or section on standby, or fire it. */
+  | { type: 'jump'; target: JumpTarget; fire?: boolean; source?: InputSource }
+  /** Change tonight's running order; null goes back to the show's order. */
+  | { type: 'setOrder'; order: RunOrder | null };
 
 /** Text: text, counter and live-value layers. Media: pictures and video. */
 export type ClearKind = 'text' | 'media';
@@ -61,6 +66,8 @@ export type EngineEvent =
   | { type: 'cleared'; what: ClearKind; layers: number }
   | { type: 'uncleared'; what: ClearKind; layers: number }
   | { type: 'mute'; on: boolean }
+  /** The running order changed: set by the operator, or a jump brought a skipped scene back. */
+  | { type: 'orderChanged'; prev: RunOrder | null; order: RunOrder | null }
   /** A rule's trigger matched: whether it ran, and each check with the value it saw. */
   | { type: 'ruleEvaluated'; ruleId: string; ran: boolean; checks: ConditionCheck[] }
   | { type: 'warning'; message: string };

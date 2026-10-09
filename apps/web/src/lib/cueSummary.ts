@@ -42,6 +42,8 @@ function describe(show: Show, a: Action): string {
       return `Goes to ${name(show.scenes, a.sceneId)}`;
     case 'goToCue':
       return `Goes to ${name(show.cues, a.cueId)}`;
+    case 'jumpSection':
+      return `Goes to the ${a.section || '?'}`;
     case 'openMoment':
       return `Opens ${name(show.moments, a.momentId)}`;
     case 'closeMoment':

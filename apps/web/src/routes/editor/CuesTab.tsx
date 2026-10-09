@@ -9,6 +9,7 @@ import { Empty, Panel } from '../../ui/Panel.js';
 import { ActionList } from './ActionEditor.js';
 import { AfterThisCue } from './AfterThisCue.js';
 import { CueList } from './CueList.js';
+import { SectionInput } from './SectionInput.js';
 
 export function CuesTab() {
   return (
@@ -103,9 +104,24 @@ function CueEditor() {
       }
     >
       <div className="flex flex-col gap-4">
-        <Field label="Name">
-          <CommitInput value={cue.name} onCommit={(name) => set((c) => void (c.name = name))} />
-        </Field>
+        <div className="flex gap-2">
+          <Field label="Name" className="flex-1">
+            <CommitInput value={cue.name} onCommit={(name) => set((c) => void (c.name = name))} />
+          </Field>
+          <Field label="Section" className="w-36">
+            <SectionInput
+              show={show}
+              info="Verse, Chorus: a key or a performer can jump to this part of the scene"
+              value={cue.section ?? ''}
+              onCommit={(section) =>
+                set((c) => {
+                  if (section) c.section = section;
+                  else delete c.section;
+                })
+              }
+            />
+          </Field>
+        </div>
         <div>
           <div className="mb-2 text-caption text-fg-muted">When this cue fires</div>
           <ActionList

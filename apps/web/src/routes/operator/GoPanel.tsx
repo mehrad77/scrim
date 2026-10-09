@@ -61,11 +61,18 @@ export function GoPanel() {
               />
             )}
           </div>
-          <div className="mt-1 flex items-baseline gap-3 text-cue font-semibold">
+          {/* The cue name gets its full width before the scene name gets any. */}
+          <div className="mt-1 grid grid-cols-[auto_minmax(0,max-content)_minmax(0,1fr)] items-baseline gap-3 text-cue font-semibold">
             {standby ? (
               <>
                 <span className="font-mono text-standby tabular-nums">{standbyIndex + 1}</span>
                 <span className="truncate">{standby.name}</span>
+                {/* After a jump the cue name alone can be ambiguous: which song's Chorus? */}
+                {show.scenes.length > 1 && (
+                  <span className="truncate text-ui font-normal text-fg-muted">
+                    {show.scenes.find((s) => s.id === standby.sceneId)?.name}
+                  </span>
+                )}
               </>
             ) : (
               <span className="text-fg-subtle">End of show</span>

@@ -1,19 +1,22 @@
-import type { Command, Show } from '@scrim/format';
-import { Gamepad2, Keyboard, Piano, Plus, Radio, Trash2 } from 'lucide-react';
+import type { Command, JumpTarget, Show } from '@scrim/format';
+import { Gamepad2, Keyboard, ListMusic, Piano, Plus, Radio, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import {
   keyLabel,
   sameKey,
   listenGamepads,
   listenMidi,
+  midiLabel,
   PANIC_KEY,
   type MidiEvent,
 } from '../../host/inputs.js';
+import { sectionsOf } from '../../lib/jumps.js';
 import { useEditor, useShow } from '../../state/editor.js';
 import { Button, IconButton } from '../../ui/Button.js';
-import { Select } from '../../ui/Field.js';
+import { Select, Toggle } from '../../ui/Field.js';
 import { Empty, Kbd, Panel } from '../../ui/Panel.js';
 import { errorToast, toast } from '../../ui/toast.js';
+import { SectionInput } from './SectionInput.js';
 
 export function InputsTab() {
   return (
@@ -26,12 +29,37 @@ export function InputsTab() {
 }
 
 function encode(c: Command): string {
-  return c.type === 'trigger' ? `trigger:${c.triggerId}` : c.type;
+  if (c.type === 'trigger') return `trigger:${c.triggerId}`;
+  if (c.type !== 'jump') return c.type;
+  const t = c.target;
+  return t.to === 'scene'
+    ? `jump:scene:${t.sceneId}`
+    : t.to === 'cue'
+      ? `jump:cue:${t.cueId}`
+      : `jump:${t.to}`;
 }
 
-function decode(v: string): Command {
+/** The command a picker value stands for; a jump keeps the section and "fire" it had. */
+function decode(v: string, prev: Command, show: Show): Command {
   if (v.startsWith('trigger:')) return { type: 'trigger', triggerId: v.slice(8) };
-  return { type: v as Exclude<Command['type'], 'trigger'> } as Command;
+  if (!v.startsWith('jump:')) return { type: v as Exclude<Command['type'], 'trigger' | 'jump'> };
+  const [, to = '', id = ''] = v.split(':');
+  const was = prev.type === 'jump' ? prev : null;
+  const target: JumpTarget =
+    to === 'scene'
+      ? { to, sceneId: id }
+      : to === 'cue'
+        ? { to, cueId: id }
+        : to === 'section'
+          ? {
+              to,
+              section:
+                was?.target.to === 'section'
+                  ? was.target.section
+                  : (sectionsOf(show)[0] ?? 'Chorus'),
+            }
+          : { to: to as 'nextScene' | 'prevScene' | 'restartScene' };
+  return { type: 'jump', target, fire: was?.fire ?? false };
 }
 
 function CommandPicker({
@@ -43,33 +71,71 @@ function CommandPicker({
   value: Command;
   onChange: (c: Command) => void;
 }) {
+  const jump = value.type === 'jump' ? value : null;
+  const cue = jump?.target.to === 'cue' ? jump.target.cueId : null;
+  // A jump's section and "fire" wrap under the command when the column is narrow.
   return (
-    <Select
-      className="w-48"
-      value={encode(value)}
-      onChange={(e) => onChange(decode(e.target.value))}
-    >
-      <option value="go">GO</option>
-      <option value="panic">Panic (blackout)</option>
-      <option value="hold">Hold / resume</option>
-      <option value="back">Back (undo the last GO)</option>
-      <option value="standbyNext">Standby next cue</option>
-      <option value="standbyPrev">Standby previous cue</option>
-      <optgroup label="Beside PANIC">
-        <option value="clearText">Clear text (again: bring it back)</option>
-        <option value="clearMedia">Clear pictures and video (again: bring them back)</option>
-        <option value="mute">Mute / unmute sound</option>
-      </optgroup>
-      {show.triggers.length > 0 && (
-        <optgroup label="Triggers">
-          {show.triggers.map((t) => (
-            <option key={t.id} value={`trigger:${t.id}`}>
-              {t.name}
+    <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-2 gap-y-1">
+      <Select
+        className="w-48"
+        value={encode(value)}
+        onChange={(e) => onChange(decode(e.target.value, value, show))}
+      >
+        <option value="go">GO</option>
+        <option value="panic">Panic (blackout)</option>
+        <option value="hold">Hold / resume</option>
+        <option value="back">Back (undo the last GO)</option>
+        <option value="standbyNext">Standby next cue</option>
+        <option value="standbyPrev">Standby previous cue</option>
+        <optgroup label="Beside PANIC">
+          <option value="clearText">Clear text (again: bring it back)</option>
+          <option value="clearMedia">Clear pictures and video (again: bring them back)</option>
+          <option value="mute">Mute / unmute sound</option>
+        </optgroup>
+        {show.triggers.length > 0 && (
+          <optgroup label="Triggers">
+            {show.triggers.map((t) => (
+              <option key={t.id} value={`trigger:${t.id}`}>
+                {t.name}
+              </option>
+            ))}
+          </optgroup>
+        )}
+        <optgroup label="Jump (tonight's running order)">
+          <option value="jump:nextScene">Next scene</option>
+          <option value="jump:prevScene">Previous scene</option>
+          <option value="jump:restartScene">This scene again</option>
+          <option value="jump:section">Section of this scene…</option>
+          {show.scenes.map((s) => (
+            <option key={s.id} value={`jump:scene:${s.id}`}>
+              Scene: {s.name}
             </option>
           ))}
+          {cue !== null && (
+            <option value={`jump:cue:${cue}`}>
+              Cue: {show.cues.find((c) => c.id === cue)?.name ?? 'deleted'}
+            </option>
+          )}
         </optgroup>
+      </Select>
+      {jump?.target.to === 'section' && (
+        <SectionInput
+          show={show}
+          className="w-28"
+          value={jump.target.section}
+          onCommit={(section) => onChange({ ...jump, target: { to: 'section', section } })}
+        />
       )}
-    </Select>
+      {jump && (
+        <span data-info="On: fire it at once, like GO. Off: put it on standby.">
+          <Toggle
+            checked={jump.fire}
+            onChange={(fire) => onChange({ ...jump, fire })}
+            label={<span className="text-caption">fire</span>}
+          />
+        </span>
+      )}
+    </div>
   );
 }
 
@@ -229,7 +295,7 @@ function MidiPanel() {
           {devices.length
             ? `Connected: ${devices.join(', ')}`
             : 'No MIDI devices found. Plug one in; it is picked up automatically.'}
-          {last && ` · Last: ${last.kind} ${last.number} ch ${last.channel}`}
+          {last && ` · Last: ${midiLabel(last)} ch ${last.channel}`}
         </p>
       )}
       {show.inputs.midi.length === 0 && (
@@ -238,11 +304,42 @@ function MidiPanel() {
           control.
         </Empty>
       )}
+      {show.scenes.length > 1 && (
+        <Button
+          size="sm"
+          className="mb-2"
+          icon={<ListMusic size={13} />}
+          data-info="For a playback rig that sends a program change at the start of each song"
+          onClick={() => {
+            const free = (n: number) =>
+              !show.inputs.midi.some((m) => m.kind === 'program' && m.number === n);
+            const scenes = show.scenes.filter((_, i) => free(i));
+            if (!scenes.length) return void toast('Every scene already has a program change');
+            update((d) => {
+              d.scenes.forEach((scene, i) => {
+                if (free(i))
+                  d.inputs.midi.push({
+                    kind: 'program',
+                    channel: null,
+                    number: i,
+                    command: {
+                      type: 'jump',
+                      target: { to: 'scene', sceneId: scene.id },
+                      fire: true,
+                    },
+                  });
+              });
+            });
+            toast(`Program 1–${show.scenes.length} now start scenes 1–${show.scenes.length}`);
+          }}
+        >
+          Program changes start scenes
+        </Button>
+      )}
       {show.inputs.midi.map((m, i) => (
         <div key={i} className="mb-1 flex items-center gap-2">
           <span className="w-32 font-mono text-caption text-fg-muted">
-            {m.kind === 'note' ? 'Note' : 'CC'} {m.number} ·{' '}
-            {m.channel === null ? 'any ch' : `ch ${m.channel}`}
+            {midiLabel(m)} · {m.channel === null ? 'any ch' : `ch ${m.channel}`}
           </span>
           <CommandPicker
             show={show}

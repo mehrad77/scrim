@@ -1,5 +1,5 @@
 import type { Action, Cue, Layer, Moment, Show, VarValue } from '@scrim/format';
-import { ancestorsOf, cueOrder, descendantsOf, isFrame, layerTree } from '@scrim/format';
+import { ancestorsOf, descendantsOf, isFrame, layerTree } from '@scrim/format';
 import { evaluateAll, explain } from './conditions.js';
 import {
   counterValue,
@@ -12,6 +12,7 @@ import {
   type LayerState,
   type Timer,
 } from './state.js';
+import { resolveJump, runOrder, sceneSequence, type RunOrder } from './order.js';
 import { retarget, still } from './tween.js';
 import type { ClearKind, EngineEvent, EngineInput, InputSource } from './types.js';
 
@@ -24,6 +25,7 @@ interface Ctx {
   state: EngineState;
   now: number;
   events: EngineEvent[];
+  /** The cues that play tonight, in running order. */
   order: Cue[];
   /** Cues fired in this step. */
   fires: number;
@@ -48,7 +50,7 @@ export function step(show: Show, prev: EngineState, input: EngineInput, now: num
     state: structuredClone(prev),
     now,
     events: [],
-    order: cueOrder(show),
+    order: runOrder(show, prev.order ?? null),
     fires: 0,
     ruleEvents: 0,
     scheduled: new Set(),
@@ -98,7 +100,16 @@ function applyInput(ctx: Ctx, input: EngineInput): void {
       fireCue(ctx, input.cueId, input.source ?? 'operator');
       return;
     case 'standby':
-      if (ctx.order.some((c) => c.id === input.cueId)) state.standby = input.cueId;
+      if (reach(ctx, input.cueId)) state.standby = input.cueId;
+      return;
+    case 'jump': {
+      const to = resolveJump(ctx.show, ctx.order, state, input.target);
+      if ('warning' in to) return warn(ctx, to.warning);
+      jumpTo(ctx, to.cueId, input.fire ?? false, input.source ?? 'operator');
+      return;
+    }
+    case 'setOrder':
+      setRunOrder(ctx, input.order);
       return;
     case 'standbyNext':
     case 'standbyPrev': {
@@ -199,10 +210,15 @@ function applyInput(ctx: Ctx, input: EngineInput): void {
     case 'action':
       applyAction(ctx, input.action);
       return;
-    case 'reset':
-      ctx.state = initialState(ctx.show);
+    case 'reset': {
+      // Tonight's running order is the plan for the night, so it outlives a reset.
+      const order = ctx.state.order ?? null;
+      ctx.state = { ...initialState(ctx.show), order };
+      ctx.order = runOrder(ctx.show, order);
+      ctx.state.standby = ctx.order[0]?.id ?? null;
       ctx.events.push({ type: 'reset' });
       return;
+    }
     case 'back':
       back(ctx);
       return;
@@ -342,7 +358,12 @@ function back(ctx: Ctx): void {
   target.timers = [];
   target.fired = state.fired;
   target.back = null;
+  // Back undoes the cue, not tonight's running order.
+  target.order = state.order ?? null;
   ctx.state = target;
+  ctx.order = runOrder(ctx.show, target.order);
+  if (!ctx.order.some((c) => c.id === target.standby))
+    target.standby = nextAfter(ctx.order, target.lastFired);
   ctx.events.push({ type: 'back', cueId: point.cueId, name: cue?.name ?? '' });
 }
 
@@ -392,10 +413,10 @@ function fireCue(ctx: Ctx, cueId: string, source: InputSource): void {
     ctx.state.follow = null;
     return;
   }
+  if (!reach(ctx, cueId)) return warn(ctx, `Cue ${cueId} not found`);
   const { state, now } = ctx;
   const i = ctx.order.findIndex((c) => c.id === cueId);
-  const cue = ctx.order[i];
-  if (!cue) return warn(ctx, `Cue ${cueId} not found`);
+  const cue = ctx.order[i]!;
   const next = ctx.order[i + 1] ?? null;
   state.lastFired = cue.id;
   state.standby = next?.id ?? null;
@@ -504,10 +525,18 @@ function applyAction(ctx: Ctx, action: Action): void {
       );
       return;
     }
-    case 'jumpScene': {
-      const first = ctx.order.find((c) => c.sceneId === action.sceneId);
-      if (!first) return warn(ctx, `Scene ${action.sceneId} has no cues`);
-      jumpTo(ctx, first.id, action.fire);
+    case 'jumpScene':
+    case 'jumpSection': {
+      const to = resolveJump(
+        show,
+        ctx.order,
+        state,
+        action.type === 'jumpScene'
+          ? { to: 'scene', sceneId: action.sceneId }
+          : { to: 'section', section: action.section },
+      );
+      if ('warning' in to) return warn(ctx, to.warning);
+      jumpTo(ctx, to.cueId, action.fire);
       return;
     }
     case 'goToCue':
@@ -544,11 +573,57 @@ function applyAction(ctx: Ctx, action: Action): void {
   }
 }
 
-function jumpTo(ctx: Ctx, cueId: string, fire: boolean): void {
-  if (!ctx.order.some((c) => c.id === cueId)) return warn(ctx, `Cue ${cueId} not found`);
+function jumpTo(ctx: Ctx, cueId: string, fire: boolean, source: InputSource = 'rule'): void {
+  if (!reach(ctx, cueId)) return warn(ctx, `Cue ${cueId} not found`);
   ctx.state.follow = null;
-  if (fire) fireCue(ctx, cueId, 'rule');
+  if (fire) fireCue(ctx, cueId, source);
   else ctx.state.standby = cueId;
+}
+
+/** The cue after `cueId` in this order; the first cue when nothing has fired. */
+function nextAfter(order: Cue[], cueId: string | null): string | null {
+  if (!cueId) return order[0]?.id ?? null;
+  const i = order.findIndex((c) => c.id === cueId);
+  return i < 0 ? null : (order[i + 1]?.id ?? null);
+}
+
+/**
+ * Make sure a cue plays tonight. A jump or standby into a skipped scene brings it back, right
+ * after the scene that is live. False when the cue doesn't exist.
+ */
+function reach(ctx: Ctx, cueId: string): boolean {
+  if (ctx.order.some((c) => c.id === cueId)) return true;
+  const order = ctx.state.order ?? null;
+  const cue = ctx.show.cues.find((c) => c.id === cueId);
+  if (!order || !cue || !ctx.show.scenes.some((s) => s.id === cue.sceneId)) return false;
+  const scenes = sceneSequence(ctx.show, order).filter((id) => id !== cue.sceneId);
+  const live = ctx.show.cues.find((c) => c.id === ctx.state.lastFired)?.sceneId;
+  scenes.splice(live ? scenes.indexOf(live) + 1 : 0, 0, cue.sceneId);
+  setRunOrder(ctx, { scenes, skipped: order.skipped.filter((id) => id !== cue.sceneId) });
+  return ctx.order.some((c) => c.id === cueId);
+}
+
+/**
+ * Change tonight's running order. What is live can't be skipped. "Next" moves with the order,
+ * unless the operator had put something else on standby that still plays; an auto-follow does too.
+ */
+function setRunOrder(ctx: Ctx, next: RunOrder | null): void {
+  const { state } = ctx;
+  const prev = state.order ?? null;
+  const live = ctx.show.cues.find((c) => c.id === state.lastFired)?.sceneId;
+  const order = next && {
+    scenes: [...next.scenes],
+    skipped: next.skipped.filter((id) => id !== live),
+  };
+  const wasNext = nextAfter(ctx.order, state.lastFired);
+  state.order = order;
+  ctx.order = runOrder(ctx.show, order);
+  const plays = (id: string | null) => !!id && ctx.order.some((c) => c.id === id);
+  const isNext = nextAfter(ctx.order, state.lastFired);
+  if (state.standby === wasNext || !plays(state.standby)) state.standby = isNext;
+  if (state.follow && (state.follow.cueId === wasNext || !plays(state.follow.cueId)))
+    state.follow = isNext ? { ...state.follow, cueId: isNext } : null;
+  ctx.events.push({ type: 'orderChanged', prev, order });
 }
 
 function momentDef(ctx: Ctx, id: string): Moment | undefined {

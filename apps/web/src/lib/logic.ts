@@ -301,6 +301,12 @@ function brokenRefs(show: Show, actions: Action[]): string[] {
     )
       out.push(`the scene “${nameOf(show.scenes, a.sceneId)}”, which has no cues`);
     if (a.type === 'goToCue' && !has(show.cues, a.cueId)) out.push('a cue that was deleted');
+    if (a.type === 'jumpSection') {
+      const want = a.section.trim().toLowerCase();
+      if (!want) out.push('a section, but none is named');
+      else if (!show.cues.some((c) => c.section?.trim().toLowerCase() === want))
+        out.push(`the section “${a.section.trim()}”, which no cue has`);
+    }
     if (a.type === 'branch')
       for (const c of a.if) if (!has(show.vars, c.varId)) out.push('a value that was deleted');
   }

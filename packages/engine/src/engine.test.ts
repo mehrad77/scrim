@@ -1,4 +1,11 @@
-import { createShow, layerTree, type Action, type Layer, type Show } from '@scrim/format';
+import {
+  createCue,
+  createShow,
+  layerTree,
+  type Action,
+  type Layer,
+  type Show,
+} from '@scrim/format';
 import { describe, expect, it } from 'vitest';
 import {
   counterValue,
@@ -11,6 +18,8 @@ import {
   mediaPosition,
   nextWakeup,
   optionLabels,
+  runOrder,
+  sceneSequence,
   step,
   tweenValue,
   valueLines,
@@ -935,5 +944,175 @@ describe('labels', () => {
     expect(formatVar(show, 'score', 2.25)).toBe('2.3');
     expect(formatValue(['constructor', 'toString'])).toBe('constructor, toString');
     expect(optionLabels(show, '')).toEqual({});
+  });
+});
+
+describe('running order, jumps and sections', () => {
+  /** Three songs: Amazing Grace has verses and choruses, Encore has one cue. */
+  function gig(): Show {
+    const show = createShow('Gig');
+    show.scenes = [
+      { id: 'grace', name: 'Amazing Grace' },
+      { id: 'river', name: 'River' },
+      { id: 'encore', name: 'Encore' },
+    ];
+    const cue = (id: string, sceneId: string, name: string, section?: string) => ({
+      ...createCue(sceneId, name),
+      id,
+      ...(section ? { section } : {}),
+    });
+    show.cues = [
+      cue('g1', 'grace', 'Verse 1', 'Verse'),
+      cue('g2', 'grace', 'Chorus', 'Chorus'),
+      cue('g3', 'grace', 'Verse 2', 'Verse'),
+      cue('g4', 'grace', 'Chorus again', 'chorus'),
+      cue('r1', 'river', 'Intro'),
+      cue('r2', 'river', 'Chorus', 'Chorus'),
+      cue('e1', 'encore', 'Bow'),
+    ];
+    show.triggers = [{ id: 'pedal', name: 'Pedal', color: '#f00' }];
+    return show;
+  }
+  const order = (scenes: string[], skipped: string[] = []): EngineInput => ({
+    type: 'setOrder',
+    order: { scenes, skipped },
+  });
+  const ids = (show: Show, s: EngineState) => runOrder(show, s.order ?? null).map((c) => c.id);
+
+  it('plays scenes in tonight’s order, leaves skipped ones out, and slots in new ones', () => {
+    const show = gig();
+    const s = run(show, [[0, order(['encore', 'grace'], ['river'])]]);
+    expect(ids(show, s)).toEqual(['e1', 'g1', 'g2', 'g3', 'g4']);
+    // The natural first cue moved with the order.
+    expect(s.standby).toBe('e1');
+    // A scene the order doesn't know plays after the one before it in the show.
+    show.scenes.splice(1, 0, { id: 'new', name: 'New song' });
+    show.cues.push({ ...createCue('new', 'Hello'), id: 'n1' });
+    expect(sceneSequence(show, s.order!)).toEqual(['encore', 'grace', 'new', 'river']);
+  });
+
+  it('GO, follows and standby next follow the new order', () => {
+    const show = gig();
+    show.cues[3]!.follow = { auto: true, delay: 1 };
+    let s = run(show, [
+      [0, { type: 'fireCue', cueId: 'g4' }],
+      [100, order(['grace', 'encore', 'river'])],
+    ]);
+    expect(s.standby).toBe('e1');
+    expect(s.follow?.cueId).toBe('e1');
+    s = run(show, [[1000, { type: 'tick' }]], s);
+    expect(s.lastFired).toBe('e1');
+    expect(run(show, [[2000, { type: 'standbyNext' }]], s).standby).toBe('r2');
+  });
+
+  it('keeps a standby the operator chose, and never skips what is live', () => {
+    const show = gig();
+    const s = run(show, [
+      [0, { type: 'fireCue', cueId: 'g1' }],
+      [10, { type: 'standby', cueId: 'r2' }],
+      [20, order(['river', 'grace', 'encore'], ['grace'])],
+    ]);
+    expect(s.standby).toBe('r2');
+    expect(s.order?.skipped).toEqual([]);
+  });
+
+  it('a jump into a skipped scene brings it back after the live one', () => {
+    const show = gig();
+    const s0 = run(show, [
+      [0, order(['grace', 'river', 'encore'], ['river'])],
+      [10, { type: 'fireCue', cueId: 'g1' }],
+    ]);
+    const { state, events } = step(
+      show,
+      s0,
+      { type: 'jump', target: { to: 'scene', sceneId: 'river' } },
+      20,
+    );
+    expect(state.standby).toBe('r1');
+    expect(state.order).toEqual({ scenes: ['grace', 'river', 'encore'], skipped: [] });
+    expect(events).toContainEqual({
+      type: 'orderChanged',
+      prev: { scenes: ['grace', 'river', 'encore'], skipped: ['river'] },
+      order: { scenes: ['grace', 'river', 'encore'], skipped: [] },
+    });
+  });
+
+  it('jumps to the next cue of a section in the live scene, and repeats the last one', () => {
+    const show = gig();
+    const chorus: EngineInput = { type: 'jump', target: { to: 'section', section: 'Chorus' } };
+    const after = (cueId: string) =>
+      step(show, run(show, [[0, { type: 'fireCue', cueId }]]), chorus, 10).state.standby;
+    expect(after('g1')).toBe('g2');
+    expect(after('g3')).toBe('g4'); // case doesn't matter
+    expect(after('g4')).toBe('g4'); // the band repeats the last chorus
+    expect(after('r1')).toBe('r2');
+    const missing = step(show, run(show, [[0, { type: 'fireCue', cueId: 'e1' }]]), chorus, 10);
+    expect(missing.events).toContainEqual({
+      type: 'warning',
+      message: 'No “Chorus” in “Encore”',
+    });
+    // Fired at once, from a key.
+    const fired = step(
+      show,
+      run(show, [[0, { type: 'fireCue', cueId: 'g1' }]]),
+      { ...chorus, fire: true, source: 'keyboard' },
+      10,
+    );
+    expect(fired.events[0]).toMatchObject({ type: 'cueFired', cueId: 'g2', source: 'keyboard' });
+  });
+
+  it('a performer’s trigger can jump to a section through a rule', () => {
+    const show = gig();
+    show.rules = [
+      {
+        id: 'r',
+        name: 'Back to the chorus',
+        enabled: true,
+        when: { type: 'trigger', triggerId: 'pedal' },
+        if: [],
+        then: [{ type: 'jumpSection', section: 'Chorus', fire: true }],
+      },
+    ];
+    const s = run(show, [
+      [0, { type: 'fireCue', cueId: 'g3' }],
+      [10, { type: 'trigger', triggerId: 'pedal' }],
+    ]);
+    expect(s.lastFired).toBe('g4');
+  });
+
+  it('goes to the next, previous or same scene in running order', () => {
+    const show = gig();
+    const jump = (to: 'nextScene' | 'prevScene' | 'restartScene'): EngineInput => ({
+      type: 'jump',
+      target: { to },
+    });
+    const s = run(show, [
+      [0, order(['encore', 'grace', 'river'])],
+      [10, { type: 'fireCue', cueId: 'g3' }],
+    ]);
+    expect(step(show, s, jump('nextScene'), 20).state.standby).toBe('r1');
+    expect(step(show, s, jump('prevScene'), 20).state.standby).toBe('e1');
+    expect(step(show, s, jump('restartScene'), 20).state.standby).toBe('g1');
+    // Before anything fires, "next" is the first scene.
+    expect(step(show, initialState(show), jump('nextScene'), 0).state.standby).toBe('g1');
+  });
+
+  it('Back and Reset keep tonight’s order; older journals without one still load', () => {
+    const show = gig();
+    const s = run(show, [
+      [0, order(['river', 'grace', 'encore'])],
+      [10, { type: 'go' }],
+    ]);
+    expect(s.lastFired).toBe('r1');
+    const backed = step(show, s, { type: 'back' }, 20).state;
+    expect(backed.order?.scenes).toEqual(['river', 'grace', 'encore']);
+    expect(backed.standby).toBe('r1');
+    const reset = step(show, s, { type: 'reset' }, 30).state;
+    expect(reset.order?.scenes).toEqual(['river', 'grace', 'encore']);
+    expect(reset.standby).toBe('r1');
+    const { order: _order, ...older } = initialState(show);
+    expect(step(show, older, { type: 'go' }, 0).state.lastFired).toBe('g1');
+    // Back to the show's own order.
+    expect(ids(show, run(show, [[40, { type: 'setOrder', order: null }]], s))[0]).toBe('g1');
   });
 });

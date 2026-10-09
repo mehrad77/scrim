@@ -1,10 +1,12 @@
 import {
   Engine,
   mediaPosition,
+  runOrder,
   type EngineEvent,
   type EngineInput,
   type EngineState,
   type InputSource,
+  type RunOrder,
 } from '@scrim/engine';
 import { cueOrder, uid, type Command, type Show } from '@scrim/format';
 import {
@@ -19,6 +21,7 @@ import {
   type RunMode,
 } from '@scrim/protocol';
 import { epochNow } from '../lib/clock.js';
+import { orderChangeText } from '../lib/jumps.js';
 import { conditionText, valueLabel } from '../lib/logic.js';
 import { db, setSetting, type RunLogEntry, type RunRecord } from '../storage/db.js';
 import { saveShow } from '../storage/shows.js';
@@ -215,9 +218,9 @@ export class ShowHost {
     this.engine.dispatch(input);
   }
 
-  /** Clear the deviations and put the next cue in script order on standby. */
+  /** Clear the deviations and put the next cue in tonight's running order on standby. */
   backToScript(): void {
-    const order = cueOrder(this.engine.show);
+    const order = runOrder(this.engine.show, this.engine.state.order ?? null);
     const i = order.findIndex((c) => c.id === this.engine.state.lastFired);
     const next = order[i + 1] ?? order[0];
     this.#offScript = [];
@@ -252,18 +255,61 @@ export class ShowHost {
     }
   }
 
+  /** Tonight's running order: reorder or skip scenes live; null goes back to the show's order. */
+  setOrder(order: RunOrder | null): void {
+    this.dispatch({ type: 'setOrder', order });
+  }
+
+  /** Play a prepared setlist: its scenes in its order, every other scene skipped. */
+  useSetlist(setlistId: string): void {
+    const show = this.engine.show;
+    const list = show.setlists?.find((l) => l.id === setlistId);
+    if (!list) return;
+    const scenes = list.scenes.filter((id) => show.scenes.some((s) => s.id === id));
+    const skipped = show.scenes.map((s) => s.id).filter((id) => !scenes.includes(id));
+    this.#log('info', `Setlist “${list.name}”`);
+    this.setOrder({ scenes: [...scenes, ...skipped], skipped });
+  }
+
+  /** Keep tonight's order in the show as a setlist (Rehearsal: it edits the show). */
+  saveSetlist(name: string): Promise<void> {
+    const order = this.engine.state.order ?? null;
+    const scenes = runOrder(this.engine.show, order).map((c) => c.sceneId);
+    return this.saveShowEdit((show) => ({
+      ...show,
+      setlists: [...(show.setlists ?? []), { id: uid('set'), name, scenes: [...new Set(scenes)] }],
+    }));
+  }
+
+  deleteSetlist(setlistId: string): Promise<void> {
+    return this.saveShowEdit((show) => ({
+      ...show,
+      setlists: (show.setlists ?? []).filter((l) => l.id !== setlistId),
+    }));
+  }
+
+  /** Double-GO protection: a bounced key or pedal must not skip a cue. */
+  #goGuard(): boolean {
+    const now = Date.now();
+    if (now - this.#lastGo < DOUBLE_GO_MS) {
+      // Never drop a GO silently: the GO button flashes its lockout ring.
+      this.#set(() => (this.#goDroppedAt = now));
+      return false;
+    }
+    this.#lastGo = now;
+    return true;
+  }
+
   command(c: Command, source: InputSource): void {
     switch (c.type) {
-      case 'go': {
-        // Double-GO protection: a bounced key or pedal must not skip a cue.
-        const now = Date.now();
-        if (now - this.#lastGo < DOUBLE_GO_MS) {
-          // Never drop a GO silently: the GO button flashes its lockout ring.
-          return this.#set(() => (this.#goDroppedAt = now));
-        }
-        this.#lastGo = now;
-        return this.dispatch({ type: 'go', source });
-      }
+      case 'go':
+        if (this.#goGuard()) this.dispatch({ type: 'go', source });
+        return;
+      case 'jump':
+        // A jump that fires is a GO on another cue, so it gets the same guard.
+        if (!c.fire || this.#goGuard())
+          this.dispatch({ type: 'jump', target: c.target, fire: c.fire, source });
+        return;
       case 'panic':
         return this.dispatch({ type: 'panic' });
       case 'hold':
@@ -836,6 +882,8 @@ export class ShowHost {
         );
       case 'mute':
         return this.#log('panic', e.on ? 'Sound muted' : 'Sound back on');
+      case 'orderChanged':
+        return this.#log('info', orderChangeText(show, e.prev, e.order));
       case 'warning':
         return this.#log('warning', e.message);
       default:

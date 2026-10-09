@@ -1,4 +1,11 @@
-import { descendantsOf, layerTree, type Action, type Show } from '@scrim/format';
+import {
+  descendantsOf,
+  layerTree,
+  type Action,
+  type Command,
+  type JumpTarget,
+  type Show,
+} from '@scrim/format';
 
 /** Remove actions (recursively, inside branches) that match `drop`. */
 export function pruneActions(actions: Action[], drop: (a: Action) => boolean): Action[] {
@@ -65,6 +72,14 @@ export function removeTrigger(show: Show, triggerId: string): void {
   show.inputs.gamepad = show.inputs.gamepad.filter(keep);
 }
 
+/** Drop key, MIDI and gamepad mappings whose jump goes to a target that is being deleted. */
+function dropJumps(show: Show, gone: (t: JumpTarget) => boolean): void {
+  const keep = (m: { command: Command }) => !(m.command.type === 'jump' && gone(m.command.target));
+  show.inputs.keys = show.inputs.keys.filter(keep);
+  show.inputs.midi = show.inputs.midi.filter(keep);
+  show.inputs.gamepad = show.inputs.gamepad.filter(keep);
+}
+
 export function removeScene(show: Show, sceneId: string): void {
   const cueIds = new Set(show.cues.filter((c) => c.sceneId === sceneId).map((c) => c.id));
   show.scenes = show.scenes.filter((s) => s.id !== sceneId);
@@ -76,12 +91,19 @@ export function removeScene(show: Show, sceneId: string): void {
       (a.type === 'goToCue' && cueIds.has(a.cueId)),
   );
   show.rules = show.rules.filter((r) => !(r.when.type === 'cueFired' && cueIds.has(r.when.cueId)));
+  dropJumps(
+    show,
+    (t) => (t.to === 'scene' && t.sceneId === sceneId) || (t.to === 'cue' && cueIds.has(t.cueId)),
+  );
+  if (show.setlists)
+    for (const list of show.setlists) list.scenes = list.scenes.filter((id) => id !== sceneId);
 }
 
 export function removeCue(show: Show, cueId: string): void {
   show.cues = show.cues.filter((c) => c.id !== cueId);
   pruneEverywhere(show, (a) => a.type === 'goToCue' && a.cueId === cueId);
   show.rules = show.rules.filter((r) => !(r.when.type === 'cueFired' && r.when.cueId === cueId));
+  dropJumps(show, (t) => t.to === 'cue' && t.cueId === cueId);
 }
 
 export function removeOutput(show: Show, outputId: string): void {

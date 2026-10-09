@@ -1,13 +1,17 @@
-import type { Command, Inputs } from '@scrim/format';
+import type { Command, Inputs, Show } from '@scrim/format';
+import { jumpTargetText } from '../lib/jumps.js';
 
 export interface MidiEvent {
-  kind: 'note' | 'cc';
+  kind: 'note' | 'cc' | 'program';
   channel: number;
   number: number;
   device: string;
 }
 
-/** Turn a raw MIDI message into a press event: note-on, or a CC crossing 64 upward. */
+/**
+ * Turn a raw MIDI message into a press event: note-on, a CC crossing 64 upward, or a program
+ * change (a playback rig picking a song).
+ */
 export function parseMidi(
   data: Uint8Array,
   lastCc: Map<string, number>,
@@ -17,6 +21,7 @@ export function parseMidi(
   const type = status & 0xf0;
   const channel = (status & 0x0f) + 1;
   if (type === 0x90 && value > 0) return { kind: 'note', channel, number, device };
+  if (type === 0xc0) return { kind: 'program', channel, number, device };
   if (type === 0xb0) {
     const key = `${device}:${channel}:${number}`;
     const prev = lastCc.get(key) ?? 0;
@@ -180,7 +185,13 @@ export function listenGamepads(
   return () => cancelAnimationFrame(raf);
 }
 
-export function describeCommand(c: Command, triggers: { id: string; name: string }[]): string {
+/** How a MIDI control reads: "Note 36", "CC 64", "Program 1" (programs count from 1, as on gear). */
+export function midiLabel(m: { kind: MidiEvent['kind']; number: number }): string {
+  if (m.kind === 'program') return `Program ${m.number + 1}`;
+  return `${m.kind === 'note' ? 'Note' : 'CC'} ${m.number}`;
+}
+
+export function describeCommand(c: Command, show: Show): string {
   switch (c.type) {
     case 'go':
       return 'GO';
@@ -195,12 +206,14 @@ export function describeCommand(c: Command, triggers: { id: string; name: string
     case 'standbyPrev':
       return 'Standby previous cue';
     case 'trigger':
-      return `Trigger: ${triggers.find((t) => t.id === c.triggerId)?.name ?? 'missing'}`;
+      return `Trigger: ${show.triggers.find((t) => t.id === c.triggerId)?.name ?? 'missing'}`;
     case 'clearText':
       return 'Clear text (again: bring it back)';
     case 'clearMedia':
       return 'Clear pictures and video (again: bring them back)';
     case 'mute':
       return 'Mute / unmute sound';
+    case 'jump':
+      return `${jumpTargetText(show, c.target)}${c.fire ? ', fired' : ' on standby'}`;
   }
 }

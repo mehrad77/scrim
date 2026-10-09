@@ -18,8 +18,9 @@ export function Panel({
     <section className={cn('flex min-h-0 flex-col bg-panel', className)}>
       {(title || actions) && (
         <header className="flex h-panel-head shrink-0 items-center justify-between gap-2 border-b border-line-subtle px-3">
-          <h2 className="label-caps truncate text-fg-muted">{title}</h2>
-          <div className="flex items-center gap-1">{actions}</div>
+          {title && <h2 className="label-caps truncate text-fg-muted">{title}</h2>}
+          {/* Without a title, the actions have the whole header, from the left. */}
+          <div className={cn('flex items-center gap-1', !title && 'flex-1')}>{actions}</div>
         </header>
       )}
       <div className={cn('min-h-0 flex-1 overflow-auto', bodyClassName)}>{children}</div>
