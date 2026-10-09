@@ -966,7 +966,7 @@ Update `<meta name="theme-color">` and the PWA manifest's `theme_color` from `#0
   - A class-name rule: no `transition-all`, no arbitrary `text-[Npx]`, and no raw Tailwind palette colours (`rose-*`, `amber-*`…) in `apps/web/src`.
 - **CI bundle budgets** against the first measured build:
   - Output-window and audience chunks may not grow by more than 5% without review.
-  - The editor chunk may grow by up to 160 KB gzip, for React Aria and Motion.
+  - The editor chunk may grow by up to 1 MB gzip. It runs on design machines, not on show machines or phones, so it has room; tabs and wizards still load on demand to keep the first paint quick.
 - **Vitest.**
   - Every semantic pair in this document meets its contrast target in both themes and both contrast modes.
   - The accent passes at every allowed hue in 15° steps.

@@ -20,7 +20,10 @@ import { CommitInput, Field, NumberInput, Select, TextArea, Toggle } from '../..
 import { Columns, Divider, Pane } from '../../ui/Layout.js';
 import { Empty, Panel } from '../../ui/Panel.js';
 import { toast } from '../../ui/toast.js';
+import { LogicCheckList } from './LogicCheckList.js';
+import { RecipeCards } from './recipes.js';
 import { RulesPanel } from './RulesPanel.js';
+import { Fold, useSimpleEditor, useUnfolded } from './simple.js';
 
 /**
  * Interaction (UX principle 7): values and triggers on the left, rules as grouped sentences in
@@ -30,6 +33,46 @@ export function InteractionTab() {
   const show = useShow();
   const [moment, setMoment] = useState<string | null>(show.moments[0]?.id ?? null);
   const issues = useMemo(() => checkLogic(show), [show]);
+  const simple = useSimpleEditor();
+  const [unfolded, unfold] = useUnfolded('interaction.rules');
+  // The simple editor starts from the recipes; rules, values and triggers are one step away.
+  if (simple && !unfolded)
+    return (
+      <Columns id="editor.interaction.simple">
+        <Pane id="ways" min={320}>
+          <Panel title="Involve the audience" className="h-full" bodyClassName="p-3">
+            {/* Problems are never folded away; a rule's opens the rules. */}
+            {issues.some((i) => i.area === 'interaction') && (
+              <LogicCheckList
+                issues={issues.filter((i) => i.area === 'interaction')}
+                canReveal={(i) => !!i.momentId || !!i.ruleId || !!i.varId || !!i.triggerId}
+                onReveal={(i) => (i.momentId ? setMoment(i.momentId) : unfold())}
+              />
+            )}
+            <div className="mx-auto flex max-w-lg flex-col gap-3">
+              <p className="text-ui text-fg-muted">
+                Each of these asks a few questions, then sets up the moment, the values it fills and
+                what happens next. Everything it makes stays editable.
+              </p>
+              <RecipeCards />
+              <Fold
+                card
+                id="interaction.rules"
+                label="Rules, values and triggers"
+                count={show.rules.length + show.vars.length + show.triggers.length}
+                hint="What happens when a vote closes or a performer presses a button, and the values the show remembers."
+              >
+                {null}
+              </Fold>
+            </div>
+          </Panel>
+        </Pane>
+        <Divider />
+        <Pane id="moments" size={420} min={300} side>
+          <MomentsPanel selected={moment} onSelect={setMoment} />
+        </Pane>
+      </Columns>
+    );
   return (
     <Columns id="editor.interaction">
       <Pane id="values" size={300} min={240} side>
@@ -270,6 +313,7 @@ function MomentsPanel({
   const show = useShow();
   const update = useEditor((s) => s.update);
   const moment = show.moments.find((m) => m.id === selected) ?? show.moments[0];
+  const noFreeText = !!show.safety?.noFreeText;
   return (
     <Panel
       title="Audience moments"
@@ -292,13 +336,29 @@ function MomentsPanel({
         >
           <option value="">+ Add moment…</option>
           {MOMENT_TYPES.map((t) => (
-            <option key={t.type} value={t.type}>
+            <option key={t.type} value={t.type} disabled={t.type === 'text' && noFreeText}>
               {t.label}
+              {t.type === 'text' && noFreeText ? ' (off: no free text)' : ''}
             </option>
           ))}
         </Select>
       }
     >
+      <div className="mb-3">
+        <Toggle
+          checked={noFreeText}
+          onChange={(on) =>
+            update((d) => {
+              if (on) d.safety = { ...d.safety, noFreeText: true };
+              else if (d.safety) {
+                delete d.safety.noFreeText;
+                if (!Object.keys(d.safety).length) delete d.safety;
+              }
+            })
+          }
+          label="No free text: phones can vote and tap, but never send words"
+        />
+      </div>
       {show.moments.length === 0 && (
         <Empty>
           Audience moments open on every joined phone when a cue says so — a vote, a tap race, a
@@ -362,6 +422,12 @@ function MomentEditor({
       <p className="text-caption text-fg-subtle">
         {info.label}: {info.hint}
         {!used && <span className="text-warn"> No cue opens this moment yet.</span>}
+        {m.type === 'text' && show.safety?.noFreeText && (
+          <span className="text-warn">
+            {' '}
+            This show doesn’t let phones send words, so it won’t open.
+          </span>
+        )}
       </p>
       <div className="grid grid-cols-2 gap-2">
         <Field label="Name (for the operator)">
@@ -567,6 +633,7 @@ function MomentEditor({
             value={String(m.defaultResult)}
             onChange={(e) => set((x) => void (x.defaultResult = e.target.value))}
           >
+            <option value="">Nobody: no option wins</option>
             {m.options.map((o) => (
               <option key={o.id} value={o.id}>
                 {o.label} ({o.id})

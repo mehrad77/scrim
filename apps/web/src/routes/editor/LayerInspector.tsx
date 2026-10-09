@@ -21,6 +21,7 @@ import { ColorInput } from '../../ui/ColorInput.js';
 import { toast } from '../../ui/toast.js';
 import { deleteLayers, duplicateSelection } from './layerCommands.js';
 import { keepDrawn, measureLayer } from './measure.js';
+import { Fold, useSimpleEditor, useUnfolded } from './simple.js';
 
 const FONTS = [
   ['system-ui, sans-serif', 'System sans'],
@@ -65,6 +66,32 @@ function Inspector({ show, layer }: { show: Show; layer: Layer }) {
   // Fonts added to the show travel in its bundle; others may be missing on the show machine.
   const showFonts = show.media.filter((m) => m.kind === 'font').map(fontFamilyOf);
   const visual = layer.kind !== 'audio';
+  // The simple editor keeps Fill stage and Center; exact numbers are one step away.
+  const simple = useSimpleEditor();
+  const [exact] = useUnfolded('layer.position');
+  const placeButtons = output && !parent && !hug.w && !hug.h && (
+    <div className="flex gap-2">
+      <Button
+        size="sm"
+        icon={<Maximize size={13} />}
+        onClick={() => set({ x: 0, y: 0, w: output.width, h: output.height })}
+      >
+        Fill stage
+      </Button>
+      <Button
+        size="sm"
+        icon={<AlignCenter size={13} />}
+        onClick={() =>
+          set({
+            x: Math.round((output.width - layer.w) / 2),
+            y: Math.round((output.height - layer.h) / 2),
+          })
+        }
+      >
+        Center
+      </Button>
+    </div>
+  );
 
   return (
     <div className="flex flex-col gap-4 p-3">
@@ -98,7 +125,15 @@ function Inspector({ show, layer }: { show: Show; layer: Layer }) {
         </Field>
       )}
 
-      {visual && (
+      {visual && simple && !exact && (
+        <Section title="Position">
+          {placeButtons}
+          <Fold id="layer.position" label="Exact position and size, pin, crop, output and lock">
+            {null}
+          </Fold>
+        </Section>
+      )}
+      {visual && (!simple || exact) && (
         <Section title="Position">
           <Toggle
             checked={!!layer.locked}
@@ -181,29 +216,7 @@ function Inspector({ show, layer }: { show: Show; layer: Layer }) {
               </Select>
             </Field>
           )}
-          {output && !parent && !hug.w && !hug.h && (
-            <div className="flex gap-2">
-              <Button
-                size="sm"
-                icon={<Maximize size={13} />}
-                onClick={() => set({ x: 0, y: 0, w: output.width, h: output.height })}
-              >
-                Fill stage
-              </Button>
-              <Button
-                size="sm"
-                icon={<AlignCenter size={13} />}
-                onClick={() =>
-                  set({
-                    x: Math.round((output.width - layer.w) / 2),
-                    y: Math.round((output.height - layer.h) / 2),
-                  })
-                }
-              >
-                Center
-              </Button>
-            </div>
-          )}
+          {placeButtons}
           <Field label="Crop (% from each edge)">
             <div className="grid grid-cols-4 gap-1">
               {(['top', 'right', 'bottom', 'left'] as const).map((side) => (

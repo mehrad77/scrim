@@ -1,11 +1,23 @@
 import { cueOrder, uid, type Rule, type Show } from '@scrim/format';
-import { Hand, Plus, Radio, Trash2, Vote, type LucideIcon } from 'lucide-react';
+import {
+  Hand,
+  Images,
+  ListMusic,
+  Megaphone,
+  Plus,
+  Radio,
+  Trash2,
+  Trophy,
+  Vote,
+  type LucideIcon,
+} from 'lucide-react';
 import { useState, type ReactNode } from 'react';
+import { buildChoice, type ChoiceTarget } from '../../lib/build/choice.js';
 import { createResultVars, newMoment, uniqueName } from '../../lib/moments.js';
-import { useEditor } from '../../state/editor.js';
+import { canEdit, useEditor } from '../../state/editor.js';
 import { Button, IconButton } from '../../ui/Button.js';
 import { formDialog } from '../../ui/dialog.js';
-import { Field, NumberInput, Select, TextInput } from '../../ui/Field.js';
+import { Field, NumberInput, Select, TextInput, Toggle } from '../../ui/Field.js';
 import { toast } from '../../ui/toast.js';
 
 /**
@@ -17,22 +29,42 @@ export interface Recipe {
   title: string;
   blurb: string;
   icon: LucideIcon;
+  /** `audience`: votes, buttons and rules (Interaction). `content`: scenes of cues (Cues). */
+  kind: 'audience' | 'content';
   run: () => Promise<void>;
 }
 
-export const RECIPES: Recipe[] = [
+/** Wizards load when first used, so the editor's first paint stays light. */
+const wizard = (load: () => Promise<{ run: () => Promise<void> }>) => async () =>
+  (await load()).run();
+
+/** No dialog opens while Show mode locks the show: it would build nothing. */
+const guarded = (list: Recipe[]): Recipe[] =>
+  list.map((r) => ({ ...r, run: async () => (canEdit() ? r.run() : undefined) }));
+
+export const RECIPES: Recipe[] = guarded([
   {
     id: 'vote',
     title: 'Ask the audience',
     blurb: 'A vote on every phone; each option goes to its own scene.',
     icon: Vote,
+    kind: 'audience',
     run: askTheAudience,
+  },
+  {
+    id: 'quiz',
+    title: 'Quiz question',
+    blurb: 'A question with a countdown; the room plays against the quizmaster.',
+    icon: Trophy,
+    kind: 'audience',
+    run: wizard(() => import('./wizards/QuizWizard.js')),
   },
   {
     id: 'counter',
     title: 'Performer button → counter',
     blurb: 'A button on a phone, pedal or key that adds to a number.',
     icon: Radio,
+    kind: 'audience',
     run: performerCounter,
   },
   {
@@ -40,19 +72,44 @@ export const RECIPES: Recipe[] = [
     title: 'Tap race → goal',
     blurb: 'Everyone taps; reaching the goal goes one way, missing it another.',
     icon: Hand,
+    kind: 'audience',
     run: tapRace,
   },
-];
+  {
+    id: 'song',
+    title: 'A song',
+    blurb: 'Paste the words; a cue for each verse and chorus, in the order sung.',
+    icon: ListMusic,
+    kind: 'content',
+    run: wizard(() => import('./wizards/SongWizard.js')),
+  },
+  {
+    id: 'photos',
+    title: 'A photo story',
+    blurb: 'Pictures that dissolve one into the next, with music under them.',
+    icon: Images,
+    kind: 'content',
+    run: wizard(() => import('./wizards/PhotoStoryWizard.js')),
+  },
+  {
+    id: 'notices',
+    title: 'Notices',
+    blurb: 'A few announcements that change on their own and go round again.',
+    icon: Megaphone,
+    kind: 'content',
+    run: wizard(() => import('./wizards/NoticesWizard.js')),
+  },
+]);
 
 const show = () => useEditor.getState().show!;
 const update = (fn: (d: Show) => void) => useEditor.getState().update(fn);
 const selectedCue = () => useEditor.getState().selection.cueId;
 
-function rule(name: string, when: Rule['when'], partial: Partial<Rule> = {}): Rule {
+export function rule(name: string, when: Rule['when'], partial: Partial<Rule> = {}): Rule {
   return { id: uid('rul'), name, enabled: true, when, if: [], then: [], ...partial };
 }
 
-function Actions({
+export function Actions({
   onCancel,
   ok,
   disabled,
@@ -71,18 +128,24 @@ function Actions({
   );
 }
 
+/** A new scene named after the option, for a choice point. */
+const NEW_SCENE = '\u0000new';
+
 function SceneSelect({
   value,
   onChange,
   label,
+  offerNew,
 }: {
   value: string;
   onChange: (v: string) => void;
   label: string;
+  offerNew?: boolean;
 }) {
   return (
     <Select aria-label={label} value={value} onChange={(e) => onChange(e.target.value)}>
       <option value="">Stay on the next cue</option>
+      {offerNew && <option value={NEW_SCENE}>A new scene named after it</option>}
       {show().scenes.map((s) => (
         <option key={s.id} value={s.id}>
           {s.name}
@@ -92,7 +155,7 @@ function SceneSelect({
   );
 }
 
-function CueSelect({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+export function CueSelect({ value, onChange }: { value: string; onChange: (v: string) => void }) {
   return (
     <Select aria-label="Opened by cue" value={value} onChange={(e) => onChange(e.target.value)}>
       <option value="">No cue yet; I'll add it to one later</option>
@@ -105,7 +168,7 @@ function CueSelect({ value, onChange }: { value: string; onChange: (v: string) =
   );
 }
 
-function Form({ children, onSubmit }: { children: ReactNode; onSubmit: () => void }) {
+export function Form({ children, onSubmit }: { children: ReactNode; onSubmit: () => void }) {
   return (
     <form
       className="flex flex-col gap-3"
@@ -126,6 +189,7 @@ interface VoteAnswers {
   options: { label: string; sceneId: string }[];
   cueId: string;
   seconds: number;
+  sayChoice: boolean;
 }
 
 function VoteForm({ done }: { done: (v: VoteAnswers | null) => void }) {
@@ -138,6 +202,7 @@ function VoteForm({ done }: { done: (v: VoteAnswers | null) => void }) {
     ],
     cueId: selectedCue() ?? '',
     seconds: 20,
+    sayChoice: false,
   });
   const setOption = (i: number, patch: Partial<VoteAnswers['options'][number]>) =>
     setA({ ...a, options: a.options.map((o, j) => (j === i ? { ...o, ...patch } : o)) });
@@ -160,6 +225,7 @@ function VoteForm({ done }: { done: (v: VoteAnswers | null) => void }) {
                 onChange={(e) => setOption(i, { label: e.target.value })}
               />
               <SceneSelect
+                offerNew
                 label={`Where “${o.label}” goes`}
                 value={o.sceneId}
                 onChange={(sceneId) => setOption(i, { sceneId })}
@@ -202,6 +268,11 @@ function VoteForm({ done }: { done: (v: VoteAnswers | null) => void }) {
           />
         </Field>
       </div>
+      <Toggle
+        checked={a.sayChoice}
+        onChange={(sayChoice) => setA({ ...a, sayChoice })}
+        label="Say on stage what they chose, as its scene begins"
+      />
       <Actions
         ok="Create vote"
         onCancel={() => done(null)}
@@ -218,33 +289,17 @@ async function askTheAudience(): Promise<void> {
     true,
   );
   if (!a) return;
-  update((d) => {
-    const m = newMoment('vote', d);
-    m.name = a.question.length > 28 ? 'Audience vote' : a.question.replace(/\?$/, '');
-    m.prompt = a.question;
-    m.durationSec = a.seconds;
-    m.options = a.options.map((o, i) => ({
-      id: String.fromCharCode(97 + i),
-      label: o.label.trim(),
-    }));
-    m.defaultResult = m.options[0]!.id;
-    createResultVars(d, m);
-    d.moments.push(m);
-    a.options.forEach((o, i) => {
-      if (!o.sceneId) return;
-      d.rules.push(
-        rule(
-          `${o.label.trim()} wins`,
-          { type: 'momentClosed', momentId: m.id },
-          {
-            if: [{ varId: m.resultVarId!, op: 'eq', value: m.options[i]!.id }],
-            then: [{ type: 'jumpScene', sceneId: o.sceneId, fire: false }],
-          },
-        ),
-      );
-    });
-    d.cues.find((c) => c.id === a.cueId)?.actions.push({ type: 'openMoment', momentId: m.id });
-  });
+  const to = (sceneId: string): ChoiceTarget =>
+    sceneId === NEW_SCENE ? { newScene: true } : sceneId ? { sceneId } : null;
+  update((d) =>
+    buildChoice(d, {
+      question: a.question,
+      options: a.options.map((o) => ({ label: o.label.trim(), to: to(o.sceneId) })),
+      seconds: a.seconds,
+      cueId: a.cueId,
+      sayChoice: a.sayChoice,
+    }),
+  );
   toast('Vote created: a moment, its result value and a rule per option', 'good');
 }
 
@@ -411,11 +466,11 @@ async function tapRace(): Promise<void> {
   toast('Tap race created: a moment, its count and the rules for the goal', 'good');
 }
 
-/** The recipe cards for empty states. */
-export function RecipeCards() {
+/** The recipe cards for empty states: votes and rules, or scenes of cues. */
+export function RecipeCards({ kind = 'audience' }: { kind?: Recipe['kind'] }) {
   return (
     <div className="grid gap-2">
-      {RECIPES.map((r) => (
+      {RECIPES.filter((r) => r.kind === kind).map((r) => (
         <button
           key={r.id}
           onClick={() => void r.run()}

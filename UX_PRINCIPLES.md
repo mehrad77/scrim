@@ -268,6 +268,8 @@ Each principle gives the rule, why it holds, and how it shows up in Scrim.
 **In Scrim.**
 
 - **Two levels at most:** basic fields, then **More options** (timing, conditions). An **Advanced** section holds expressions and types. Hide fields, never whole tabs or features.
+- **The simple editor** (a switch in the editor header, saved with the show) keeps every tab. It folds rules, values and triggers, key and device mappings, a cue's extra options and a layer's exact numbers behind labelled steps that say what is inside and how much: "Rules, values and triggers (8) — show". Problems are never folded away. Nothing folds by itself; switching the simple editor on folds everything again, and switching it off loses nothing.
+- **Wizards** ask a few questions and build ordinary cues, layers and rules that stay editable: a song, a photo story, notices, a quiz question, a choice point. They are in both editors.
 - **A start gallery** in the Library: Blank, Demo, and three or four real starters (an audience vote that branches, slides with cues, a performer button counter), plus **Save show as template**.
 - **The demo is disposable,** with **Restore demo**. It carries a short **Learn** checklist of things to do: press GO in Rehearsal, edit a cue, vote from your phone, map a key, switch to Show mode. The first item is already ticked, and completion is detected automatically.
 - **First run** asks at most three questions: the tool they know (QLab, PowerPoint, Figma, none), the theme, and the GO key. All three can be changed later.

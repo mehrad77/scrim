@@ -8,8 +8,10 @@ import { Columns, Divider, Pane } from '../../ui/Layout.js';
 import { Empty, Panel } from '../../ui/Panel.js';
 import { ActionList, defaultAction } from './ActionEditor.js';
 import { AfterThisCue } from './AfterThisCue.js';
+import { RecipeCards } from './recipes.js';
 import { CueList } from './CueList.js';
 import { SectionInput } from './SectionInput.js';
+import { Fold, useSimpleEditor, useUnfolded } from './simple.js';
 
 export function CuesTab() {
   return (
@@ -35,6 +37,10 @@ function CueEditor() {
   const select = useEditor((s) => s.select);
   const cueId = useEditor((s) => s.selection.cueId);
   const cue = show.cues.find((c) => c.id === cueId);
+  // The simple editor folds the section, the relaxed version and the performer's wait.
+  const simple = useSimpleEditor();
+  const [unfolded] = useUnfolded('cue.more');
+  const more = !simple || unfolded;
   if (!cue) {
     return (
       <Panel title="Cue">
@@ -59,6 +65,10 @@ function CueEditor() {
           A cue is a set of actions fired together when the operator presses GO.
           {show.cues.length ? ' Pick one in the list to edit it.' : ''}
         </Empty>
+        <div className="mx-auto w-full max-w-md px-3 pb-4">
+          <p className="mb-2 text-caption text-fg-muted">Or build a scene of cues in one go:</p>
+          <RecipeCards kind="content" />
+        </div>
       </Panel>
     );
   }
@@ -108,19 +118,21 @@ function CueEditor() {
           <Field label="Name" className="flex-1">
             <CommitInput value={cue.name} onCommit={(name) => set((c) => void (c.name = name))} />
           </Field>
-          <Field label="Section" className="w-36">
-            <SectionInput
-              show={show}
-              info="Verse, Chorus: a key or a performer can jump to this part of the scene"
-              value={cue.section ?? ''}
-              onCommit={(section) =>
-                set((c) => {
-                  if (section) c.section = section;
-                  else delete c.section;
-                })
-              }
-            />
-          </Field>
+          {more && (
+            <Field label="Section" className="w-36">
+              <SectionInput
+                show={show}
+                info="Verse, Chorus: a key or a performer can jump to this part of the scene"
+                value={cue.section ?? ''}
+                onCommit={(section) =>
+                  set((c) => {
+                    if (section) c.section = section;
+                    else delete c.section;
+                  })
+                }
+              />
+            </Field>
+          )}
         </div>
         <div>
           <div className="mb-2 text-caption text-fg-muted">When this cue fires</div>
@@ -150,8 +162,15 @@ function CueEditor() {
             </div>
           )}
         </div>
-        <RelaxedVersion show={show} cue={cue} set={set} />
-        {show.triggers.length > 0 && (
+        <Fold
+          id="cue.more"
+          label="More options: section, relaxed version, waiting for a performer"
+          count={[cue.section, cue.gentle, cue.waitFor].filter((x) => x !== undefined).length}
+        >
+          {null}
+        </Fold>
+        {more && <RelaxedVersion show={show} cue={cue} set={set} />}
+        {more && show.triggers.length > 0 && (
           <Field
             label="Wait for a performer"
             hint="While this cue is on standby, their remote says “Your cue” and you see when they're ready."

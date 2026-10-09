@@ -176,6 +176,13 @@ export function reconcile(show: Show, prev: EngineState): EngineState {
   const momentIds = new Set(show.moments.map((m) => m.id));
   for (const id of Object.keys(state.moments)) if (!momentIds.has(id)) delete state.moments[id];
   for (const m of show.moments) state.moments[m.id] ??= idleMoment();
+  // Switching No free text on shuts a words moment that is already open: phones stop at once.
+  if (show.safety?.noFreeText)
+    for (const m of show.moments) {
+      const ms = state.moments[m.id]!;
+      if (m.type === 'text' && ms.status === 'open')
+        Object.assign(ms, { status: 'closed', closesAt: null });
+    }
   state.timers = state.timers.filter((t) =>
     t.kind === 'pause'
       ? layerIds.has(t.layerId)

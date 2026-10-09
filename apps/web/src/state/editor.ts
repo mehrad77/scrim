@@ -3,7 +3,7 @@ import { produce } from 'immer';
 import { create } from 'zustand';
 import { saveShow } from '../storage/shows.js';
 import { ShowChannel } from '../transport/local.js';
-import { errorToast } from '../ui/toast.js';
+import { errorToast, toast } from '../ui/toast.js';
 
 const HISTORY = 100;
 const SAVE_DEBOUNCE_MS = 400;
@@ -187,4 +187,12 @@ export function useShow(): Show {
   const show = useEditor((s) => s.show);
   if (!show) throw new Error('No show loaded');
   return show;
+}
+
+/** Whether the show can be edited now; when Show mode locks it, say so and say no. */
+export function canEdit(): boolean {
+  const { showModeLock, unlocked } = useEditor.getState();
+  if (!showModeLock || unlocked) return true;
+  toast('Editing is locked while the show runs in Show mode. Unlock it to add this.', 'error');
+  return false;
 }

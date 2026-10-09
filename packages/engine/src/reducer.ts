@@ -724,6 +724,8 @@ function momentDef(ctx: Ctx, id: string): Moment | undefined {
 function openMoment(ctx: Ctx, momentId: string): void {
   const def = momentDef(ctx, momentId);
   if (!def) return warn(ctx, `Audience moment ${momentId} not found`);
+  if (def.type === 'text' && ctx.show.safety?.noFreeText)
+    return warn(ctx, `“${def.name}” didn’t open: this show doesn’t let phones send words`);
   ctx.state.moments[momentId] = {
     ...idleMoment(),
     status: 'open',
@@ -845,6 +847,7 @@ function aggregate(ctx: Ctx, input: Extract<EngineInput, { type: 'momentAgg' }>)
   const def = momentDef(ctx, input.momentId);
   const m = ctx.state.moments[input.momentId];
   if (!def || !m || m.status !== 'open') return;
+  if (def.type === 'text' && ctx.show.safety?.noFreeText) return;
   // Running totals replace only their own source, so buttons and pretend phones add to phones.
   const src = sourceOf(m, input.source ?? 'relay');
   src.tally = input.tally ?? src.tally;

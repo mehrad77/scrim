@@ -17,13 +17,33 @@ import { Select, Toggle } from '../../ui/Field.js';
 import { Empty, Kbd, Panel } from '../../ui/Panel.js';
 import { errorToast, toast } from '../../ui/toast.js';
 import { SectionInput } from './SectionInput.js';
+import { Fold, useSimpleEditor, useUnfolded } from './simple.js';
 
 export function InputsTab() {
+  const show = useShow();
+  const simple = useSimpleEditor();
+  const [devices] = useUnfolded('controls.devices');
   return (
     <div className="grid h-full grid-cols-3 gap-px bg-line-subtle">
       <KeysPanel />
-      <MidiPanel />
-      <GamepadPanel />
+      {simple && !devices ? (
+        <div className="col-span-2 bg-panel p-3">
+          <Fold
+            card
+            id="controls.devices"
+            label="Pedals, MIDI and gamepads"
+            count={show.inputs.midi.length + show.inputs.gamepad.length}
+            hint="Run the show from a foot pedal, a MIDI keyboard, a game controller or big arcade buttons."
+          >
+            {null}
+          </Fold>
+        </div>
+      ) : (
+        <>
+          <MidiPanel />
+          <GamepadPanel />
+        </>
+      )}
     </div>
   );
 }
@@ -153,6 +173,8 @@ function KeysPanel() {
   const show = useShow();
   const update = useEditor((s) => s.update);
   const [recording, setRecording] = useState<number | null>(null);
+  // A new key's row must be seen, so adding one opens the folded key list.
+  const [, showKeys] = useUnfolded('controls.keys');
 
   useEffect(() => {
     if (recording === null) return;
@@ -187,6 +209,7 @@ function KeysPanel() {
           label="Add key"
           icon={<Plus size={14} />}
           onClick={() => {
+            showKeys();
             update((d) => void d.inputs.keys.push({ key: '', command: { type: 'go' } }));
             setRecording(show.inputs.keys.length);
           }}
@@ -264,35 +287,41 @@ function KeysPanel() {
         <span className="text-ui text-fg-muted">Panic (blackout)</span>
         <span className="ml-auto text-caption text-fg-subtle">Always on</span>
       </div>
-      {show.inputs.keys.map((k, i) =>
-        k.key === PANIC_KEY ? null : (
-          <div key={i} className="mb-1 flex items-center gap-2">
-            <button
-              className="w-24 rounded-control border border-line-subtle py-1 text-center hover:border-fg-subtle"
-              onClick={() => setRecording(i)}
-              data-info="Click, then press a key"
-            >
-              {recording === i ? (
-                <span className="text-caption text-accent-text">Press a key…</span>
-              ) : k.key ? (
-                <Kbd>{keyLabel(k.key)}</Kbd>
-              ) : (
-                <span className="text-caption text-fg-subtle">none</span>
-              )}
-            </button>
-            <CommandPicker
-              show={show}
-              value={k.command}
-              onChange={(c) => update((d) => void (d.inputs.keys[i]!.command = c))}
-            />
-            <IconButton
-              label="Remove"
-              icon={<Trash2 size={12} />}
-              onClick={() => update((d) => void d.inputs.keys.splice(i, 1))}
-            />
-          </div>
-        ),
-      )}
+      <Fold
+        id="controls.keys"
+        label={`GO is ${keyLabel(show.inputs.keys.find((k) => k.command.type === 'go')?.key ?? 'Space')}. Other keys`}
+        count={show.inputs.keys.length}
+      >
+        {show.inputs.keys.map((k, i) =>
+          k.key === PANIC_KEY ? null : (
+            <div key={i} className="mb-1 flex items-center gap-2">
+              <button
+                className="w-24 rounded-control border border-line-subtle py-1 text-center hover:border-fg-subtle"
+                onClick={() => setRecording(i)}
+                data-info="Click, then press a key"
+              >
+                {recording === i ? (
+                  <span className="text-caption text-accent-text">Press a key…</span>
+                ) : k.key ? (
+                  <Kbd>{keyLabel(k.key)}</Kbd>
+                ) : (
+                  <span className="text-caption text-fg-subtle">none</span>
+                )}
+              </button>
+              <CommandPicker
+                show={show}
+                value={k.command}
+                onChange={(c) => update((d) => void (d.inputs.keys[i]!.command = c))}
+              />
+              <IconButton
+                label="Remove"
+                icon={<Trash2 size={12} />}
+                onClick={() => update((d) => void d.inputs.keys.splice(i, 1))}
+              />
+            </div>
+          ),
+        )}
+      </Fold>
     </Panel>
   );
 }

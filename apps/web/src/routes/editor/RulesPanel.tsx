@@ -113,7 +113,7 @@ export function RulesPanel({
           items={[
             { id: 'blank', label: 'Blank rule', onAction: () => addRule(blank()) },
             'separator',
-            ...RECIPES.map((r) => ({
+            ...RECIPES.filter((r) => r.kind === 'audience').map((r) => ({
               id: r.id,
               label: `${r.title}…`,
               icon: <r.icon size={14} />,

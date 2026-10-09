@@ -3,6 +3,7 @@ import {
   ArrowDown,
   ArrowUp,
   ChevronRight,
+  FileInput,
   FolderPlus,
   GripVertical,
   MoreHorizontal,
@@ -12,6 +13,7 @@ import {
   Timer,
   Trash2,
   TriangleAlert,
+  Wand2,
 } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react';
 import {
@@ -38,6 +40,7 @@ import { Panel } from '../../ui/Panel.js';
 import { Tabs } from '../../ui/Tabs.js';
 import { toast } from '../../ui/toast.js';
 import { LogicCheckList } from './LogicCheckList.js';
+import { RECIPES } from './recipes.js';
 import { SceneMap } from './SceneMap.js';
 
 /** Move a cue before or after another cue (possibly in another scene), or to the end of a scene. */
@@ -272,6 +275,27 @@ export function CueList() {
           <Button size="sm" icon={<FolderPlus size={13} />} onClick={addScene}>
             Scene
           </Button>
+          <MenuButton
+            label="Build scenes: a song, a photo story, notices, or scenes from another show"
+            icon={<Wand2 size={13} />}
+            items={[
+              ...RECIPES.filter((r) => r.kind === 'content').map((r) => ({
+                id: r.id,
+                label: `${r.title}…`,
+                icon: <r.icon size={14} />,
+                onAction: () => void r.run(),
+              })),
+              'separator' as const,
+              {
+                id: 'import',
+                label: 'Scenes from another show…',
+                icon: <FileInput size={14} />,
+                onAction: () => void import('./ImportScenes.js').then((m) => m.run()),
+              },
+            ]}
+          >
+            Build
+          </MenuButton>
         </>
       }
     >

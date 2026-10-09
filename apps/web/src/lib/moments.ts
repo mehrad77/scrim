@@ -147,5 +147,7 @@ export function syncResultVars(show: Show, m: Moment): void {
       v.initial = Object.fromEntries(keys.map((k) => [k, 0]));
     }
   }
-  if (m.type === 'vote' && !keys.includes(String(m.defaultResult))) m.defaultResult = keys[0] ?? '';
+  // Empty is a choice too: nobody answered, so no option wins (a quiz scores no one).
+  if (m.type === 'vote' && m.defaultResult !== '' && !keys.includes(String(m.defaultResult)))
+    m.defaultResult = keys[0] ?? '';
 }

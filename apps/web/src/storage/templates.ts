@@ -1,4 +1,5 @@
 import { uid, type Show } from '@scrim/format';
+import { freshIds } from '../lib/merge.js';
 import { getSetting, setSetting } from './db.js';
 
 /**
@@ -23,10 +24,13 @@ export async function deleteTemplate(id: string): Promise<void> {
   );
 }
 
-/** A new show from a template, with fresh ids for the show itself. */
+/**
+ * A new show from a template, with ids of its own for everything in it, so two shows made from
+ * one template can share scenes later without clashing.
+ */
 export function fromTemplate(template: Show, name: string): Show {
   return {
-    ...structuredClone(template),
+    ...freshIds(template),
     id: uid('show'),
     name,
     createdAt: Date.now(),

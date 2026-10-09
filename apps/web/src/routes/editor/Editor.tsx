@@ -1,4 +1,14 @@
-import { Download, History, Lock, PanelsTopLeft, Play, Redo2, Settings, Undo2 } from 'lucide-react';
+import {
+  Download,
+  History,
+  Lock,
+  PanelsTopLeft,
+  Play,
+  Redo2,
+  Settings,
+  Sprout,
+  Undo2,
+} from 'lucide-react';
 import { lazy, Suspense, useEffect, useMemo, useState, type ReactElement } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
 import { isTyping, overlayOpen } from '../../host/inputs.js';
@@ -10,6 +20,7 @@ import { Tabs } from '../../ui/Tabs.js';
 import { checkLogic } from '../../lib/logic.js';
 import { errorToast, toast } from '../../ui/toast.js';
 import { StageTab } from './StageTab.js';
+import { refold } from './simple.js';
 
 // Stage is the first tab; the others load when opened, so the editor's first paint stays light.
 const lazyTab = <K extends string>(load: () => Promise<Record<K, () => ReactElement>>, name: K) =>
@@ -140,6 +151,18 @@ export default function Editor() {
   );
 }
 
+/** Flip the simple editor; switched on, everything it folds is folded again. */
+function setSimpleEditor(on: boolean): void {
+  if (on) refold();
+  useEditor.getState().update((d) => {
+    if (on) d.editor = { ...d.editor, mode: 'simple' };
+    else if (d.editor) {
+      delete d.editor.mode;
+      if (!Object.keys(d.editor).length) delete d.editor;
+    }
+  });
+}
+
 async function runShow(): Promise<void> {
   const show = useEditor.getState().show;
   if (!show) return;
@@ -159,6 +182,7 @@ async function exportCurrent(): Promise<void> {
 /** What the editor offers the palette and the `?` sheet. */
 function EditorCommands({ tab, setTab }: { tab: Tab; setTab: (t: Tab) => void }) {
   const navigate = useNavigate();
+  const simple = useEditor((s) => s.show?.editor?.mode === 'simple');
   useCommands(
     [
       {
@@ -197,6 +221,13 @@ function EditorCommands({ tab, setTab }: { tab: Tab; setTab: (t: Tab) => void })
         run: () => useEditor.getState().redo(),
       },
       { id: 'save', group: 'Edit', title: 'Save now', shortcut: '⌘S', run: () => void flushSave() },
+      {
+        id: 'simple',
+        group: 'View',
+        title: simple ? 'Full editor' : 'Simple editor',
+        aliases: ['simple mode', 'beginner', 'advanced'],
+        run: () => setSimpleEditor(!simple),
+      },
       ...TABS.map((t) => ({
         id: `tab:${t.id}`,
         group: 'Go to',
@@ -226,7 +257,7 @@ function EditorCommands({ tab, setTab }: { tab: Tab; setTab: (t: Tab) => void })
         title: `${r.title}…`,
         aliases: ['recipe', 'rule', 'add'],
         run: () => {
-          setTab('interaction');
+          setTab(r.kind === 'content' ? 'cues' : 'interaction');
           void r.run();
         },
       })),
@@ -246,7 +277,7 @@ function EditorCommands({ tab, setTab }: { tab: Tab; setTab: (t: Tab) => void })
         run: openPreferences,
       },
     ],
-    [tab, setTab, navigate],
+    [tab, setTab, navigate, simple],
   );
   return null;
 }
@@ -257,6 +288,7 @@ function EditorHeader({ tab, setTab }: { tab: Tab; setTab: (t: Tab) => void }) {
   const saving = useEditor((s) => s.saving);
   const canUndo = useEditor((s) => s.past.length > 0);
   const canRedo = useEditor((s) => s.future.length > 0);
+  const simple = show.editor?.mode === 'simple';
   // The logic check, counted on the tab where each problem is fixed.
   const problems = useMemo(() => {
     const count: Partial<Record<Tab, number>> = {};
@@ -284,6 +316,20 @@ function EditorHeader({ tab, setTab }: { tab: Tab; setTab: (t: Tab) => void }) {
         <span className="mr-2 text-caption text-fg-subtle" aria-live="polite">
           {saving === 'pending' ? 'Saving…' : saving === 'error' ? 'Not saved!' : 'Saved'}
         </span>
+        <Button
+          size="sm"
+          variant={simple ? 'primary' : 'ghost'}
+          icon={<Sprout size={14} />}
+          aria-pressed={simple}
+          onClick={() => setSimpleEditor(!simple)}
+          title={
+            simple
+              ? 'Simple editor: rules, values and control mappings are one labelled step away. Click for the full editor'
+              : 'Simple editor: fold rules, values and control mappings behind a labelled step. Nothing is lost'
+          }
+        >
+          Simple
+        </Button>
         <MenuButton
           label="View"
           icon={<PanelsTopLeft size={15} />}

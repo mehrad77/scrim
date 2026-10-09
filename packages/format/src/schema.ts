@@ -544,6 +544,21 @@ export const RelaxedSettingsSchema = z.object({
 });
 export type RelaxedSettings = z.infer<typeof RelaxedSettingsSchema>;
 
+/**
+ * How the editor opens this show: `simple` folds rules, values and control mappings behind a
+ * labelled step, for teachers, volunteers and young creators. It travels with the show and only
+ * changes when someone flips it.
+ */
+export const EditorSettingsSchema = z.object({ mode: z.enum(['simple', 'full']).optional() });
+export type EditorSettings = z.infer<typeof EditorSettingsSchema>;
+
+/** Safeguarding for shows with children or vulnerable people. */
+export const SafetySchema = z.object({
+  /** Phones can't send words: text moments don't open, and the editor won't add one. */
+  noFreeText: z.boolean().optional(),
+});
+export type Safety = z.infer<typeof SafetySchema>;
+
 export const ShowSchema = z.object({
   format: z.literal('scrim-show'),
   version: z.literal(SHOW_FORMAT_VERSION),
@@ -571,6 +586,8 @@ export const ShowSchema = z.object({
    */
   languages: z.object({ base: z.string(), others: z.array(z.string()) }).optional(),
   relaxed: RelaxedSettingsSchema.optional(),
+  editor: EditorSettingsSchema.optional(),
+  safety: SafetySchema.optional(),
   /** The fade new show/hide actions start with (the editor's default; 1 s ease in-out if unset). */
   defaultFade: z.object({ duration: z.number().nonnegative(), easing: EasingSchema }).optional(),
 });

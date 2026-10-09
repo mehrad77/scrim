@@ -52,8 +52,13 @@ Readers must:
   operator?: { goHoldMs?, layout?, remoteGo? }, // how the show is run
   languages?: { base, others[] },      // the show's language and its translations (codes)
   relaxed?: { default?, brightness?, volume?, minFade? }, // a relaxed performance's limits
+  editor?: { mode?: 'simple' | 'full' },  // the editor this show opens in
+  safety?: { noFreeText? },               // safeguarding
 }
 ```
+
+- `editor.mode: 'simple'` opens the show in the simple editor: rules, values, control mappings and exact positions fold behind a labelled step. Only a person changes it, and it travels with the show, so a teacher's starter opens simply for the class. It changes nothing on stage.
+- `safety.noFreeText` is for shows with children or vulnerable people: phones can vote and tap but never send words. Text moments don't open (the engine warns instead), the editor won't add one, and the logic check flags any left.
 
 Ids are opaque, non-empty strings, for example `cue_k3f9x2ab`. **References** to other objects (an action's `layerId`, a rule's `triggerId`, a state layer's `varId`, and so on) may be the empty string while the designer has not picked a target yet; the engine skips such actions and reports a warning.
 
@@ -184,10 +189,11 @@ Easing is one of `linear`, `easeIn`, `easeOut` or `easeInOut`. Durations are in 
 | `text`   | Approved entries (a list)                      | —                        |
 | `prop`   | Number of phones                               | Phones per variant       |
 
-- A moment with no input closes with `defaultResult`.
+- A moment with no input closes with `defaultResult`. A vote's default may be empty: then no option wins (a quiz question nobody answers scores for no one).
 - `durationSec: 0` means the operator closes it.
 - `i18n` (optional) translates the prompt and the option labels by language code: `{ fr: { prompt, options: { [optionId]: label } } }`. Phones show the language each person picks.
 - Live values update while a moment is open, so a tally bar on stage moves as votes arrive.
+- A text moment doesn't open in a show with `safety.noFreeText`, and switching the setting on shuts one already open.
 
 ### Triggers, rules and inputs
 

@@ -3,7 +3,7 @@
 //   node scripts/bundle-budget.mjs --update   record the current sizes as the new baselines
 // Each surface is measured as everything it downloads before it can run, gzipped. Output windows
 // and the audience page run on show machines and phones, so they may grow at most 5% over their
-// baseline; the editor may add 160 KB (DESIGN_SYSTEM.md › Guards).
+// baseline; the editor may add 1 MB (DESIGN_SYSTEM.md › Guards).
 import { readFileSync, writeFileSync } from 'node:fs';
 import { gzipSync } from 'node:zlib';
 

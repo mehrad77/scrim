@@ -101,10 +101,13 @@ The same component draws output windows, operator thumbnails (muted) and the edi
 | Versions             | IndexedDB `scrim/versions`                    | Every 5 min while editing and before restores; last 50 kept                  |
 | Journal              | IndexedDB `scrim/journal`                     | One record per show: the live engine state                                   |
 | Run logs             | IndexedDB `scrim/runs`                        | One per operator session                                                     |
-| Per-machine settings | IndexedDB `scrim/settings`, `localStorage`    | Room keys, audio devices, display assignments, public URL                    |
+| Per-machine settings | IndexedDB `scrim/settings`, `localStorage`    | Room keys, audio devices, display assignments, public URL, the song licence  |
+| Templates and songs  | IndexedDB `scrim/settings`                    | Saved templates, and the song library every show's song wizard picks from    |
 | Media                | Origin Private File System, `media/<mediaId>` | Each window resolves media by id; blob URLs are never shared between windows |
 
 Media files are shared between shows with the same media ids, for example a copy and its original. Deleting a show removes only media that no other show uses.
+
+**Wizards and imports.** The editor's wizards (a song, a photo story, notices, a quiz question, a choice point) are pure builders in `apps/web/src/lib/build/`. Each changes a show the way an edit does and makes only ordinary scenes, cues, layers, values and rules, and each built show passes the logic and flash checks. `lib/merge.ts` imports scenes from another show, with everything their cues use and a new id for each object (media keeps its ids, since a media id names one stored file). It also gives a show made from a template ids of its own.
 
 ## The relay
 

@@ -544,7 +544,7 @@ For each user, **Ideas** links to the cross-cutting ideas in [Accessible to all]
 - **Gaps:**
   - Templates and a simple mode.
   - Merging work from several groups into one show.
-- **Since added:** the pre-show check says when the browser or the school's administrator blocks window management, pop-ups, full screen or MIDI, and names the Chrome policy where there is one. A relaxed performance for school audiences, and a flash check on cue timings.
+- **Since added:** the pre-show check says when the browser or the school's administrator blocks window management, pop-ups, full screen or MIDI, and names the Chrome policy where there is one. A relaxed performance for school audiences, and a flash check on cue timings. A **simple editor** that folds rules, values and mappings one labelled step away; **No free text**, so phones can vote and tap but never send words; and **Import scenes**, which brings each group's scenes into the class show with new ids.
 - **Ideas:** [3 inclusive operation](#3-inclusive-operation), [5 simple modes and templates](#5-simple-modes-and-templates), [2 relaxed mode](#2-relaxed-mode-and-a-flash-safety-check) for relaxed school performances.
 
 ### Museum or gallery curator (installations)
@@ -605,7 +605,7 @@ For each user, **Ideas** links to the cross-cutting ideas in [Accessible to all]
   - Notices can loop with auto-follow.
 - **Gaps:**
   - The song library and lyrics import.
-- **Since added:** a simple operator view for volunteers (one huge GO, now and next, the song's sections as buttons), with an optional hold-to-confirm GO.
+- **Since added:** a simple operator view for volunteers (one huge GO, now and next, the song's sections as buttons), with an optional hold-to-confirm GO. A **song wizard**: paste the words, and each verse and chorus becomes a cue in the order sung, captioned for phones, with the credit and the church's licence line on screen. Songs are kept in a library on the machine (and shared as a file), and a **notices** wizard makes announcements that change on their own.
 - **Ideas:** [5 simple modes and templates](#5-simple-modes-and-templates), [1 personal access channel](#1-a-personal-access-channel-on-the-audience-phone), [3 inclusive operation](#3-inclusive-operation).
 
 ### Drama therapist or care-home activity leader
@@ -634,7 +634,7 @@ For each user, **Ideas** links to the cross-cutting ideas in [Accessible to all]
   - Moments with a default result.
 - **Gaps:**
   - Session templates.
-- **Since added:** the simple operator view for tablets, and Remote GO for a leader whose tablet isn't the show machine; a shared tablet passed around the group (each answer counts as one person, in large print), large buttons mapped to vote options, and counts the leader types in. Calm by default: a show can start every session relaxed, with soft fades, limited brightness and capped sound.
+- **Since added:** the simple operator view for tablets, and Remote GO for a leader whose tablet isn't the show machine; a shared tablet passed around the group (each answer counts as one person, in large print), large buttons mapped to vote options, and counts the leader types in. Calm by default: a show can start every session relaxed, with soft fades, limited brightness and capped sound. A **photo story** wizard: pictures that dissolve one into the next under music, going round again, for a memory session.
 - **Ideas:** [2 relaxed mode](#2-relaxed-mode-and-a-flash-safety-check) as the default, [4 no-phone participation](#4-no-phone-participation), [3 inclusive operation](#3-inclusive-operation), [5 simple modes and templates](#5-simple-modes-and-templates).
 
 ### Street or festival performer
@@ -696,8 +696,8 @@ For each user, **Ideas** links to the cross-cutting ideas in [Accessible to all]
   - The demo show as an example.
 - **Gaps:**
   - Children's templates.
-  - A guided simple mode.
   - Media capture inside the app.
+- **Since added:** the simple editor, and wizards for a choice point (new scenes for each option, and "You chose …" on stage), a quiz question (the room against the quizmaster) and a photo story. No free text keeps a youth group's phones to votes and taps.
 - **Ideas:** [5 simple modes and templates](#5-simple-modes-and-templates), [3 inclusive operation](#3-inclusive-operation).
 
 ## Accessible to all
@@ -857,6 +857,8 @@ The full editor is right for show designers but too much for a teacher, a volunt
   - no data leaves the device unless an audience room is opened.
 
 Templates are ordinary `.scrim` files, so they can be shared by communities: a school district, a church network, a care provider. They need no new format.
+
+**Built.** The simple editor (a switch in the editor header, saved with the show) and wizards for a song, a photo story, notices, a quiz question and a choice point, with a song library on each machine. **No free text** is a show setting. Scenes can be imported from another show, and a show made from a template gets ids of its own. The template gallery itself is next.
 
 ## What the journey tells us
 

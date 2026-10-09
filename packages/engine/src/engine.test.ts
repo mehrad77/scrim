@@ -1465,3 +1465,46 @@ describe('relaxed performances', () => {
     expect(s.relaxed?.to).toBe(1);
   });
 });
+
+describe('safeguarding', () => {
+  it('keeps text moments shut when the show lets phones send no words', () => {
+    const show = demo();
+    show.moments.push({
+      ...show.moments[0]!,
+      id: 'names',
+      name: 'Names',
+      type: 'text',
+      options: [],
+    });
+    show.cues[0]!.actions.push({ type: 'openMoment', momentId: 'names' });
+    show.safety = { noFreeText: true };
+    const { state, events } = step(show, initialState(show), { type: 'go' }, 0);
+    expect(state.moments.names!.status).toBe('idle');
+    expect(events).toContainEqual({
+      type: 'warning',
+      message: '“Names” didn’t open: this show doesn’t let phones send words',
+    });
+  });
+
+  it('shuts a words moment already open when the setting is switched on', () => {
+    const show = demo();
+    show.moments.push({
+      ...show.moments[0]!,
+      id: 'names',
+      name: 'Names',
+      type: 'text',
+      options: [],
+    });
+    let s = run(show, [[0, { type: 'openMoment', momentId: 'names' }]]);
+    expect(s.moments.names!.status).toBe('open');
+    const safe = { ...show, safety: { noFreeText: true } };
+    s = reconcile(safe, s);
+    expect(s.moments.names!.status).toBe('closed');
+    s = run(
+      safe,
+      [[10, { type: 'momentAgg', momentId: 'names', entries: [{ id: 'e', text: 'hi' }] }]],
+      s,
+    );
+    expect(s.moments.names!.entries).toEqual([]);
+  });
+});

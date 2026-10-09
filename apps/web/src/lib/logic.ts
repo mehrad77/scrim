@@ -141,7 +141,12 @@ export function sceneGraph(show: Show): SceneGraph {
     // The last cue hands over to the next scene unless it always jumps somewhere else.
     const last = cues.at(-1);
     const next = scenes[i + 1];
-    const alwaysJumps = last?.actions.some((a) => a.type === 'jumpScene' || a.type === 'goToCue');
+    // A jump back into its own scene is a loop the operator leaves by moving on, so the next
+    // scene still follows it.
+    const alwaysJumps = last?.actions.some((a) => {
+      const to = jumpTarget(show, a);
+      return (a.type === 'jumpScene' || a.type === 'goToCue') && to !== s.id;
+    });
     if (next && !alwaysJumps) edges.push({ from: s.id, to: next.id, kind: 'next', label: 'then' });
   });
 
@@ -511,6 +516,15 @@ export function checkLogic(show: Show): LogicIssue[] {
         text: `${m.name}: no cue opens it`,
       });
   }
+
+  if (show.safety?.noFreeText)
+    for (const m of show.moments.filter((x) => x.type === 'text'))
+      issues.push({
+        id: `freetext:${m.id}`,
+        area: 'interaction',
+        momentId: m.id,
+        text: `${m.name}: phones may not send words in this show, so it won’t open`,
+      });
 
   const graph = sceneGraph(show);
   for (const s of graph.scenes)
