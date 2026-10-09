@@ -218,6 +218,42 @@ function KeysPanel() {
           <option value="1000">after a 1 s hold</option>
         </Select>
       </label>
+      <label
+        className="mb-3 flex items-center gap-2 text-caption text-fg-muted"
+        data-info="Simple: one huge GO, now and next, Hold, Back and PANIC, sized for a tablet. The operator can switch in Rehearsal."
+      >
+        Operator view
+        <Select
+          className="w-44"
+          value={show.operator?.layout ?? 'full'}
+          onChange={(e) =>
+            update((d) => {
+              d.operator = { ...d.operator, layout: e.target.value as 'full' | 'simple' };
+              if (d.operator.layout === 'full') delete d.operator.layout;
+            })
+          }
+        >
+          <option value="full">Full</option>
+          <option value="simple">Simple, for touch</option>
+        </Select>
+      </label>
+      <div
+        className="mb-3"
+        data-info="For a leader facing the room with a tablet. GO then goes over the network, so keep a key or pedal on the show machine as well."
+      >
+        <Toggle
+          checked={!!show.operator?.remoteGo}
+          onChange={(on) =>
+            update((d) => {
+              d.operator = { ...d.operator, remoteGo: on };
+              if (!on) delete d.operator.remoteGo;
+            })
+          }
+          label={
+            <span className="text-caption">Performer remotes can press GO, Hold and Back</span>
+          }
+        />
+      </div>
       <div
         className="mb-1 flex items-center gap-2"
         data-info="Esc always fires Panic, in every window"

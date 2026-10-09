@@ -25,6 +25,8 @@ test('a performer taps Ready for their cue and the operator sees it', async ({ p
   await phone.goto(url);
   const bell = phone.getByRole('button', { name: /^Bell/ });
   await expect(bell).toHaveAccessibleName('Bell: Not yet');
+  // Remote GO is off unless the show turns it on.
+  await expect(phone.getByRole('button', { name: 'GO', exact: true })).toHaveCount(0);
 
   // GO "Red up": "Vote" is on standby and waits for the Bell.
   await page.keyboard.press('Space');

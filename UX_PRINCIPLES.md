@@ -394,6 +394,8 @@ The principles applied to each screen. Rows marked _today_ describe a gap found 
 - **Rehearsal vs Show** as in principle 1.
 - **Booth brightness.** In the Booth theme, live thumbnails are dimmed to about 60% by default, adjustable per machine. A bright slide shouldn't be the brightest light in the booth.
 - **Status:** the four roll-up lamps and the off-script chip, as in principle 5.
+- **Simple view**, for a teacher, a volunteer or a leader facing the group, and for every window under 1024 px: one huge GO, Now and Next in plain words, Hold and Back, PANIC in its own corner, and buttons that open the screens or let phones join when they aren't yet. Sections and scenes only go on standby: GO is still the only thing that fires. The open moment can be counted by hand (+1). Rehearsal switches between the views; the show sets which one it opens in.
+- **Remote GO** (off unless the show turns it on): performer remotes get GO, Hold and Back, for a leader with a tablet away from the show machine. It puts the network on GO's path, so the pre-show check warns, and the show machine's own GO keeps working.
 - **Help.** Hover help appears in the Info strip, not in floating tooltips that cover content and would need Esc to dismiss.
 - **The State tab** has columns for now, before the last cue, and initial. It has a "changed" filter, and up to three values can be pinned in the GO panel's message strip.
 - **The Log** carries rule traces (principle 7), plus a source and time for every GO and trigger (key, pedal, remote).

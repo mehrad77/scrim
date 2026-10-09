@@ -33,8 +33,6 @@ export function GoPanel() {
   const standbyIndex = order.findIndex((c) => c.id === state.standby);
   const standby = order[standbyIndex];
   const last = order.find((c) => c.id === state.lastFired);
-  // Follow the blackout's target, not its tween, so Release clears it at once.
-  const blackedOut = state.blackout.to === 1;
   const [now, setNow] = useState(epochNow);
 
   useEffect(() => {
@@ -165,31 +163,45 @@ export function GoPanel() {
       <div className="@container flex items-center gap-3 pt-2">
         <SecondaryClears />
         <Mappable command={{ type: 'panic' }} className="ml-auto w-2/5 min-w-56">
-          {blackedOut ? (
-            <button
-              type="button"
-              className="flex h-11 w-full items-center justify-center gap-2 rounded-control bg-lamp-fault px-3 font-semibold text-on-fault"
-              onClick={() => host.dispatch({ type: 'release', fade: 1 })}
-            >
-              <span className="label-caps">Blacked out</span> · Release
-            </button>
-          ) : (
-            <button
-              type="button"
-              className="flex h-11 w-full items-center justify-center gap-2 rounded-control border border-line-control bg-control px-3 font-semibold text-fg hover:bg-control-hover"
-              onClick={() => host.dispatch({ type: 'panic' })}
-            >
-              <span aria-hidden className="size-2 rounded-[1px] border border-lamp-fault" />
-              <Square size={14} className="text-fault" />
-              PANIC
-              <kbd className="label-caps rounded-control border border-line-control px-1 text-fg-muted">
-                {keyLabel(PANIC_KEY)}
-              </kbd>
-            </button>
-          )}
+          <PanicButton />
         </Mappable>
       </div>
     </section>
+  );
+}
+
+/** PANIC, or once blacked out, Release. `className` sets the height. */
+export function PanicButton({ className }: { className?: string }) {
+  const [host, snap] = useHost();
+  // Follow the blackout's target, not its tween, so Release clears it at once.
+  return snap.state.blackout.to === 1 ? (
+    <button
+      type="button"
+      className={cn(
+        'flex h-11 w-full items-center justify-center gap-2 rounded-control bg-lamp-fault px-3 font-semibold text-on-fault',
+        className,
+      )}
+      onClick={() => host.dispatch({ type: 'release', fade: 1 })}
+    >
+      <span className="label-caps">Blacked out</span> · Release
+    </button>
+  ) : (
+    <button
+      type="button"
+      className={cn(
+        'flex h-11 w-full items-center justify-center gap-2 rounded-control border border-line-control bg-control px-3 font-semibold text-fg hover:bg-control-hover',
+        className,
+      )}
+      onClick={() => host.dispatch({ type: 'panic' })}
+    >
+      <span aria-hidden className="size-2 rounded-[1px] border border-lamp-fault" />
+      <Square size={14} className="text-fault" />
+      PANIC
+      {/* No keyboard on a phone: the key hint would only crowd the word. */}
+      <kbd className="label-caps hidden rounded-control border border-line-control px-1 text-fg-muted sm:inline">
+        {keyLabel(PANIC_KEY)}
+      </kbd>
+    </button>
   );
 }
 
@@ -272,7 +284,7 @@ function PerformerLamp({ name, ready }: { name: string; ready: boolean }) {
  * ringed while the double-GO guard holds. A press during the guard flashes the ring, so a GO is
  * never dropped silently. It is never disabled and never moves.
  */
-function GoButton({
+export function GoButton({
   ready,
   goKey,
   fired,
@@ -284,7 +296,10 @@ function GoButton({
   onGo,
   onPress,
   onRelease,
+  className,
 }: {
+  /** The simple view's GO is far bigger; this sets its size. */
+  className?: string;
   ready: boolean;
   goKey: string | undefined;
   fired: number;
@@ -370,6 +385,7 @@ function GoButton({
           ? 'border-go bg-lamp-go-tint text-go active:bg-lamp-go active:text-on-lamp data-pressed:bg-lamp-go data-pressed:text-on-lamp'
           : 'border-line-control bg-control text-fg-subtle',
         ring && 'outline-2 outline-offset-2 outline-fg',
+        className,
       )}
     >
       <span className="text-display font-mono font-semibold">GO</span>

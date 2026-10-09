@@ -1,2 +1,41 @@
 @import 'tailwindcss';
 @import './theme.css';
+
+/*
+ * The simple operator view: Now/Next and PANIC on top, then GO. A tablet held upright stacks
+ * the rest under GO; from 1024 px wide, places and the open moment sit beside it.
+ */
+.simple-operator {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: minmax(0, 1fr) auto;
+  /* GO grows to fill the screen, and never shrinks under its own content. */
+  grid-template-rows: auto minmax(auto, 1fr) auto auto;
+  grid-template-areas:
+    'now panic'
+    'go go'
+    'ctl ctl'
+    'side side';
+}
+/* On a phone, PANIC has its own row in the top corner, so now and next keep the width. */
+@media (max-width: 639px) {
+  .simple-operator {
+    grid-template-rows: auto auto minmax(auto, 1fr) auto auto;
+    grid-template-areas:
+      '. panic'
+      'now now'
+      'go go'
+      'ctl ctl'
+      'side side';
+  }
+}
+@media (min-width: 1024px) {
+  .simple-operator {
+    grid-template-columns: minmax(0, 3fr) minmax(18rem, 2fr);
+    grid-template-rows: auto minmax(auto, 1fr) auto;
+    grid-template-areas:
+      'now panic'
+      'go side'
+      'ctl side';
+  }
+}

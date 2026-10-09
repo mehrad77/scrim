@@ -147,6 +147,14 @@ export default function Remote() {
           }
         />
       )}
+      {view?.canGo && (
+        <RemoteGo
+          live={live}
+          held={!!view.held}
+          holdMs={view.goHoldMs ?? 0}
+          send={(command) => relay.current?.send({ t: 'command', command })}
+        />
+      )}
       {error && (
         <div
           role="alert"
@@ -211,6 +219,80 @@ export default function Remote() {
           </p>
         )}
       </div>
+    </div>
+  );
+}
+
+/**
+ * Remote GO, for a leader facing the room with a tablet while another machine runs the show.
+ * GO honours the show's hold time here on the tablet, then goes over the network.
+ */
+function RemoteGo({
+  live,
+  held,
+  holdMs,
+  send,
+}: {
+  live: boolean;
+  held: boolean;
+  holdMs: number;
+  send: (command: 'go' | 'hold' | 'back') => void;
+}) {
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [holding, setHolding] = useState(false);
+  const go = () => {
+    send('go');
+    navigator.vibrate?.(40);
+  };
+  const down = () => {
+    if (!live) return;
+    if (!holdMs) return go();
+    setHolding(true);
+    timer.current = setTimeout(() => {
+      timer.current = null;
+      setHolding(false);
+      go();
+    }, holdMs);
+  };
+  const up = () => {
+    if (timer.current) clearTimeout(timer.current);
+    timer.current = null;
+    setHolding(false);
+  };
+  return (
+    <div className="grid grid-cols-2 gap-3" role="group" aria-label="Run the show">
+      <button
+        disabled={!live}
+        aria-label={holdMs ? `GO: hold for ${holdMs / 1000} s` : 'GO'}
+        onPointerDown={(e) => {
+          e.preventDefault();
+          e.currentTarget.setPointerCapture(e.pointerId);
+          down();
+        }}
+        onPointerUp={up}
+        onPointerCancel={up}
+        className={cn(
+          'col-span-2 flex h-40 touch-manipulation flex-col items-center justify-center rounded-control border-2 border-go bg-lamp-go-tint text-go select-none disabled:opacity-50',
+          holding && 'bg-lamp-go text-on-lamp',
+        )}
+      >
+        <span className="text-display font-mono font-semibold">GO</span>
+        {holdMs > 0 && <span className="label-caps">Hold {holdMs / 1000} s</span>}
+      </button>
+      <button
+        disabled={!live}
+        onClick={() => send('hold')}
+        className="h-14 rounded-control border border-line-control bg-control text-heading font-semibold disabled:opacity-50"
+      >
+        {held ? 'Resume' : 'Hold'}
+      </button>
+      <button
+        disabled={!live}
+        onClick={() => send('back')}
+        className="h-14 rounded-control border border-line-control bg-control text-heading font-semibold disabled:opacity-50"
+      >
+        Back
+      </button>
     </div>
   );
 }

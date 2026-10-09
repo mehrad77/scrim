@@ -59,6 +59,8 @@ A runbook for the stage manager or operator running a show in Scrim.
 
 - **Rehearse from here:** in the editor's Cues tab, pick a cue and choose **Rehearse from here** in _After this cue_. The operator view opens with everything before it already run, using the vote results you assumed.
 - **Simulate phones:** while a moment is open, **Simulate phones** pretends a number of phones answered, on top of real phones, buttons and counts.
+- **Simple view:** **Simple view** in the header (Rehearsal) shows one huge GO, Now and Next, Hold, Back and PANIC, sized for touch; **Full view** goes back. A tablet or phone always gets it. A show can open in it (Controls tab › Operator view).
+- **Remote GO:** with _Performer remotes can press GO_ on (Controls tab), the performer remote shows GO, Hold and Back, for running the show from a tablet away from the show machine. It goes over the network: keep a key or pedal on the show machine ready.
 - **Setlists:** arrange the running order under **Order**, then **Setlists › Keep this order as a setlist…** saves it in the show (Rehearsal only, since it edits the show).
 - **Commands:** ⌘K (Ctrl+K) finds any command; ⌘, (Ctrl+,) opens Preferences.
 

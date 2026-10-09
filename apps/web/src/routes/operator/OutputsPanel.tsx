@@ -3,13 +3,8 @@ import { Copy, ExternalLink, Eye, Monitor, MonitorPlay, ScanEye } from 'lucide-r
 import { useMemo, useState } from 'react';
 import { step } from '@scrim/engine';
 import { audienceUrl, remoteOutputUrl } from '../../host/room.js';
-import {
-  listScreens,
-  openOutputWindow,
-  windowManagementSupported,
-  type ScreenChoice,
-} from '../../host/windows.js';
-import { notePopupBlocked } from '../../lib/capabilities.js';
+import { openOutput, SCREENS_KEY } from '../../host/goLive.js';
+import { listScreens, windowManagementSupported, type ScreenChoice } from '../../host/windows.js';
 import { cn } from '../../lib/cn.js';
 import { epochNow } from '../../lib/clock.js';
 import { readLocal, writeLocal } from '../../lib/local.js';
@@ -22,8 +17,6 @@ import { Badge, Panel } from '../../ui/Panel.js';
 import { settle } from '../../lib/simulate.js';
 import { errorToast, toast } from '../../ui/toast.js';
 import { useHost } from './Operator.js';
-
-const SCREENS_KEY = 'scrim.outputScreens';
 
 export function OutputsPanel() {
   const [host, snap] = useHost();
@@ -66,16 +59,9 @@ export function OutputsPanel() {
     }
   };
 
-  const screenFor = (o: Output, list: ScreenChoice[] | null) =>
-    list?.find((s) => s.label === assigned[o.id]);
-
   const open = async (o: Output, list = screens) => {
-    const url = `/output/${snap.show.id}/${o.id}`;
-    const w = openOutputWindow(url, o.id, screenFor(o, list));
-    if (!w) {
-      notePopupBlocked();
+    if (!openOutput(snap.show.id, o.id, list, assigned))
       toast('The browser blocked the window. Allow pop-ups for Scrim and try again.', 'error');
-    }
   };
 
   // "Go live": the single click that opens every output on its display.

@@ -69,6 +69,11 @@ export interface RemoteView {
   firedFor?: string | null;
   /** Triggers some cue waits for; they do nothing until it's their cue. */
   cueTriggers?: string[];
+  /** The show lets remotes press GO, Hold and Back (Remote GO). */
+  canGo?: boolean;
+  /** For Remote GO: the show is held, and how long GO must be held to fire (0: a tap). */
+  held?: boolean;
+  goHoldMs?: number;
 }
 
 export interface MomentTotals {
@@ -103,6 +108,8 @@ export type RelayToHost =
   | { t: 'presence'; presence: Presence }
   | { t: 'trigger'; triggerId: string; from: string }
   | { t: 'ready'; cueId: string; from: string }
+  /** Remote GO: the host runs it only if the show allows remotes to. */
+  | { t: 'command'; command: 'go' | 'hold' | 'back'; from: string }
   | { t: 'outputBeat'; clientId: string; outputId: string; status: OutputStatus }
   | { t: 'outputGone'; clientId: string }
   | { t: 'pong'; c: number; s: number }
@@ -143,6 +150,7 @@ export type AudienceToRelay = z.infer<typeof AudienceToRelaySchema>;
 export const RemoteToRelaySchema = z.discriminatedUnion('t', [
   z.object({ t: z.literal('trigger'), triggerId: z.string().max(64) }),
   z.object({ t: z.literal('ready'), cueId: z.string().max(64) }),
+  z.object({ t: z.literal('command'), command: z.enum(['go', 'hold', 'back']) }),
   z.object({ t: z.literal('ping'), c: z.number() }),
 ]);
 export type RemoteToRelay = z.infer<typeof RemoteToRelaySchema>;

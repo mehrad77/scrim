@@ -469,6 +469,16 @@ export const OperatorSettingsSchema = z.object({
    * presses, for tremor and for nervous volunteers. Absent or 0: on press.
    */
   goHoldMs: z.number().int().min(0).max(3000).optional(),
+  /**
+   * The operator view this show opens in: `simple` is one huge GO, now and next, Hold, Back and
+   * PANIC, sized for touch. Windows under 1024 px always get it.
+   */
+  layout: z.enum(['full', 'simple']).optional(),
+  /**
+   * Performer remotes may press GO, Hold and Back: for a leader running the show from a tablet
+   * that is not the show machine. It puts the network on GO's path, so it is off unless set.
+   */
+  remoteGo: z.boolean().optional(),
 });
 export type OperatorSettings = z.infer<typeof OperatorSettingsSchema>;
 

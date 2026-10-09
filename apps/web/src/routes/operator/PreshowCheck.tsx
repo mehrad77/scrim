@@ -178,6 +178,17 @@ export function PreshowCheck({ onClose }: { onClose: () => void }) {
         ]
       : []),
     capItem,
+    ...(show.operator?.remoteGo
+      ? [
+          {
+            id: 'remoteGo',
+            title: 'Remote GO is on',
+            status: 'warn' as Status,
+            detail:
+              'Performer remotes can press GO, so GO goes over the network. If the Wi-Fi drops, use a key, pedal or the GO button on this machine.',
+          },
+        ]
+      : []),
     {
       id: 'wake',
       title: 'Screen wake lock held',

@@ -602,7 +602,7 @@ For each user, **Ideas** links to the cross-cutting ideas in [Accessible to all]
   - Notices can loop with auto-follow.
 - **Gaps:**
   - The song library and lyrics import.
-  - A simple operator view.
+- **Since added:** a simple operator view for volunteers (one huge GO, now and next, the song's sections as buttons), with an optional hold-to-confirm GO.
 - **Ideas:** [5 simple modes and templates](#5-simple-modes-and-templates), [1 personal access channel](#1-a-personal-access-channel-on-the-audience-phone), [3 inclusive operation](#3-inclusive-operation).
 
 ### Drama therapist or care-home activity leader
@@ -630,9 +630,8 @@ For each user, **Ideas** links to the cross-cutting ideas in [Accessible to all]
   - Offline running.
   - Moments with a default result.
 - **Gaps:**
-  - The operator view is not designed for tablets.
   - Session templates.
-- **Since added:** a shared tablet passed around the group (each answer counts as one person, in large print), large buttons mapped to vote options, and counts the leader types in.
+- **Since added:** the simple operator view for tablets, and Remote GO for a leader whose tablet isn't the show machine; a shared tablet passed around the group (each answer counts as one person, in large print), large buttons mapped to vote options, and counts the leader types in.
 - **Ideas:** [2 relaxed mode](#2-relaxed-mode-and-a-flash-safety-check) as the default, [4 no-phone participation](#4-no-phone-participation), [3 inclusive operation](#3-inclusive-operation), [5 simple modes and templates](#5-simple-modes-and-templates).
 
 ### Street or festival performer
@@ -661,7 +660,7 @@ For each user, **Ideas** links to the cross-cutting ideas in [Accessible to all]
 - **Gaps:**
   - A local relay.
   - Microphone-based moments.
-  - A tablet operator view.
+- **Since added:** the simple operator view on a tablet or phone, and Remote GO from the phone in a pocket.
 - **Ideas:** [4 no-phone participation](#4-no-phone-participation), [3 inclusive operation](#3-inclusive-operation).
 
 ### Young creator (a child at home, a youth group)
@@ -800,7 +799,7 @@ Accessibility usually stops at the audience. Scrim should let **anyone run a sho
 | **Voice**                             | "Go", "hold", "standby next" spoken aloud, with Panic always on a physical key. The browser's speech recognition often sends audio to a server, which breaks the offline rule. Only on-device recognition is acceptable _(on-device support in Chrome unverified)_, and voice must never be the only way to GO. |
 | **Screen reader**                     | _Built for the operator view:_ it announces the standby cue, each fired cue, moment results and warnings (ARIA live regions). The editor works fully from the keyboard, and every control has a text label.                                                                                                     |
 | **Large, high-contrast display**      | An operator theme with large text and high contrast. Status never relies on colour alone.                                                                                                                                                                                                                       |
-| **Touch, from a tablet**              | An operator layout for tablets, so leaders and performers can run a show while facing the room.                                                                                                                                                                                                                 |
+| **Touch, from a tablet**              | _Built:_ the simple operator view, on any tablet or phone, and Remote GO from a performer remote, so leaders and performers can run a show while facing the room.                                                                                                                                               |
 
 Every option maps to the same commands the engine already understands (`go`, `hold`, `panic`, `standbyNext`, triggers), so none of them changes the engine.
 

@@ -49,7 +49,7 @@ Readers must:
   audioBuses: { id, name }[],
   defaultFade?: { duration, easing },  // the fade new show/hide actions start with
   setlists?: Setlist[],                // prepared running orders
-  operator?: { goHoldMs? },            // how the show is run: GO fires after a hold this long
+  operator?: { goHoldMs?, layout?, remoteGo? }, // how the show is run
 }
 ```
 
@@ -180,6 +180,7 @@ inputs  = { keys: {key, command}[], midi: {kind: note|cc|program, channel|null, 
 - **`jump`** puts its target on standby, or fires it when `fire` is true (through the double-GO guard). Sections, and the next, previous and same scene, are found from the live cue in tonight's running order. MIDI `program` matches a program change, so a playback rig can start each song. Older apps can't open shows that map a jump or a program change.
 - **`countVote`** counts a vote for option N of the newest open vote (or of `momentId`), or a tap for a tap moment, from a button, pad or pedal: people without a phone take part. It adds to the phones' totals. Older apps can't open shows that map it.
 - **`operator.goHoldMs`** makes GO fire only after a key, pedal, pad or the GO button has been held that long; a shorter press doesn't fire. PANIC never waits.
+- **`operator.layout`** (`full` · `simple`) is the operator view the show opens in; windows under 1024 px always get the simple view. **`operator.remoteGo`** lets performer remotes press GO, Hold and Back, over the network.
 - **`back`** returns to the state before the operator's last GO (one step). Older apps don't know this command, so they can't open shows that map a key to it.
 
 ## Versioning

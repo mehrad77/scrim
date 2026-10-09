@@ -59,13 +59,13 @@ A **shared tablet** joins with `sharedKey`. Its `vote`, `slider` and `text` mess
 
 ### Host → relay
 
-| `t`          | Fields                                                                                                    |
-| ------------ | --------------------------------------------------------------------------------------------------------- |
-| `show`       | `show` (forwarded to remote outputs)                                                                      |
-| `state`      | `state, mode, offset` (forwarded to remote outputs)                                                       |
-| `moments`    | `title, open: MomentSpec[]`: the full set of open moments                                                 |
-| `remoteView` | `view: { showName, triggers, standby, lastFired, standbyId?, waitFor?, ready?, firedFor?, cueTriggers? }` |
-| `ping`       | `c` (client time)                                                                                         |
+| `t`          | Fields                                                                                                                              |
+| ------------ | ----------------------------------------------------------------------------------------------------------------------------------- |
+| `show`       | `show` (forwarded to remote outputs)                                                                                                |
+| `state`      | `state, mode, offset` (forwarded to remote outputs)                                                                                 |
+| `moments`    | `title, open: MomentSpec[]`: the full set of open moments                                                                           |
+| `remoteView` | `view: { showName, triggers, standby, lastFired, standbyId?, waitFor?, ready?, firedFor?, cueTriggers?, canGo?, held?, goHoldMs? }` |
+| `ping`       | `c` (client time)                                                                                                                   |
 
 ### Relay → host
 
@@ -79,6 +79,7 @@ A **shared tablet** joins with `sharedKey`. Its `vote`, `slider` and `text` mess
 | `outputBeat` · `outputGone` | Remote output status                                                                    |
 | `pong`                      | `c, s` (server time)                                                                    |
 | `error`                     | `message`                                                                               |
+| `command`                   | `command, from`: GO, Hold or Back from a performer remote (Remote GO)                   |
 
 `MomentTotals` is `{ momentId, tally, count, sum, sumSq, n, entries }`. `entries` holds the text entries not yet sent to this host connection.
 
@@ -86,16 +87,17 @@ A **shared tablet** joins with `sharedKey`. Its `vote`, `slider` and `text` mess
 
 These messages are untrusted and validated with zod.
 
-| Role     | `t`          | Fields                                  | Limits                                                         |
-| -------- | ------------ | --------------------------------------- | -------------------------------------------------------------- |
-| audience | `vote`       | `momentId, optionId, ballot?`           | The latest vote per phone (or per shared-tablet ballot) counts |
-| audience | `tap`        | `momentId, count` (1–50)                | 15 taps per second per phone                                   |
-| audience | `slider`     | `momentId, value, ballot?`              | Clamped to the moment's range                                  |
-| audience | `text`       | `momentId, text, ballot?` (1–280 chars) | 3 entries per phone (or ballot) per moment                     |
-| remote   | `trigger`    | `triggerId`                             | Answered with `ack`, or `error` if no host is connected        |
-| remote   | `ready`      | `cueId`                                 | Acknowledged by the host's next `remoteView` (`ready`)         |
-| output   | `outputBeat` | `outputId, status`                      | —                                                              |
-| all      | `ping`       | `c`                                     | —                                                              |
+| Role     | `t`          | Fields                                  | Limits                                                                                         |
+| -------- | ------------ | --------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| audience | `vote`       | `momentId, optionId, ballot?`           | The latest vote per phone (or per shared-tablet ballot) counts                                 |
+| audience | `tap`        | `momentId, count` (1–50)                | 15 taps per second per phone                                                                   |
+| audience | `slider`     | `momentId, value, ballot?`              | Clamped to the moment's range                                                                  |
+| audience | `text`       | `momentId, text, ballot?` (1–280 chars) | 3 entries per phone (or ballot) per moment                                                     |
+| remote   | `trigger`    | `triggerId`                             | Answered with `ack`, or `error` if no host is connected                                        |
+| remote   | `ready`      | `cueId`                                 | Acknowledged by the host's next `remoteView` (`ready`)                                         |
+| remote   | `command`    | `command` (`go` · `hold` · `back`)      | Remote GO: forwarded to the host, which runs it only when the show's `operator.remoteGo` is on |
+| output   | `outputBeat` | `outputId, status`                      | —                                                                                              |
+| all      | `ping`       | `c`                                     | —                                                                                              |
 
 Every non-host socket is limited to 30 messages per second and 4 KB per message. Input for a moment that is closed, past its `closesAt`, or of the wrong type is dropped.
 

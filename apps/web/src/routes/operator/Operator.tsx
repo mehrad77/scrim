@@ -1,6 +1,15 @@
 import { formatVar, initialState, runOrder } from '@scrim/engine';
 import { cueOrder, type Show } from '@scrim/format';
-import { ClipboardCheck, Keyboard, Lock, LockOpen, Pencil, RotateCcw } from 'lucide-react';
+import {
+  ClipboardCheck,
+  Columns3,
+  Keyboard,
+  Lock,
+  LockOpen,
+  Maximize,
+  Pencil,
+  RotateCcw,
+} from 'lucide-react';
 import {
   createContext,
   useContext,
@@ -13,6 +22,7 @@ import { Link, useParams } from 'react-router';
 import { isTyping, keyLabel, PANIC_KEY } from '../../host/inputs.js';
 import { ShowHost, type HostSnapshot } from '../../host/ShowHost.js';
 import { openShortcutSheet, useCommands } from '../../lib/commands.js';
+import { readLocal, writeLocal } from '../../lib/local.js';
 import { setShowModeMotion } from '../../lib/prefs.js';
 import { valueLabel } from '../../lib/logic.js';
 import { takeRehearsal } from '../../lib/simulate.js';
@@ -40,6 +50,7 @@ import { MediaPanel, StatePanel } from './LivePanels.js';
 import { OutputsPanel } from './OutputsPanel.js';
 import { usePins } from './pins.js';
 import { PreshowCheck } from './PreshowCheck.js';
+import { SimpleOperator } from './SimpleOperator.js';
 import { SetlistPanel } from './SetlistPanel.js';
 import { StatusChips } from './StatusChips.js';
 
@@ -189,6 +200,19 @@ function OperatorView() {
   );
   const [checking, setChecking] = useState(false);
   const showMode = snap.mode === 'show';
+  // The simple view: chosen in Rehearsal (remembered per show on this machine), the show's own
+  // default, and always below the full view's 1024 px minimum.
+  const narrow = useNarrow();
+  const viewKey = `scrim.operatorView.${snap.show.id}`;
+  const [view, setViewState] = useState<'full' | 'simple'>(
+    () =>
+      readLocal<'full' | 'simple' | null>(viewKey, null) ?? snap.show.operator?.layout ?? 'full',
+  );
+  const setView = (v: 'full' | 'simple') => {
+    setViewState(v);
+    writeLocal(viewKey, v);
+  };
+  const simple = narrow || view === 'simple';
   const map = useMapApi(host, snap.show.inputs, !showMode);
   const mapRef = useRef(map);
   mapRef.current = map;
@@ -285,8 +309,10 @@ function OperatorView() {
           ) : (
             // Rehearsal is the loud state, because it is the unsafe one.
             <div className="flex items-center gap-2">
-              <span className="label-caps flex h-7 items-center gap-1.5 bg-fg px-2 text-app">
-                <LockOpen size={12} /> Rehearsal · editing unlocked · double-click fires
+              <span className="label-caps flex h-7 items-center gap-1.5 bg-fg px-2 whitespace-nowrap text-app">
+                <LockOpen size={12} /> Rehearsal
+                <span className="hidden md:inline">· editing unlocked</span>
+                {!simple && <span className="hidden lg:inline">· double-click fires</span>}
               </span>
               <Button size="sm" icon={<Lock size={13} />} onClick={() => host.setMode('show')}>
                 Show mode
@@ -295,6 +321,21 @@ function OperatorView() {
           )}
           <StatusChips />
           <div className="ml-auto flex items-center gap-2">
+            {!showMode && !narrow && (
+              <Button
+                size="sm"
+                variant="ghost"
+                icon={simple ? <Columns3 size={14} /> : <Maximize size={14} />}
+                onClick={() => setView(simple ? 'full' : 'simple')}
+                title={
+                  simple
+                    ? 'Full view: cue list, outputs, audience and log'
+                    : 'Simple view: one huge GO, now and next, sized for touch'
+                }
+              >
+                {simple ? 'Full view' : 'Simple view'}
+              </Button>
+            )}
             {!showMode && (
               <>
                 <IconButton
@@ -333,43 +374,49 @@ function OperatorView() {
         </header>
         <MessageStrip typing={typing} />
         <Announcer />
-        <main className="min-h-0 flex-1 border-t border-line-subtle">
-          <Columns id="operator" locked={showMode}>
-            <Pane id="cues" size="25%" min={280}>
-              <CuesPane />
-            </Pane>
-            <Divider />
-            <Pane id="go" min={420}>
-              <div className="flex h-full min-h-0 flex-col gap-px bg-line-subtle">
-                <GoPanel />
-                <OutputsPanel />
-              </div>
-            </Pane>
-            <Divider />
-            <Pane id="side" size="28%" min={300} side>
-              <div className="flex h-full min-h-0 flex-col bg-panel">
-                <Tabs
-                  value={side}
-                  onChange={setSide}
-                  label="Live panels"
-                  className="border-b border-line-subtle p-1"
-                  tabs={[
-                    { id: 'audience', label: 'Audience' },
-                    { id: 'state', label: 'State' },
-                    { id: 'media', label: 'Media' },
-                    { id: 'log', label: 'Log' },
-                  ]}
-                />
-                <div className="min-h-0 flex-1">
-                  {side === 'audience' && <AudiencePanel />}
-                  {side === 'state' && <StatePanel />}
-                  {side === 'media' && <MediaPanel />}
-                  {side === 'log' && <LogPanel />}
+        {simple ? (
+          <div className="flex min-h-0 flex-1 flex-col border-t border-line-subtle">
+            <SimpleOperator />
+          </div>
+        ) : (
+          <main className="min-h-0 flex-1 border-t border-line-subtle">
+            <Columns id="operator" locked={showMode}>
+              <Pane id="cues" size="25%" min={280}>
+                <CuesPane />
+              </Pane>
+              <Divider />
+              <Pane id="go" min={420}>
+                <div className="flex h-full min-h-0 flex-col gap-px bg-line-subtle">
+                  <GoPanel />
+                  <OutputsPanel />
                 </div>
-              </div>
-            </Pane>
-          </Columns>
-        </main>
+              </Pane>
+              <Divider />
+              <Pane id="side" size="28%" min={300} side>
+                <div className="flex h-full min-h-0 flex-col bg-panel">
+                  <Tabs
+                    value={side}
+                    onChange={setSide}
+                    label="Live panels"
+                    className="border-b border-line-subtle p-1"
+                    tabs={[
+                      { id: 'audience', label: 'Audience' },
+                      { id: 'state', label: 'State' },
+                      { id: 'media', label: 'Media' },
+                      { id: 'log', label: 'Log' },
+                    ]}
+                  />
+                  <div className="min-h-0 flex-1">
+                    {side === 'audience' && <AudiencePanel />}
+                    {side === 'state' && <StatePanel />}
+                    {side === 'media' && <MediaPanel />}
+                    {side === 'log' && <LogPanel />}
+                  </div>
+                </div>
+              </Pane>
+            </Columns>
+          </main>
+        )}
         <InfoStrip
           fallback={`${goKey ? `${keyLabel(goKey)} fires GO · ` : ''}Esc is PANIC, always`}
         />
@@ -387,6 +434,20 @@ function OperatorView() {
       </div>
     </MapProvider>
   );
+}
+
+/** Narrower than the full operator view's 1024 px minimum (DESIGN_SYSTEM.md › Layout). */
+function useNarrow(): boolean {
+  const query = '(max-width: 1023px)';
+  const [narrow, setNarrow] = useState(() => window.matchMedia?.(query).matches ?? false);
+  useEffect(() => {
+    const mq = window.matchMedia?.(query);
+    if (!mq) return;
+    const on = () => setNarrow(mq.matches);
+    mq.addEventListener('change', on);
+    return () => mq.removeEventListener('change', on);
+  }, []);
+  return narrow;
 }
 
 /**

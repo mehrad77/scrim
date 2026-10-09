@@ -679,6 +679,12 @@ export class ShowHost {
       case 'trigger':
         this.dispatch({ type: 'trigger', triggerId: msg.triggerId, source: 'remote' });
         return;
+      case 'command':
+        // Remote GO puts the network on GO's path, so it runs only when the show asks for it.
+        if (!this.engine.show.operator?.remoteGo)
+          return this.#log('warning', 'A remote pressed GO, but Remote GO is off for this show');
+        this.command({ type: msg.command }, 'remote');
+        return;
       case 'ready': {
         const show = this.engine.show;
         const cue = show.cues.find((c) => c.id === msg.cueId);
@@ -826,6 +832,9 @@ export class ShowHost {
       ready: !!standby && this.#readyFor === standby.id,
       firedFor: fired?.waitFor ?? null,
       cueTriggers: [...new Set(show.cues.flatMap((c) => (c.waitFor ? [c.waitFor] : [])))],
+      canGo: !!show.operator?.remoteGo,
+      held: state.held,
+      goHoldMs: show.operator?.goHoldMs ?? 0,
     };
     const viewJson = JSON.stringify(view);
     if (force || viewJson !== this.#lastRemoteView) {

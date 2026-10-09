@@ -538,7 +538,7 @@ The safety invariants come first. On top of them:
 
 **Minimum widths.**
 
-- The editor and the operator need at least 1024 px. Below that, they show a message instead of a broken layout.
+- The editor and the full operator view need at least 1024 px. Below that, the editor shows a message instead of a broken layout, and the operator switches to the **simple view**: Now and Next, a GO at least 60% of the width and 200 px tall, Hold and Back at 56 px, places and the open moment below, and PANIC in its own top corner (its own row on a phone). A show can open in the simple view at any width (`operator.layout`).
 - The Remote and the audience page are single-column from 320 px, with safe-area padding.
 
 ## Surfaces
