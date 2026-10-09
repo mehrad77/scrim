@@ -87,6 +87,8 @@ const LayerBase = {
   parentId: Id.optional(),
   /** Absent: left and top. Ignored while the layer is inside a frame. */
   pin: PinSchema.optional(),
+  /** Editor only: the canvas can't select or move it, or anything inside it. */
+  locked: z.boolean().optional(),
 };
 
 const TextStyle = {

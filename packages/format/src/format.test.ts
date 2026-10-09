@@ -225,6 +225,7 @@ describe('frames', () => {
         ...base,
         parentId: 'f',
         sizing: 'autoWidth',
+        locked: true,
       },
     ];
     const parsed = parseShow(raw);
@@ -245,7 +246,7 @@ describe('frames', () => {
       },
       pin: { x: 'right', y: 'bottom' },
     });
-    expect(t).toMatchObject({ parentId: 'f', sizing: 'autoWidth' });
+    expect(t).toMatchObject({ parentId: 'f', sizing: 'autoWidth', locked: true });
     // A show from before frames has no parentId, pin or sizing at all.
     expect(parseShow(JSON.parse(JSON.stringify(show))).layers).toEqual([]);
   });

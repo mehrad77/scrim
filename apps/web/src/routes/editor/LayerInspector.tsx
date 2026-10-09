@@ -100,6 +100,11 @@ function Inspector({ show, layer }: { show: Show; layer: Layer }) {
 
       {visual && (
         <Section title="Position">
+          <Toggle
+            checked={!!layer.locked}
+            onChange={(locked) => set({ locked: locked || undefined })}
+            label="Locked on the canvas"
+          />
           {flowChild && (
             <p className="text-caption text-fg-subtle">
               “{parent.name}” lines it up: change its place in the layers list.

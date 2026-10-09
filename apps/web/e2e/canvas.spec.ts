@@ -88,3 +88,40 @@ test('resizing an output keeps pinned layers at their edges', async ({ page }) =
   expect((await layer(page, showId, 'fl')).x).toBe(100);
   expect((await layer(page, showId, 'fc')).x).toBe(800 - 320);
 });
+
+test('a locked layer stays put on the canvas until it is unlocked', async ({ page }) => {
+  const { showId } = await seedFrames(page);
+  await page.evaluate(() => sessionStorage.setItem('scrim.editorTab', 'stage'));
+  await page.goto(`/show/${showId}`);
+  const tree = page.getByRole('treegrid');
+  await tree.getByRole('row', { name: 'fl', exact: true }).hover();
+  await page.getByRole('button', { name: 'Lock fl' }).click();
+  await expect(page.getByRole('button', { name: 'Unlock fl' })).toHaveAttribute(
+    'aria-pressed',
+    'true',
+  );
+  await expect(tree.getByText('Locked with its frame')).toHaveCount(1);
+
+  // Clicks pass through it on the canvas.
+  await tree.getByRole('row', { name: 'fr', exact: true }).click();
+  const at = (await node(page, 'fl').boundingBox())!;
+  await page.mouse.click(at.x + at.width / 2, at.y + at.height / 2);
+  await expect(tree.getByRole('row', { name: 'fl', exact: true })).toHaveAttribute(
+    'aria-selected',
+    'false',
+  );
+
+  // Picked in the tree it can't be nudged; unlocked, it can.
+  await tree.getByRole('row', { name: 'fl', exact: true }).click();
+  await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur());
+  await page.keyboard.press('Shift+ArrowRight');
+  await page.waitForTimeout(600);
+  expect((await layer(page, showId, 'fl')).x).toBe(100);
+  await page.keyboard.press('ControlOrMeta+Shift+l');
+  await expect(page.getByRole('button', { name: 'Lock fl' })).toHaveAttribute(
+    'aria-pressed',
+    'false',
+  );
+  await page.keyboard.press('Shift+ArrowRight');
+  await expect.poll(async () => (await layer(page, showId, 'fl')).x).toBe(110);
+});

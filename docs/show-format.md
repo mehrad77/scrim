@@ -70,12 +70,13 @@ A `font` file (WOFF2, WOFF, TTF or OTF) is registered under its file name withou
 
 ### Layer
 
-Common fields: `id, name, kind, outputId (null for audio), x, y, w, h, z, opacity, visible, crop, parentId?, pin?`.
+Common fields: `id, name, kind, outputId (null for audio), x, y, w, h, z, opacity, visible, crop, parentId?, pin?, locked?`.
 
 - `opacity` is the opacity when shown. `visible` says whether the layer is shown when the show starts.
 - `crop` holds fractions from 0 to 1 per edge.
 - `parentId` puts the layer inside a frame on the same output. Its `x` and `y` are then relative to the frame, and `z` orders it among the frame's children only. A link that can't hold (the frame is missing, is not a frame, sits on another output or inside the layer itself, or the layer is audio) is ignored: the layer is drawn on the output, and the logic check reports it.
 - `pin` (`{ x: left · center · right, y: top · center · bottom }`, default left and top) is the output edge a top-level layer keeps its distance to when the output is resized or the layer moves to another output. A layer that hugs its content grows away from its pin: one pinned right grows to the left. It is ignored inside a frame.
+- `locked` (optional) is an editor aid: the canvas can't select or move the layer, or anything inside it. It changes nothing on stage.
 
 | `kind`    | Extra fields                                                                                   |
 | --------- | ---------------------------------------------------------------------------------------------- |

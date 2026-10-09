@@ -123,7 +123,11 @@ export function Stage(props: StageProps) {
     <LayerBox
       key={layer.id}
       layer={layer}
-      style={boxStyle(layer, parent, output)}
+      style={{
+        ...boxStyle(layer, parent, output),
+        // On the editor canvas clicks pass through a locked layer, and through what it holds.
+        ...(props.onLayerPointerDown && layer.locked ? { pointerEvents: 'none' as const } : {}),
+      }}
       ref={(el) => {
         if (el) layerEls.current.set(layer.id, el);
         else layerEls.current.delete(layer.id);

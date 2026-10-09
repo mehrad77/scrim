@@ -15,7 +15,7 @@ import { Empty, Panel } from '../../ui/Panel.js';
 import { Canvas } from './Canvas.js';
 import { CueDock } from './CueDock.js';
 import { LayerInspector } from './LayerInspector.js';
-import { frameSelection, ungroupSelection } from './layerCommands.js';
+import { frameSelection, toggleLock, ungroupSelection } from './layerCommands.js';
 import { LayersTree } from './LayersTree.js';
 import { MediaPanel } from './MediaPanel.js';
 
@@ -69,7 +69,7 @@ export function StageTab() {
   );
 }
 
-/** Framing, for the palette and the `?` sheet; the canvas and the layers tree take the keys. */
+/** Framing and locking, for the palette and the `?` sheet; the canvas and tree take the keys. */
 function StageCommands() {
   const show = useShow();
   const { layerId, extra } = useEditor((s) => s.selection);
@@ -94,6 +94,15 @@ function StageCommands() {
         shortcut: '⇧⌘G',
         disabled: !frames.length,
         run: () => ungroupSelection(frames),
+      },
+      {
+        id: 'lock',
+        group: 'Layers',
+        title: 'Lock or unlock selection',
+        aliases: ['pin in place', 'freeze'],
+        shortcut: '⇧⌘L',
+        disabled: !ids.length,
+        run: () => toggleLock(ids),
       },
     ],
     [ids.join(), frames.join()],

@@ -30,7 +30,7 @@ import Moveable from 'react-moveable';
 import { isTyping, overlayOpen } from '../../host/inputs.js';
 import { cn } from '../../lib/cn.js';
 import { readPrefs } from '../../lib/prefs.js';
-import { bounds, handlesFor, outermost, pickLayer, type Box } from '../../lib/frames.js';
+import { bounds, handlesFor, isLocked, outermost, pickLayer, type Box } from '../../lib/frames.js';
 import {
   alignBoxes,
   cueBringingIn,
@@ -52,6 +52,7 @@ import {
   deleteLayers,
   duplicateSelection,
   frameSelection,
+  toggleLock,
   ungroupSelection,
 } from './layerCommands.js';
 import { CANVAS_ATTR, measureLayer, placeDrawn } from './measure.js';
@@ -112,6 +113,8 @@ export function Canvas() {
   const tree = useMemo(() => layerTree(show.layers), [show.layers]);
   // Moving a frame moves what is inside it, so only the outermost selected layers get handles.
   const movable = useMemo(() => outermost(tree, selectedIds), [tree, selectedIds]);
+  // Locked layers keep their outline when picked in the tree, but nothing on the canvas moves them.
+  const unlocked = movable.filter((id) => !isLocked(tree, id));
 
   useEffect(() => {
     const el = viewport.current;
@@ -176,11 +179,14 @@ export function Canvas() {
         .forEach((el) => el.style.translate && (el.style.translate = '')),
     );
   const start = (id: string | null) => (id && drawn.get(id)) || null;
-  const handles = primary ? handlesFor(primary, tree.parent(primary.id)) : null;
-  const canDrag = movable.every((id) => {
-    const l = tree.byId.get(id);
-    return !!l && handlesFor(l, tree.parent(id)).drag;
-  });
+  const handles =
+    primary && !isLocked(tree, primary.id) ? handlesFor(primary, tree.parent(primary.id)) : null;
+  const canDrag =
+    unlocked.length === movable.length &&
+    movable.every((id) => {
+      const l = tree.byId.get(id);
+      return !!l && handlesFor(l, tree.parent(id)).drag;
+    });
 
   const zoomTo = (z: number, focus?: { x: number; y: number }) => {
     const el = viewport.current;
@@ -252,6 +258,8 @@ export function Canvas() {
       if (keys && e.shiftKey && e.code === 'Digit2') return (e.preventDefault(), zoomToSelection());
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'd')
         return (e.preventDefault(), duplicate());
+      if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === 'l')
+        return (e.preventDefault(), toggleLock(movable));
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'g')
         return (e.preventDefault(), (e.shiftKey ? ungroupSelection : frameSelection)(movable));
       if (!selectedIds.length) return;
@@ -266,8 +274,9 @@ export function Canvas() {
       }[e.key];
       if (!d || e.altKey) return;
       e.preventDefault();
-      update((s) => nudgeLayers(s, movable, d[0]!, d[1]!), {
-        coalesce: `nudge:${movable.join(',')}`,
+      if (!unlocked.length) return;
+      update((s) => nudgeLayers(s, unlocked, d[0]!, d[1]!), {
+        coalesce: `nudge:${unlocked.join(',')}`,
       });
     };
     const up = (e: KeyboardEvent) => {
@@ -331,7 +340,7 @@ export function Canvas() {
 
   /** Line the selection up by what is drawn: one layer within its frame or the output. */
   const lineUp = (how: Align | 'x' | 'y') => {
-    const ids = movable.filter((id) => handlesFor(tree.byId.get(id)!, tree.parent(id)).drag);
+    const ids = unlocked.filter((id) => handlesFor(tree.byId.get(id)!, tree.parent(id)).drag);
     const boxes = new Map<string, Box>();
     for (const id of ids) {
       const b = measureLayer(id);
@@ -586,7 +595,8 @@ export function Canvas() {
           {targets.length > 0 && !space && (
             <Moveable
               target={targets.length === 1 ? targets[0] : targets}
-              dragArea
+              // Over a locked layer the area would swallow clicks meant for what is beneath.
+              dragArea={unlocked.length === movable.length}
               draggable={canDrag}
               resizable={targets.length === 1 && !!handles?.dirs.length}
               renderDirections={handles?.dirs ?? []}

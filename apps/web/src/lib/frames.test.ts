@@ -7,6 +7,7 @@ import {
   ungroupFrame,
   type Measure,
   handlesFor,
+  isLocked,
   layerPath,
   moveToOutput,
   outermost,
@@ -209,6 +210,13 @@ describe('frames on the canvas', () => {
     show.layers.push(u);
     putInFrame(show, u, 'f');
     expect(u).toMatchObject({ parentId: 'f', z: -1, sizing: 'autoWidth' });
+  });
+
+  it('locks what is inside a locked frame', () => {
+    const show = stack();
+    frameOf(show).locked = true;
+    const tree = layerTree(show.layers);
+    expect(['f', 'x', 'a'].map((id) => isLocked(tree, id))).toEqual([true, true, false]);
   });
 
   it('names layers by their frames', () => {

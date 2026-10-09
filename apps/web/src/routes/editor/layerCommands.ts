@@ -62,6 +62,21 @@ export function ungroupSelection(ids: string[]): void {
   );
 }
 
+/** ⇧⌘L: lock the selection on the canvas, or unlock it when it is all locked already. */
+export function toggleLock(ids: string[]): void {
+  const { show, update } = useEditor.getState();
+  const layers = (show?.layers ?? []).filter((l) => ids.includes(l.id));
+  if (!layers.length) return;
+  const lock = layers.some((l) => !l.locked);
+  update((d) => {
+    for (const l of d.layers) {
+      if (!ids.includes(l.id)) continue;
+      if (lock) l.locked = true;
+      else delete l.locked;
+    }
+  });
+}
+
 /** Rename: the layer's name lives in the inspector, so go there. */
 export function focusLayerName(): void {
   const el = document.getElementById('layer-name');

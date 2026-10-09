@@ -7,6 +7,8 @@ import {
   Eye,
   EyeOff,
   GripVertical,
+  Lock,
+  LockOpen,
 } from 'lucide-react';
 import { useEffect, useMemo, useRef, type KeyboardEvent } from 'react';
 import {
@@ -30,6 +32,7 @@ import {
   duplicateSelection,
   focusLayerName,
   frameSelection,
+  toggleLock,
   ungroupSelection,
 } from './layerCommands.js';
 import { measureLayer } from './measure.js';
@@ -37,7 +40,7 @@ import { measureLayer } from './measure.js';
 /**
  * One output's layers as a tree, front first; frames fold open to show what is inside them.
  * Drag to restack or nest, or Alt+↑/↓ among siblings. Enter, double-click or F2 renames in the
- * inspector; Delete, ⌘D, ⌘G and ⇧⌘G work here as on the canvas.
+ * inspector; Delete, ⌘D, ⌘G, ⇧⌘G and ⇧⌘L work here as on the canvas.
  */
 export function LayersTree({ outputId }: { outputId: string }) {
   const show = useShow();
@@ -123,6 +126,9 @@ export function LayersTree({ outputId }: { outputId: string }) {
     } else if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'd') {
       handled();
       duplicateSelection(selected);
+    } else if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === 'l') {
+      handled();
+      toggleLock(selected);
     } else if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'g') {
       handled();
       (e.shiftKey ? ungroupSelection : frameSelection)(selected);
@@ -142,6 +148,7 @@ export function LayersTree({ outputId }: { outputId: string }) {
     // Under a frame that starts hidden: on at the start, but not seen until the frame is.
     const dim = ancestorsOf(tree, l.id).some((f) => !f.visible);
     const problem = problems.get(l.id);
+    const lockedAbove = !l.locked && ancestorsOf(tree, l.id).some((f) => f.locked);
     return (
       <TreeItem
         id={l.id}
@@ -193,6 +200,24 @@ export function LayersTree({ outputId }: { outputId: string }) {
                     : layerKindLabel(l)}
                 </div>
               </div>
+              {lockedAbove ? (
+                <span data-info="Locked with its frame" className="px-1.5 text-fg-subtle">
+                  <Lock size={12} aria-hidden />
+                  <span className="sr-only">Locked with its frame</span>
+                </span>
+              ) : (
+                <IconButton
+                  label={l.locked ? `Unlock ${l.name}` : `Lock ${l.name}`}
+                  shortcut="⇧⌘L"
+                  aria-pressed={!!l.locked}
+                  icon={l.locked ? <Lock size={13} /> : <LockOpen size={13} />}
+                  onClick={() => toggleLock([l.id])}
+                  className={cn(
+                    !l.locked &&
+                      'text-fg-subtle opacity-0 group-focus-within:opacity-100 group-hover:opacity-100',
+                  )}
+                />
+              )}
               {problem && (
                 <span data-info={problem} className="text-warn">
                   <AlertTriangle size={13} aria-hidden />

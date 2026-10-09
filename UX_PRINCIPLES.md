@@ -350,7 +350,7 @@ The principles applied to each screen. Rows marked _today_ describe a gap found 
   - The list is a tree: **frames** group layers that move, fade and clear as one. A frame can lay its content out in a row or column and fit it, so a background grows with `{{value}}` text. Drag a row onto a frame to nest it; ⌘G frames the selection and ⇧⌘G ungroups it. Nothing moves on stage when you do.
   - On the canvas a click picks the outermost frame and a double-click goes inside, as in Figma.
   - Top-level layers pin to output edges, and keep them when the output changes size.
-  - _Today: Lock is not there yet._
+  - **Lock** (⇧⌘L, or the lock on a row) keeps a layer, and what is inside it, from being clicked, dragged or nudged on the canvas. It can still be picked in the list and edited in the inspector.
 - **Inspector.** It follows the selection; with nothing selected it shows output and show defaults. Basic properties come first, with **More** for crop, bus and loop.
 - **The precision kit and task bar** are described in principle 6.
 

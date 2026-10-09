@@ -19,6 +19,11 @@ import { removeLayer } from './refs.js';
  * only orders a layer among its siblings.
  */
 
+/** Locked itself or inside a locked frame: the canvas leaves it alone. */
+export function isLocked(tree: LayerTree, id: string): boolean {
+  return !!tree.byId.get(id)?.locked || ancestorsOf(tree, id).some((f) => f.locked);
+}
+
 /** The selected layers that aren't inside another selected layer, in the order given. */
 export function outermost(tree: LayerTree, ids: string[]): string[] {
   const picked = new Set(ids);
