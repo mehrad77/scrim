@@ -60,11 +60,11 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - name: Deploy relay
-        run: pnpm --filter @scrim/relay deploy
+        run: pnpm --filter @scrim/relay run deploy
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       - name: Deploy app
-        run: pnpm --filter @scrim/web deploy
+        run: pnpm --filter @scrim/web run deploy
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       - name: Probe
