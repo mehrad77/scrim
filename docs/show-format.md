@@ -145,7 +145,7 @@ When `follow.auto` is true, the next cue fires `delay` seconds after this one; w
 - `i18n` holds the same texts by language code (`{ fr: { caption } }`); a missing translation falls back to the show's own words.
 - A text layer showing `{{caption}}` puts the current caption on stage: open captions for everyone.
 
-**Joining from the stage.** While the audience room is open, a text layer's `{{join_code}}` is the five-letter room code and `{{join_url}}` the audience page's address; with no room open both are empty, so a stale code never shows. A text layer with `qr: true` draws its text as a QR code in its text colour on its background colour, so a layer reading `{{join_url}}` with `qr` is the code phones scan. An app that doesn't know `qr` shows the address as text.
+**Joining from the stage.** While the audience room is open, a text layer's `{{join_code}}` is the five-letter room code and `{{join_url}}` the audience page's address; with no room open both are empty, so a stale code never shows. A text layer with `qr: true` draws its text as a QR code, dark on light with a quiet zone: its text colour on its background colour, or black on white when those two are too close for a phone's camera. A layer reading `{{join_url}}` with `qr` is the code phones scan. An app that doesn't know `qr` shows the address as text.
 
 `gentle` (optional) is what the cue does instead in a [relaxed performance](#relaxed-performances): a softer version of its actions, or an empty list to leave them out. Absent, the cue does the same as always, within relaxed's limits.
 

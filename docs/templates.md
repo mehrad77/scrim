@@ -38,7 +38,7 @@ Template media ships with the app in `apps/web/public/templates/`. It is downloa
 - **sound:** AAC at 160 kbps, levelled to −18 LUFS;
 - **fonts:** the Latin subset as WOFF2, with its OFL licence beside it.
 
-**Joining from the stage.** Most templates put the room's QR code and code on stage (`joinCard` in `layout.ts`): a text layer reading `{{join_url}}` with `qr` on, and one reading `{{join_code}}`. Both stay empty until the operator opens the audience room.
+**Joining from the stage.** Most templates put the room's QR code and code on stage (`joinCard` in `layout.ts`): a text layer reading `{{join_url}}` with `qr` on (drawn dark on light), and one reading `{{join_code}}`. Both stay empty until the operator opens the audience room.
 
 **Budget:** at most 40 MB per template (80 MB for the gig, which has video) and 250 MB in all. `templates.test.ts` and `pnpm --filter @scrim/web budget` check it.
 
