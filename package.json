@@ -1,6 +1,8 @@
 {
   "name": "scrim",
   "private": true,
+  "homepage": "https://scrim.shab.boo",
+  "repository": "https://github.com/mehrad77/scrim",
   "type": "module",
   "packageManager": "pnpm@11.5.0",
   "scripts": {

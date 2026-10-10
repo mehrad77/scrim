@@ -2,6 +2,8 @@
 
 Browser-native show control and projection for interactive theater. Open a link, build a show, press GO.
 
+Live at [scrim.shab.boo](https://scrim.shab.boo). Source: [github.com/mehrad77/scrim](https://github.com/mehrad77/scrim).
+
 Scrim drives one or more clean, full-screen audience outputs from an operator view. Shows are cue lists that read and change shared **show state**, so audience votes, performer triggers and MIDI pedals are first-class. Once loaded, a show runs offline on the show machine; the network only adds the people in the room.
 
 ## What's here
@@ -90,8 +92,12 @@ An output can also live on another device: copy its link from the operator view 
 
 ## Deploy
 
-- Relay: `pnpm --filter @scrim/relay deploy` (Cloudflare Workers with Durable Objects). Set `ALLOWED_ORIGINS` in `wrangler.toml` to the app's origin.
-- App: `pnpm build`, then serve `apps/web/dist` as a static site with SPA fallback (for example Cloudflare Pages). Set `VITE_RELAY_URL` to the relay's URL at build time.
+The app is [scrim.shab.boo](https://scrim.shab.boo). The relay is [relay.scrim.shab.boo](https://relay.scrim.shab.boo).
+
+- App: `pnpm --filter @scrim/web deploy` builds with `VITE_RELAY_URL=https://relay.scrim.shab.boo` and publishes `apps/web/dist` as a Workers static-asset site ([apps/web/wrangler.jsonc](apps/web/wrangler.jsonc)).
+- Relay: `pnpm --filter @scrim/relay deploy` publishes the Durable Object Worker ([apps/relay/wrangler.toml](apps/relay/wrangler.toml)). `ALLOWED_ORIGINS` allows the app origin and local dev.
+
+A push to `main` runs the checks in [.github/workflows/ci.yml](.github/workflows/ci.yml), then deploys both Workers. That job uses the `CLOUDFLARE_API_TOKEN` repository secret.
 
 ## Documentation
 

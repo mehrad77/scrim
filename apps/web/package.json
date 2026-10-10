@@ -10,7 +10,8 @@
     "typecheck": "tsc -p .",
     "test": "vitest run --passWithNoTests",
     "e2e": "playwright test",
-    "budget": "node scripts/bundle-budget.mjs"
+    "budget": "node scripts/bundle-budget.mjs",
+    "deploy": "VITE_RELAY_URL=https://relay.scrim.shab.boo pnpm build && wrangler deploy"
   },
   "dependencies": {
     "@scrim/engine": "workspace:*",
@@ -40,6 +41,7 @@
     "tailwindcss": "^4.3.3",
     "vite": "^8.3.3",
     "vite-plugin-pwa": "^2.0.0",
-    "workbox-window": "^7.4.1"
+    "workbox-window": "^7.4.1",
+    "wrangler": "^4.148.0"
   }
 }

@@ -1,6 +1,8 @@
 name = "scrim-relay"
 main = "src/worker.ts"
 compatibility_date = "2026-09-01"
+account_id = "bc2cdffbdad34ab730d8a264f29e74e9"
+workers_dev = false
 
 [[durable_objects.bindings]]
 name = "ROOMS"
@@ -10,7 +12,20 @@ class_name = "Room"
 tag = "v1"
 new_sqlite_classes = ["Room"]
 
+[[routes]]
+pattern = "relay.scrim.shab.boo"
+custom_domain = true
+
 [vars]
-# Comma-separated origins allowed to create rooms; "*" allows any.
-ALLOWED_ORIGINS = "*"
+# Comma-separated origins allowed to create rooms. Localhost stays so `wrangler dev` accepts the local app.
+ALLOWED_ORIGINS = "https://scrim.shab.boo,http://localhost:5173,http://127.0.0.1:5173"
 MAX_AUDIENCE = "2000"
+
+[observability]
+enabled = true
+
+[observability.logs]
+enabled = true
+
+[observability.traces]
+enabled = true

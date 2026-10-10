@@ -136,6 +136,9 @@ importers:
       workbox-window:
         specifier: ^7.4.1
         version: 7.4.1
+      wrangler:
+        specifier: ^4.148.0
+        version: 4.148.0(@cloudflare/workers-types@5.20261007.1)(@types/node@26.6.4)
 
   packages/engine:
     dependencies:
