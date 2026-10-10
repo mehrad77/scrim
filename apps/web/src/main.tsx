@@ -19,6 +19,7 @@ const OutputWindow = lazy(() => import('./routes/OutputWindow.js'));
 const RemoteOutput = lazy(() => import('./routes/RemoteOutput.js'));
 const Remote = lazy(() => import('./routes/Remote.js'));
 const Kiosk = lazy(() => import('./routes/Kiosk.js'));
+const Templates = lazy(() => import('./routes/Templates.js'));
 
 const router = createBrowserRouter([
   { path: '/', element: <Library /> },
@@ -29,6 +30,8 @@ const router = createBrowserRouter([
   { path: '/remote', element: <Remote /> },
   // An unattended installation: the show in Show mode, its output in this tab.
   { path: '/kiosk/:id', element: <Kiosk /> },
+  { path: '/templates', element: <Templates /> },
+  { path: '/templates/:id', element: <Templates /> },
   { path: '*', element: <Library /> },
 ]);
 

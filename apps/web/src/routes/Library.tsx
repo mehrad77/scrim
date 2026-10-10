@@ -58,7 +58,7 @@ import { ShortcutSheet } from '../ui/ShortcutSheet.js';
 import { errorToast, toast } from '../ui/toast.js';
 import { FirstRun, WELCOMED_KEY } from './library/FirstRun.js';
 import { StartGallery } from './library/StartGallery.js';
-import { templateById } from '../templates/index.js';
+import { TEMPLATES, templateById } from '../templates/index.js';
 import type { TemplateSeed } from '../templates/types.js';
 
 /** A run newer than this is offered on the Library's front page. */
@@ -193,6 +193,20 @@ export function Library() {
         run: () => starter(s.id),
       })),
       {
+        id: 'templates',
+        group: 'Shows',
+        title: 'Browse templates',
+        aliases: ['gallery', 'start'],
+        run: () => navigate('/templates'),
+      },
+      ...TEMPLATES.map((t) => ({
+        id: `template:${t.id}`,
+        group: 'Shows',
+        title: `New show from a template: ${t.title}`,
+        aliases: ['template', t.group],
+        run: () => navigate(`/templates/${t.id}`),
+      })),
+      {
         id: 'import',
         group: 'Shows',
         title: 'Import a .scrim file…',
@@ -312,7 +326,6 @@ export function Library() {
         templates={templates}
         onBlank={() => void create()}
         onDemo={() => void demo()}
-        onStarter={starter}
         onTemplate={(t) => void template(t)}
         onDeleteTemplate={async (t) => {
           await deleteTemplate(t.id);

@@ -64,7 +64,7 @@ The five primary users come from the [product proposal](https://claude.ai/code/a
 - Autosave every 400 ms.
 - Versions every 5 minutes, with restore.
 - `.scrim` export and import.
-- A start gallery with the demo and three starters (an audience vote that branches, slides with cues, a performer button counter), and **Save as template** on this machine. A show made from a template gets ids of its own.
+- A **template gallery** with a whole show for each user below: real public-domain pictures, music and video, the settings that user needs, and a Learn checklist for making it theirs. Plus the demo, three small starters, and **Save as template** on this machine. A show made from a template gets ids of its own.
 - **Wizards** that build ordinary cues, layers and rules: a song, a photo story, notices, a quiz question, and a choice point.
 - **Import scenes** from another `.scrim` file, with everything their cues use.
 - A **simple editor** that folds rules, values and mappings one labelled step away.
@@ -74,7 +74,7 @@ The five primary users come from the [product proposal](https://claude.ai/code/a
 **Gaps.**
 
 - No collaboration: one person edits a show on one machine.
-- The template gallery for the use cases below is next; saved templates stay on one machine.
+- Saved templates stay on one machine, and the gallery's templates come with the app; there's no community sharing yet.
 - Effects, blend modes and projection warping wait for the [GPU compositor](research/gpu-compositor.md).
 
 ### Director
@@ -381,7 +381,7 @@ Design and rehearsal loop many times. Review feeds the next rehearsal. Touring r
   - The logic check also catches cue loops with no time between, and the flash check catches cues that flash more than three times a second.
 - **Risks and gaps:**
   - Single-user only.
-  - Only three starters; the template gallery for the use cases below is next.
+  - Templates come with the app; communities can't share their own through the gallery yet.
   - Visual effects and mapping are limited by the DOM renderer.
 
 ### 3. Rehearse
@@ -523,7 +523,7 @@ The same set of users covers a band's live show, but in a different shape. Theat
 
 ### What Scrim would need
 
-Setlist mode, and lyrics by section, exist so far:
+Setlist mode, and lyrics by section, exist so far, and the **Night Shift: Live** template puts them to work: NASA footage graded for an LED wall, a program change per song, a pedal for each section, and an encore the crowd votes for.
 
 1. **Tempo sync:** cues, follows and effects timed in beats and bars, locked to MIDI clock or Ableton Link.
 2. **Timecode chase:** cues fire at timecode positions sent by the playback rig. This needs care, because browser timers jitter.
@@ -564,8 +564,8 @@ For each user, **Ideas** links to the cross-cutting ideas in [Accessible to all]
   - The pre-show check says when the browser or the school's administrator blocks window placement, pop-ups, full screen or MIDI, and names the Chrome policy.
   - Hold-to-confirm GO, and keys, pedals and buttons for students who operate or perform without a mouse.
   - Relaxed performances for school audiences, and a flash check on cue timings.
+  - The **Tortoise and the Hare** template: a whole class play on painted backdrops, a narrator, a parents' vote on the nap, and one big GO a ten-year-old can run.
 - **Gaps:**
-  - The School play template (the gallery is next).
   - Switch scanning and voice control.
 - **Ideas:** [3 inclusive operation](#3-inclusive-operation), [5 simple modes and templates](#5-simple-modes-and-templates), [2 relaxed mode](#2-relaxed-mode-and-a-flash-safety-check) for relaxed school performances.
 
@@ -596,6 +596,7 @@ For each user, **Ideas** links to the cross-cutting ideas in [Accessible to all]
   - Captions, description and translations on visitors' phones, and a physical button for visitors without one.
   - Relaxed performances for quiet or sensory-friendly visiting hours.
   - Fully offline running, and auto-follow and rules that loop scenes.
+  - The **Great Wave** template: Hokusai and Hiroshige on a quiet gallery wall, a button that starts a story in close-ups, captions in three languages, opening hours and a quiet hour.
 - **Gaps:**
   - Remote monitoring and alerts.
 - **Ideas:** [1 personal access channel](#1-a-personal-access-channel-on-the-audience-phone), [4 no-phone participation](#4-no-phone-participation), [2 relaxed mode](#2-relaxed-mode-and-a-flash-safety-check) for quiet or sensory-friendly visiting hours.
@@ -627,8 +628,8 @@ For each user, **Ideas** links to the cross-cutting ideas in [Accessible to all]
   - A **notices** wizard: announcements that change on their own and go round again.
   - A simple operator view (one huge GO, now and next, the song's sections as buttons), with an optional hold-to-confirm GO.
   - Lyrics on people's own phones as captions, in large print or translated.
+  - The **Sunday Gathering** template: notices that go round as people arrive, “Amazing Grace” and “Auld Lang Syne” verse by verse, a reading, setlists, and the words on phones.
 - **Gaps:**
-  - The Lyrics and notices template (the gallery is next).
   - A library shared between machines; today it moves as a file.
   - Streaming.
 - **Ideas:** [5 simple modes and templates](#5-simple-modes-and-templates), [1 personal access channel](#1-a-personal-access-channel-on-the-audience-phone), [3 inclusive operation](#3-inclusive-operation).
@@ -659,8 +660,8 @@ For each user, **Ideas** links to the cross-cutting ideas in [Accessible to all]
   - A shared tablet passed around the group (each answer counts as one person, in large print), large buttons mapped to vote options, and counts the leader types in.
   - Calm by default: a show can start every session relaxed, with soft fades, limited brightness and capped sound.
   - A **photo story** wizard: pictures that dissolve one into the next under music, going round again.
-- **Gaps:**
-  - The Memory session template (the gallery is next).
+  - The **Day at the Seaside** template: seaside photographs from a century ago with a question on each, a choice made together with no timer, a 1909 sing-along, relaxed from the first cue.
+- **Gaps:** none of its own; see the shared gaps above.
 - **Ideas:** [2 relaxed mode](#2-relaxed-mode-and-a-flash-safety-check) as the default, [4 no-phone participation](#4-no-phone-participation), [3 inclusive operation](#3-inclusive-operation), [5 simple modes and templates](#5-simple-modes-and-templates).
 
 ### Street or festival performer
@@ -719,8 +720,8 @@ For each user, **Ideas** links to the cross-cutting ideas in [Accessible to all]
   - No accounts, and local-only storage.
   - The simple editor, and wizards for a choice point (a new scene for each option, and "You chose …" on stage), a quiz question (the room against the quizmaster) and a photo story.
   - No free text keeps guests' phones to votes and taps.
+  - The **Lighthouse at the Edge of the Map**, **Big Quiz** and **Happy 80th!** templates: a storybook adventure, a game-show quiz, and a birthday with photos and candles to blow out from phones.
 - **Gaps:**
-  - The Choose your own adventure, Quiz night and Birthday surprise templates (the gallery is next).
   - Media capture inside the app.
   - Read-aloud help for younger readers.
 - **Ideas:** [5 simple modes and templates](#5-simple-modes-and-templates), [3 inclusive operation](#3-inclusive-operation).
@@ -883,7 +884,7 @@ The full editor is right for show designers but too much for a teacher, a volunt
 
 Templates are ordinary `.scrim` files, so they can be shared by communities: a school district, a church network, a care provider. They need no new format.
 
-**Built.** The simple editor (a switch in the editor header, saved with the show) and wizards for a song, a photo story, notices, a quiz question and a choice point, with a song library on each machine. **No free text** is a show setting. Scenes can be imported from another show, and a show made from a template gets ids of its own. The template gallery itself is next.
+**Built.** The simple editor (a switch in the editor header, saved with the show) and wizards for a song, a photo story, notices, a quiz question and a choice point, with a song library on each machine. **No free text** is a show setting. Scenes can be imported from another show, and a show made from a template gets ids of its own. The **template gallery** brings them together: a school play, a Sunday gathering, a care-home memory session, a museum installation, a choose-your-own-adventure, a quiz night, a birthday surprise and a band's live visuals, each a whole show with real public-domain media ([templates](templates.md)).
 
 ## What the journey tells us
 
@@ -896,5 +897,5 @@ Templates are ordinary `.scrim` files, so they can be shared by communities: a s
   - The [personal access channel](#1-a-personal-access-channel-on-the-audience-phone) turns the audience phone, which is already in every seat, into each person's own access device. Few venues can offer that today.
   - Combined with [inclusive operation](#3-inclusive-operation), [no-phone participation](#4-no-phone-participation) and [simple modes](#5-simple-modes-and-templates), Scrim reaches schools, care homes, museums, faith groups and street performers. Those users are poorly served by professional show tools.
   - Most of these ideas reuse what exists: the relay, the input mapping, moment totals and the pure engine. None needed a format version bump.
-  - Four of the five are built (the access channel, relaxed and flash, no-phone participation, simple modes); inclusive operation lacks single-switch scanning and voice. What remains is the template gallery, which puts them together for each of these users.
+  - Four of the five are built (the access channel, relaxed and flash, no-phone participation, simple modes); inclusive operation lacks single-switch scanning and voice. The template gallery puts them together for each of these users.
 - **Collaboration helps three stages at once.** A cloud workspace with roles and comments would help Design, Rehearse and Review, and would serve the director, who is the user Scrim supports least today.

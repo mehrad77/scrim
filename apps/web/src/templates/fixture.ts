@@ -69,6 +69,7 @@ export const FIXTURE_SEED: TemplateSeed = {
     const start = addScene(show, 'The two roads');
     addCue(show, start.id, 'Title', [fade(plate.id, true, 1.2)]);
     addCue(show, start.id, 'Ask', [{ type: 'openMoment', momentId: vote.id }]);
+    addCue(show, start.id, 'Decide', [{ type: 'closeMoment', momentId: vote.id }]);
     const river = addScene(show, 'The river');
     addCue(show, river.id, 'River', [
       fade(plate.id, false, 1),

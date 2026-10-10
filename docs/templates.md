@@ -33,19 +33,21 @@ Template media ships with the app in `apps/web/public/templates/`. It is downloa
 
 **`node scripts/template-media/build.mjs`** (in `apps/web`) downloads and encodes each file, and writes `public/templates/index.json` with every file's size, hash and credit. It needs `ffmpeg` and `cwebp`, and encodes:
 
-- **pictures:** WebP, at most 1920 px wide, about 300 KB each;
+- **pictures:** WebP, at most 1920 px wide, about 400 KB each;
 - **video:** H.264 MP4 at 1080p with no sound, cut as a seamless loop (the last second dissolves into the first);
-- **sound:** AAC at 128 kbps, levelled to −18 LUFS;
+- **sound:** AAC at 160 kbps, levelled to −18 LUFS;
 - **fonts:** the Latin subset as WOFF2, with its OFL licence beside it.
 
-**Budget:** at most 15 MB per template (25 MB for the gig, which has video) and 70 MB in all. `templates.test.ts` and `pnpm --filter @scrim/web budget` check it.
+**Joining from the stage.** Most templates put the room's QR code and code on stage (`joinCard` in `layout.ts`): a text layer reading `{{join_url}}` with `qr` on, and one reading `{{join_code}}`. Both stay empty until the operator opens the audience room.
+
+**Budget:** at most 40 MB per template (80 MB for the gig, which has video) and 250 MB in all. `templates.test.ts` and `pnpm --filter @scrim/web budget` check it.
 
 ### What we may use
 
 Only these, with no exceptions:
 
 - **Public domain** (`PD`), with the reason in `basis`:
-  - **Music:** the composition is public domain (its writers died before 1955), and the recording is CC0 or was published before 1930.
+  - **Music:** the composition is public domain (its writers died before 1955), and the recording is CC0, a US government band's, or was published 100 or more years ago (in 2026, in 1925 or earlier; US law frees one more year each January).
   - **US government work** (NASA, NOAA) is public domain. Logos, insignia and recognisable people in endorsement poses are excluded.
   - **Library of Congress** items must be clearly public domain, not just marked "no known restrictions".
 - **CC0** (`CC0-1.0`): for example, museum open-access collections such as the Met, the Art Institute of Chicago, the Rijksmuseum and the National Gallery of Art.
@@ -86,3 +88,18 @@ Every template is held to the same bar, and the harness (`templates/harness.ts`)
 - the download fits its budget.
 
 `FIXTURE_SEED` (`templates/fixture.ts`) is a small template, not in the gallery, that keeps the harness itself honest.
+
+## Hero frames and contact sheets
+
+A seed's `heroes` names the cues whose stage is each scene's deliberate composition; the first is the gallery thumbnail. With the dev server running, `node scripts/template-shots.mjs [ids…]` (in `apps/web`):
+
+1. builds each template in a real page;
+2. writes the settled stage after each hero cue to the journal and opens the real output window at 1920 × 1080, with a sample room code;
+3. saves a frame per hero in `.shots/<id>/` (not committed) and `public/templates/<id>/thumb.webp`;
+4. fails if any text on stage is cut off, measured as drawn.
+
+Review the frames on the contact sheet (`.shots/index.html`) before a template ships.
+
+## Games
+
+A vote whose every answer must lead somewhere different is the default: the harness fails a choice that doesn't branch. A guess or a tap race is a game, not a choice; a seed lists those in `games`.

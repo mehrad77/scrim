@@ -1,6 +1,6 @@
 import type { EngineState } from '@scrim/engine';
 import type { Show } from '@scrim/format';
-import type { OutputStatus } from '@scrim/protocol';
+import type { JoinInfo, OutputStatus } from '@scrim/protocol';
 import { Maximize } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router';
@@ -22,6 +22,7 @@ export default function OutputWindow() {
   const [show, setShow] = useState<Show | null>(null);
   const [state, setState] = useState<EngineState | null>(null);
   const [hostAlive, setHostAlive] = useState(false);
+  const [join, setJoin] = useState<JoinInfo | null>(null);
   const [hud, setHud] = useState(true);
   const [identify, setIdentify] = useState(false);
   // In Show mode nothing but the stage appears here: no HUD, no Identify (safety invariant 6).
@@ -43,6 +44,9 @@ export default function OutputWindow() {
         case 'show':
           gotShow = true;
           setShow(m.show);
+          break;
+        case 'join':
+          setJoin(m.join);
           break;
         case 'state':
           lastBeat = Date.now();
@@ -186,6 +190,7 @@ export default function OutputWindow() {
           variant="output"
           onMediaEnded={onEnded}
           onAudioBlocked={onBlocked}
+          join={join}
         />
       ) : null}
       {identify && !showMode && output && (

@@ -1,26 +1,24 @@
 import type { Show } from '@scrim/format';
-import { FilePlus2, Layers, Radio, Sparkles, Vote, X, type LucideIcon } from 'lucide-react';
+import { ArrowRight, FilePlus2, Layers, Sparkles, X, type LucideIcon } from 'lucide-react';
+import { Link } from 'react-router';
 import { cn } from '../../lib/cn.js';
-import { STARTERS } from '../../lib/starters.js';
-
-const ICONS: Record<string, LucideIcon> = { vote: Vote, slides: Layers, counter: Radio };
+import { TEMPLATES } from '../../templates/index.js';
+import { thumbnailOf } from '../../templates/types.js';
 
 /**
- * The start gallery (UX principle 8): a blank show, the demo, a few real starters and this
+ * The start gallery (UX principle 8): a blank show, the demo, the template gallery and this
  * machine's saved templates. Every card makes an ordinary show.
  */
 export function StartGallery({
   templates,
   onBlank,
   onDemo,
-  onStarter,
   onTemplate,
   onDeleteTemplate,
 }: {
   templates: Show[];
   onBlank: () => void;
   onDemo: () => void;
-  onStarter: (id: string) => void;
   onTemplate: (t: Show) => void;
   onDeleteTemplate: (t: Show) => void;
 }) {
@@ -44,16 +42,7 @@ export function StartGallery({
           blurb="An interactive show with a vote. Safe to break."
           onClick={onDemo}
         />
-        {STARTERS.map((s, i) => (
-          <Card
-            key={s.id}
-            tape={[4, 6, 2][i] ?? 1}
-            icon={ICONS[s.id] ?? FilePlus2}
-            title={s.title}
-            blurb={s.blurb}
-            onClick={() => onStarter(s.id)}
-          />
-        ))}
+        <BrowseTemplates />
         {templates.map((t) => (
           <Card
             key={t.id}
@@ -120,6 +109,46 @@ function Card({
           <X size={14} />
         </button>
       )}
+    </li>
+  );
+}
+
+/** The way into the template gallery, showing a few of its shows. */
+function BrowseTemplates() {
+  const shown = TEMPLATES.slice(0, 4);
+  return (
+    <li className="sm:col-span-2 lg:col-span-3">
+      <Link
+        to="/templates"
+        className="group relative flex h-full min-h-40 overflow-hidden rounded-control border border-line-subtle bg-panel outline-none hover:border-line-strong focus-visible:outline-2 focus-visible:outline-focus"
+      >
+        <span aria-hidden className="absolute inset-x-0 top-0 z-10 h-1 bg-accent" />
+        <span className="flex flex-1 flex-col gap-2 p-4 pt-5">
+          <Layers size={18} className="text-fg-icon" aria-hidden />
+          <span className="font-display text-title font-semibold text-fg">Templates</span>
+          <span className="text-caption text-fg-muted">
+            Whole shows with real pictures and music, for a school play, a gathering, a care home, a
+            museum, a party or a gig.
+          </span>
+          <span className="mt-auto flex items-center gap-1 text-caption text-fg">
+            Browse templates <ArrowRight size={13} aria-hidden />
+          </span>
+        </span>
+        {shown.length > 0 && (
+          <span aria-hidden className="hidden w-1/2 grid-cols-2 gap-px bg-line-subtle sm:grid">
+            {shown.map((t) => (
+              <img
+                key={t.id}
+                src={`${import.meta.env.BASE_URL}${thumbnailOf(t)}`}
+                alt=""
+                loading="lazy"
+                onError={(e) => (e.currentTarget.style.visibility = 'hidden')}
+                className="aspect-video size-full bg-black object-cover"
+              />
+            ))}
+          </span>
+        )}
+      </Link>
     </li>
   );
 }

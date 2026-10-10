@@ -412,8 +412,26 @@ function Inspector({ show, layer }: { show: Show; layer: Layer }) {
           />
           <p className="text-caption text-fg-subtle">
             Insert live state with <code className="text-fg-muted">{'{{name}}'}</code>
-            {show.vars.length ? `, e.g. {{${show.vars[0]!.name}}}` : ''}.
+            {show.vars.length ? `, e.g. {{${show.vars[0]!.name}}}` : ''}. While phones can join,{' '}
+            <code className="text-fg-muted">{'{{join_code}}'}</code> is the room code.
           </p>
+          <Toggle
+            checked={!!layer.qr}
+            onChange={(qr) => set({ qr: qr || undefined } as Partial<Layer>)}
+            label="Show as a QR code"
+          />
+          {layer.qr && (
+            <div className="flex flex-col items-start gap-1">
+              <p className="text-caption text-fg-subtle">
+                Drawn in the text colour on the background colour; keep them far apart.
+              </p>
+              {layer.text !== '{{join_url}}' && (
+                <Button size="sm" onClick={() => set({ text: '{{join_url}}' } as Partial<Layer>)}>
+                  Make it the join code
+                </Button>
+              )}
+            </div>
+          )}
         </Section>
       )}
 

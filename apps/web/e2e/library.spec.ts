@@ -10,6 +10,7 @@ test('first run answers shape new shows, and a starter opens ready to edit', asy
   await page.getByRole('button', { name: 'Done' }).click();
   await expect(page.getByRole('heading', { name: 'Welcome to Scrim' })).toHaveCount(0);
 
+  await page.getByRole('link', { name: /Browse templates/ }).click();
   await page.getByRole('button', { name: /Slides with cues/ }).click();
   await expect(page).toHaveURL(/\/show\/show_/);
   await expect(page.getByRole('tab', { name: 'Stage' })).toBeVisible();

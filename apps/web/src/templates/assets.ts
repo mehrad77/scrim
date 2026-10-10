@@ -62,6 +62,16 @@ export function downloadSize(seed: TemplateSeed, idx: AssetIndex): number {
   );
 }
 
+/** How much a template still has to download on this machine, in bytes: 0 once it's all here. */
+export async function downloadNeeded(seed: TemplateSeed, idx: AssetIndex): Promise<number> {
+  let n = 0;
+  for (const path of new Set(seed.assets.map((a) => a.path))) {
+    const e = idx.files[path];
+    if (e && !(await stored(e.sha256, e.bytes))) n += e.bytes;
+  }
+  return n;
+}
+
 /** Media already fetched for an earlier show, by content hash, so a second copy costs nothing. */
 const CACHE_KEY = 'templateMedia';
 

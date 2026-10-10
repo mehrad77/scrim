@@ -126,7 +126,13 @@ export function OutputsPanel() {
                   style={dim}
                 >
                   {live ? (
-                    <Stage show={snap.show} state={snap.state} outputId={o.id} variant="thumb" />
+                    <Stage
+                      show={snap.show}
+                      state={snap.state}
+                      outputId={o.id}
+                      variant="thumb"
+                      join={snap.join}
+                    />
                   ) : (
                     <div className="flex size-full items-center justify-center text-caption text-fg-subtle">
                       Previews off
@@ -152,7 +158,13 @@ export function OutputsPanel() {
                     style={dim}
                   >
                     {live && next && (
-                      <Stage show={snap.show} state={next} outputId={o.id} variant="thumb" />
+                      <Stage
+                        show={snap.show}
+                        state={next}
+                        outputId={o.id}
+                        variant="thumb"
+                        join={snap.join}
+                      />
                     )}
                   </div>
                   <Lamp tone={next ? 'standby' : 'off'}>Next</Lamp>

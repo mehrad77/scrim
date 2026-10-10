@@ -24,6 +24,7 @@ import {
   type RelayToHost,
   type RemoteView,
   type RunMode,
+  type JoinInfo,
 } from '@scrim/protocol';
 import { epochNow } from '../lib/clock.js';
 import { accessView } from '../lib/access.js';
@@ -42,7 +43,7 @@ import {
   midiCommand,
   type MidiEvent,
 } from './inputs.js';
-import { createRoom, storedRoom, type RoomInfo } from './room.js';
+import { audienceUrl, createRoom, storedRoom, type RoomInfo } from './room.js';
 
 const BEAT_MS = 500;
 const LOST_AFTER_MS = 2000;
@@ -120,6 +121,8 @@ export interface HostSnapshot {
   goDroppedAt: number | null;
   /** Deliberate deviations from the script this run (forced results, edits, moved standby). */
   offScript: OffScriptEntry[];
+  /** How phones join the open room, for join codes and QR codes on stage. */
+  join: JoinInfo | null;
   /** A GO being held down until the show's hold time passes; null when nothing is held. */
   goHold: { since: number; ms: number } | null;
   /** When a held GO was let go too soon, so the operator view can say how long to hold. */
@@ -692,6 +695,7 @@ export class ShowHost {
           this.#touchLink(msg.clientId, msg.outputId, false, null);
         this.#broadcastShow();
         this.#broadcastState();
+        this.#channel.post({ t: 'join', join: this.#join });
         return;
       case 'outputBeat':
         this.#touchLink(msg.clientId, msg.outputId, false, msg.status);
@@ -1143,6 +1147,8 @@ export class ShowHost {
     return this.engine.show.outputs.find((o) => o.id === outputId)?.name ?? outputId;
   }
 
+  #join: JoinInfo | null = null;
+
   #set(fn: () => void): void {
     fn();
     this.#build();
@@ -1151,6 +1157,15 @@ export class ShowHost {
   #build(): void {
     const health: Record<string, OutputHealth> = {};
     const links = [...this.#links.values()];
+    // Outputs show the join code while the room is open.
+    // While the room is open or coming back: a reconnect mustn't blank the code on a wall.
+    const live = this.#relayInfo.status === 'open' || this.#relayInfo.status === 'connecting';
+    const room = live ? this.#relayInfo.room : null;
+    const join = room ? { code: room.code, url: audienceUrl(room) } : null;
+    if (JSON.stringify(join) !== JSON.stringify(this.#join)) {
+      this.#join = join;
+      this.#channel.post({ t: 'join', join });
+    }
     for (const o of this.engine.show.outputs) {
       const live = links.some((l) => l.outputId === o.id);
       health[o.id] = live ? 'ok' : this.#everConnected.has(o.id) ? 'lost' : 'none';
@@ -1174,6 +1189,7 @@ export class ShowHost {
       goLockedUntil: this.#lastGo + DOUBLE_GO_MS,
       goDroppedAt: this.#goDroppedAt,
       offScript: this.#offScript,
+      join: this.#join,
       goHold: this.#goHold(),
       goHoldShortAt: this.#goHoldShortAt,
     };

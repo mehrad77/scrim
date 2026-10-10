@@ -17,6 +17,7 @@ import {
   type CSSProperties,
   type ReactNode,
 } from 'react';
+import type { JoinInfo } from '@scrim/protocol';
 import { epochNow } from '../lib/clock.js';
 import { boxStyle, editorOpacities } from './box.js';
 import { cornerPinMatrix, hasPin } from './cornerPin.js';
@@ -33,6 +34,8 @@ export interface StageProps {
   /** Called when a non-looping video reaches its end (output windows only). */
   onMediaEnded?: (layerId: string) => void;
   onAudioBlocked?: () => void;
+  /** How phones join, for {{join_code}} and join QR codes; absent in the editor. */
+  join?: JoinInfo | null;
   /** Editor: draw layers that are hidden at this point faintly. */
   ghostHidden?: boolean;
   /** Rendered inside the scaled canvas, above the layers (editor handles). */
@@ -152,6 +155,7 @@ export function Stage(props: StageProps) {
           clock={clock}
           onMediaEnded={props.onMediaEnded}
           onAudioBlocked={props.onAudioBlocked}
+          join={props.join}
         />
       )}
     </LayerBox>

@@ -20,13 +20,16 @@ export function checkTemplate(seed: TemplateSeed, media: TemplateMedia): string[
     problems.push(`It doesn’t parse: ${(e as Error).message}`);
   }
   problems.push(...checkLogic(show).map((i) => `Logic check: ${i.text}`));
-  problems.push(...branches(show), ...walk(show, false), ...walk(show, true));
+  problems.push(...branches(show, new Set(seed.games)), ...walk(show, false), ...walk(show, true));
+  problems.push(...eager(show), ...hours(show));
   problems.push(...mediaUse(show, media), ...visual(seed, show));
+  for (const name of seed.heroes ?? [])
+    if (!show.cues.some((c) => c.name === name)) problems.push(`No hero cue named “${name}”`);
   return problems;
 }
 
 /** Every vote can be rehearsed both ways: each option is an outcome you can try. */
-function branches(show: Show): string[] {
+function branches(show: Show, games: Set<string>): string[] {
   return show.moments.flatMap((m) => {
     const outcomes = tryOutcomes(show, m.id);
     if (!outcomes.length) return [`“${m.name}” can’t be reached by pressing GO from the top`];
@@ -45,7 +48,7 @@ function branches(show: Show): string[] {
         JSON.stringify([o.standby?.name ?? null, o.changes.filter((c) => !own.has(c.name))]),
       ),
     );
-    if (outcomes.length > 1 && leads.size < 2)
+    if (outcomes.length > 1 && leads.size < 2 && !games.has(m.name))
       problems.push(`Every answer to “${m.name}” leads to the same place`);
     return problems;
   });
@@ -65,6 +68,7 @@ function walk(show: Show, relaxed: boolean): string[] {
     const r = step(show, state, input, t);
     state = r.state;
     for (const e of r.events) if (e.type === 'warning') problems.add(`Warning: ${e.message}`);
+    if (!relaxed) for (const p of covered(show, tree, state)) problems.add(p);
     if (relaxed)
       for (const l of intense)
         if (shown(state, tree, l.id))
@@ -82,6 +86,8 @@ function walk(show: Show, relaxed: boolean): string[] {
     } else if (state.standby) {
       t += 1000;
       apply({ type: 'go' });
+      // A performer's or visitor's button can come at any point: try each from here.
+      if (!relaxed) for (const p of pressEach(show, tree, state, t)) problems.add(p);
     } else break;
   }
   const label = relaxed ? 'Relaxed, ' : '';
@@ -89,11 +95,138 @@ function walk(show: Show, relaxed: boolean): string[] {
   return [...problems].map((p) => (relaxed && !p.startsWith('Relaxed') ? `${label}${p}` : p));
 }
 
+/** Each trigger pressed from this state: nothing may warn, and no words end up darkened. */
+function pressEach(
+  show: Show,
+  tree: ReturnType<typeof layerTree>,
+  state: EngineState,
+  t: number,
+): string[] {
+  const out: string[] = [];
+  for (const trg of show.triggers) {
+    let s = step(show, state, { type: 'trigger', triggerId: trg.id }, t + 10).state;
+    const events = [];
+    for (let i = 0, at = t + 10; i < 40; i++) {
+      const wake = nextWakeup(s);
+      if (wake === null || wake > at + 30_000) break;
+      at = Math.max(at, wake);
+      const r = step(show, s, { type: 'tick' }, at);
+      s = r.state;
+      events.push(...r.events);
+    }
+    for (const e of events) if (e.type === 'warning') out.push(`After “${trg.name}”: ${e.message}`);
+    out.push(...covered(show, tree, s).map((p) => `After “${trg.name}”: ${p}`));
+  }
+  return out;
+}
+
+/**
+ * GO pressed straight through, without waiting for any audience moment to close. A moment still
+ * open once the show is in another scene means its result will land somewhere it shouldn't.
+ */
+function eager(show: Show): string[] {
+  const problems = new Set<string>();
+  const openedIn = new Map<string, string>();
+  for (const c of show.cues)
+    for (const a of c.actions) if (a.type === 'openMoment') openedIn.set(a.momentId, c.sceneId);
+  let state = initialState(show);
+  let t = 1_000_000;
+  for (let i = 0; i < 400 && state.standby && state.fired < 250; i++) {
+    t += 1000;
+    const r = step(show, state, { type: 'go' }, t);
+    state = r.state;
+    const fired = r.events.flatMap((e) => (e.type === 'cueFired' ? [e.cueId] : []));
+    const scene = show.cues.find((c) => c.id === fired.at(-1))?.sceneId;
+    for (const [id, m] of Object.entries(state.moments)) {
+      const from = openedIn.get(id);
+      if (m.status === 'open' && scene && from && scene !== from) {
+        const name = show.moments.find((x) => x.id === id)?.name ?? id;
+        const where = show.scenes.find((x) => x.id === scene)?.name ?? scene;
+        problems.add(
+          `“${name}” is still open when GO moves on to “${where}”: close it in its own scene`,
+        );
+      }
+    }
+  }
+  return [...problems];
+}
+
+/** The day through each opening-hours boundary: each change of value must play cleanly. */
+function hours(show: Show): string[] {
+  const schedule = show.schedule;
+  if (!schedule) return [];
+  const problems = new Set<string>();
+  const tree = layerTree(show.layers);
+  const times = new Set<string>();
+  for (const p of schedule.periods)
+    for (const d of p.days)
+      for (const m of [p.from, p.to, p.from + 10]) times.add(`${d}:${m % 1440}`);
+  let state = initialState(show);
+  let t = 1_000_000;
+  let first = true;
+  const sorted = [...times]
+    .map((x) => x.split(':').map(Number) as [number, number])
+    .sort((a, b) => a[0] * 1440 + a[1] - (b[0] * 1440 + b[1]));
+  for (const [day, minute] of sorted) {
+    t += 60_000;
+    const run = (input: Parameters<typeof step>[2]) => {
+      const r = step(show, state, input, t);
+      state = r.state;
+      for (const e of r.events)
+        if (e.type === 'warning') problems.add(`At ${day}/${minute}: ${e.message}`);
+    };
+    run({ type: 'clock', day, minute, force: first });
+    first = false;
+    for (let i = 0; i < 40; i++) {
+      const wake = nextWakeup(state);
+      if (wake === null || wake > t + 30_000) break;
+      t = Math.max(t, wake);
+      run({ type: 'tick' });
+    }
+    for (const p of covered(show, tree, state)) problems.add(`At ${day}/${minute}: ${p}`);
+    for (const p of pressEach(show, tree, state, t)) problems.add(`At ${day}/${minute}: ${p}`);
+  }
+  return [...problems];
+}
+
 /** On stage: it and every frame around it are heading to visible. */
 function shown(state: EngineState, tree: ReturnType<typeof layerTree>, id: string): boolean {
   for (let l = tree.byId.get(id); l; l = tree.parent(l.id))
     if ((state.layers[l.id]?.opacity.to ?? 0) <= 0) return false;
   return true;
+}
+
+/** Words on stage that a scrim on stage is drawn over, darkening them. */
+function covered(show: Show, tree: ReturnType<typeof layerTree>, state: EngineState): string[] {
+  const scrims = show.layers.filter(
+    (s) =>
+      s.kind === 'frame' &&
+      s.name.startsWith('Scrim') &&
+      !tree.parent(s.id) &&
+      shown(state, tree, s.id),
+  );
+  if (!scrims.length) return [];
+  const out: string[] = [];
+  for (const l of show.layers) {
+    if (!(l.kind === 'text' || l.kind === 'counter' || l.kind === 'state')) continue;
+    if (!shown(state, tree, l.id)) continue;
+    let top: Layer = l;
+    for (let p = tree.parent(l.id); p; p = tree.parent(p.id)) top = p;
+    const box = absolute(show, l);
+    const cx = box.x + box.w / 2;
+    const cy = box.y + box.h / 2;
+    const over = scrims.find(
+      (s) =>
+        s.outputId === l.outputId &&
+        s.z > top.z &&
+        cx >= s.x &&
+        cx <= s.x + s.w &&
+        cy >= s.y &&
+        cy <= s.y + s.h,
+    );
+    if (over) out.push(`“${l.name}” is under “${over.name}”, which darkens it`);
+  }
+  return out;
 }
 
 /** What the template fetched it uses, and what it uses it fetched. */
@@ -144,8 +277,10 @@ function visual(seed: TemplateSeed, show: Show): string[] {
     (l): l is Texty => l.kind === 'text' || l.kind === 'counter' || l.kind === 'state',
   );
   for (const l of texty) {
+    const qr = l.kind === 'text' && !!l.qr;
     const min = labels.has(l.name) ? LABEL_MIN : seed.visual.minText;
-    if (l.fontSize < min) problems.push(`“${l.name}” is ${l.fontSize} px; the least is ${min}`);
+    if (!qr && l.fontSize < min)
+      problems.push(`“${l.name}” is ${l.fontSize} px; the least is ${min}`);
     const box = absolute(show, l);
     if (!inside(box, SAFE)) problems.push(`“${l.name}” runs outside the title-safe area`);
     const frame = tree.parent(l.id);
@@ -162,9 +297,10 @@ function visual(seed: TemplateSeed, show: Show): string[] {
       const why = scrimProblem(show, tree, l, seed.visual.minContrast);
       if (why) problems.push(`“${l.name}” ${why}`);
     }
-    if (l.kind === 'text')
+    if (qr && l.w < 240) problems.push(`The QR code “${l.name}” is too small to scan from a seat`);
+    if (l.kind === 'text' && !qr)
       for (const text of textsOf(show, l)) {
-        const over = overflow(l, box, text);
+        const over = overflow(l, box, placeheld(show, text));
         if (over) {
           problems.push(`“${l.name}” doesn’t fit “${text.slice(0, 40)}…”: ${over}`);
           break;
@@ -312,9 +448,7 @@ function overflow(layer: TextLayer, box: Box, text: string): string | null {
       (layer.fontWeight >= 700 ? 1.05 : 1) +
     (layer.letterSpacing ?? 0);
   const perLine = Math.max(1, Math.floor(box.w / (layer.fontSize * em)));
-  // Placeholders fill in at about a short word's length.
   const lines = text
-    .replace(/\{\{[^}]+\}\}/g, 'Xxxxxxxxx')
     .split('\n')
     .reduce((n, line) => n + Math.max(1, Math.ceil(wrap(line, perLine))), 0);
   if (layer.sizing === 'autoHeight') return null;
@@ -322,6 +456,24 @@ function overflow(layer: TextLayer, box: Box, text: string): string | null {
   return height > box.h + 1
     ? `${lines} lines need ${Math.round(height)} px, the box is ${box.h}`
     : null;
+}
+
+/** Text with each placeholder filled in at about the length it shows on stage. */
+function placeheld(show: Show, text: string): string {
+  return text.replace(/\{\{\s*(\w+)\s*\}\}/g, (_, name: string) => {
+    if (name === 'join_code') return 'ABCDE';
+    if (name === 'caption') return 'x'.repeat(40);
+    const v = show.vars.find((x) => x.name === name);
+    if (v?.type === 'number') return '00';
+    // A name or a word the show starts with, with room for a longer one.
+    if (v?.type === 'text') {
+      const start = String(v.initial ?? '');
+      return start.padEnd(Math.max(6, start.length + 4), 'x');
+    }
+    if (v?.type === 'choice')
+      return [...(v.options ?? [])].sort((a, b) => b.length - a.length)[0] ?? 'Xxxxxxxxx';
+    return 'Xxxxxxxxx';
+  });
 }
 
 /** Lines a line of text wraps to at `perLine` letters, breaking between words. */

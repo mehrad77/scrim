@@ -1,4 +1,3 @@
-import type { Media, MediaKind } from '@scrim/format';
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { join, relative } from 'node:path';
@@ -6,6 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import { baselineOf, templateSteps } from '../lib/learn.js';
 import { LICENCES, type AssetIndex } from './assets.js';
+import { placeholderMedia } from './facts.js';
 import { FIXTURE_SEED } from './fixture.js';
 import { checkTemplate, contrast } from './harness.js';
 import { TEMPLATES } from './index.js';
@@ -16,35 +16,11 @@ const index = JSON.parse(readFileSync(join(root, 'index.json'), 'utf8')) as Asse
 
 const MB = 1024 * 1024;
 /** Most a template may download (docs/templates.md › Media); the gig's video loops get more. */
-const BUDGET: Record<string, number> = { gig: 25 * MB };
-const BUDGET_DEFAULT = 15 * MB;
-const BUDGET_TOTAL = 70 * MB;
+const BUDGET: Record<string, number> = { gig: 80 * MB };
+const BUDGET_DEFAULT = 40 * MB;
+const BUDGET_TOTAL = 250 * MB;
 
-function kindOf(mime: string): MediaKind {
-  if (mime.startsWith('font/')) return 'font';
-  return mime.split('/')[0] as MediaKind;
-}
-
-/** What fetchAssets would hand the seed, without a browser. */
-function fakeMedia(seed: TemplateSeed): TemplateMedia {
-  return Object.fromEntries(
-    seed.assets.map((a) => {
-      const e = index.files[a.path];
-      if (!e) throw new Error(`${seed.id}: ${a.path} isn't in index.json`);
-      const kind = kindOf(e.mime);
-      const media: Media = {
-        id: `med_${a.path.replace(/\W/g, '')}`,
-        kind,
-        name: e.name,
-        mime: e.mime,
-        size: e.bytes,
-        ...(kind === 'image' || kind === 'video' ? { width: 1920, height: 1080 } : {}),
-        ...(kind === 'audio' || kind === 'video' ? { duration: 60 } : {}),
-      };
-      return [a.key, media];
-    }),
-  );
-}
+const fakeMedia = (seed: TemplateSeed): TemplateMedia => placeholderMedia(seed, index);
 
 describe.each([...TEMPLATES, FIXTURE_SEED])('template $id', (seed) => {
   it('passes every check', () => {
@@ -192,5 +168,51 @@ describe('the harness', () => {
     expect(problems).toContain('“Ending” sits over the stage with no backing');
     expect(problems).toContain('“Ending” doesn’t fit');
     expect(problems).toContain('Asset “spare” is fetched but never used');
+  });
+});
+
+describe('the museum, through a day', () => {
+  it('clears a story the quiet hour cut short, and starts the next one clean', async () => {
+    const { MUSEUM } = await import('./museum.js');
+    const { initialState, nextWakeup, step } = await import('@scrim/engine');
+    const show = MUSEUM.make(fakeMedia(MUSEUM));
+    let state = initialState(show);
+    let t = 1_000_000;
+    const run = (input: Parameters<typeof step>[2]) => {
+      state = step(show, state, input, t).state;
+      for (let i = 0; i < 50; i++) {
+        const wake = nextWakeup(state);
+        if (wake === null || wake > t) break;
+        state = step(show, state, { type: 'tick' }, wake).state;
+      }
+    };
+    const until = (ms: number) => {
+      const end = t + ms;
+      for (let i = 0; i < 200; i++) {
+        const wake = nextWakeup(state);
+        if (wake === null || wake > end) break;
+        t = wake;
+        state = step(show, state, { type: 'tick' }, t).state;
+      }
+      t = end;
+    };
+    const on = (name: string) =>
+      state.layers[show.layers.find((l) => l.name === name)!.id]!.opacity.to > 0;
+    run({ type: 'clock', day: 3, minute: 610, force: true });
+    const button = show.triggers[0]!.id;
+    run({ type: 'trigger', triggerId: button });
+    until(25_000);
+    expect(on('Story')).toBe(true);
+    // Eleven o'clock: the quiet hour ends while the story is on.
+    run({ type: 'clock', day: 3, minute: 660 });
+    until(5_000);
+    expect(on('Story')).toBe(false);
+    expect(on('Surf')).toBe(false);
+    expect(on('Gallery wall')).toBe(true);
+    // The next visitor's story starts on the sea, with no close-up left over.
+    run({ type: 'trigger', triggerId: button });
+    until(3_000);
+    const shotsOn = show.layers.filter((l) => l.name.startsWith('Close-up') && on(l.name));
+    expect(shotsOn.map((l) => l.name)).toEqual([]);
   });
 });

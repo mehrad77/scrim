@@ -26,6 +26,12 @@ export interface QuizOptions {
 
 export const ROOM_SCORE = 'room_score';
 export const QUIZMASTER_SCORE = 'quizmaster_score';
+/**
+ * The room's score less the quizmaster's. Rules can't compare two values, so a show that wants
+ * to name the winner keeps this one (the quiz night template does); questions keep it up to
+ * date when the show has it.
+ */
+export const QUIZ_LEAD = 'quiz_lead';
 
 /**
  * One quiz question for a quiz night: the room plays against the quizmaster. The question and
@@ -37,6 +43,7 @@ export function buildQuiz(show: Show, opts: QuizOptions) {
   const output = outputOf(show, opts.outputId);
   const room = numberVar(show, ROOM_SCORE);
   const master = numberVar(show, QUIZMASTER_SCORE);
+  const lead = show.vars.find((v) => v.name === QUIZ_LEAD);
   const n = show.scenes.filter((s) => /^Question \d+$/.test(s.name)).length + 1;
 
   const m = newMoment('vote', show);
@@ -56,7 +63,18 @@ export function buildQuiz(show: Show, opts: QuizOptions) {
       enabled: true,
       when: { type: 'momentClosed', momentId: m.id },
       if: [{ varId: m.resultVarId!, op: 'eq', value: o.id }],
-      then: [{ type: 'addVar', varId: right ? room.id : master.id, amount: opts.points }],
+      then: [
+        { type: 'addVar', varId: right ? room.id : master.id, amount: opts.points },
+        ...(lead
+          ? [
+              {
+                type: 'addVar' as const,
+                varId: lead.id,
+                amount: right ? opts.points : -opts.points,
+              },
+            ]
+          : []),
+      ],
     });
   });
 
@@ -89,11 +107,25 @@ export function buildQuiz(show: Show, opts: QuizOptions) {
       h: Math.round(output.height * 0.12),
       fontSize: Math.round(output.height / 12),
     });
+  // The bars go where the answers are, in the same frame, looking like the last question's.
+  const before = show.layers.findLast(
+    (l): l is StateLayer => l.kind === 'state' && l.display === 'bars' && / votes$/.test(l.name),
+  );
   const bars = addLayer<StateLayer>(show, {
     ...(syntheticLayer(show, output, 'state') as StateLayer),
+    ...(before
+      ? {
+          fontFamily: before.fontFamily,
+          fontSize: before.fontSize,
+          fontWeight: before.fontWeight,
+          color: before.color,
+          z: before.z,
+        }
+      : {}),
     name: `${m.name} votes`,
     varId: m.tallyVarId!,
     display: 'bars',
+    ...(answers.parentId ? { parentId: answers.parentId } : {}),
     x: answers.x,
     y: answers.y,
     w: answers.w,
@@ -124,6 +156,8 @@ export function buildQuiz(show: Show, opts: QuizOptions) {
     scene.id,
     'Reveal',
     [
+      // GO before the countdown ends closes the vote here, so nobody scores after the answer.
+      { type: 'closeMoment', momentId: m.id },
       fadeOut(show, clock.id),
       fadeOut(show, answers.id),
       fadeIn(show, bars.id),

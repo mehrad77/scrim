@@ -15,11 +15,20 @@ export interface OutputStatus {
   errors: string[];
 }
 
+export interface JoinInfo {
+  /** The five-letter room code. */
+  code: string;
+  /** The audience page's address with the room in it. */
+  url: string;
+}
+
 export type HostMessage =
   | { t: 'show'; v: number; show: Show }
   | { t: 'state'; v: number; seq: number; state: EngineState; mode: RunMode; offset: number }
   | { t: 'beat'; v: number; hostId: string }
   | { t: 'identify'; v: number; outputId: string | null }
+  /** How phones join, for {{join_code}} and join QR codes on stage; null while no room is open. */
+  | { t: 'join'; v: number; join: JoinInfo | null }
   | { t: 'closing'; v: number; hostId: string };
 
 export type ClientMessage =

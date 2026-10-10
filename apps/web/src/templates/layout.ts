@@ -11,6 +11,7 @@ import {
   type Media,
   type Output,
   type Show,
+  type StateLayer,
   type TextLayer,
   type VideoLayer,
 } from '@scrim/format';
@@ -96,7 +97,22 @@ export interface Face {
   lineHeight?: number;
 }
 
-export function type(face: Face, size: number, color: string): Partial<TextLayer> {
+/** The style fields every kind of text layer shares. */
+export type TypeStyle = Partial<
+  Pick<
+    TextLayer,
+    | 'fontFamily'
+    | 'fontWeight'
+    | 'fontSize'
+    | 'color'
+    | 'italic'
+    | 'uppercase'
+    | 'letterSpacing'
+    | 'lineHeight'
+  >
+>;
+
+export function type(face: Face, size: number, color: string): TypeStyle {
   return {
     fontFamily: family(face.font),
     fontWeight: face.weight,
@@ -261,4 +277,108 @@ export function rule(
   const r: Rule = { id: uid('rul'), name, enabled: true, when, if: conditions, then };
   show.rules.push(r);
   return r;
+}
+
+/** A sound effect, from the top, at full level. */
+export const sfx = (layerId: string): Action[] => [
+  fade(layerId, true, 0),
+  play(layerId, { restart: true }),
+];
+
+/** Music fading up from the start over `seconds`. */
+export const musicIn = (layerId: string, seconds = 2): Action[] => [
+  play(layerId, { restart: true }),
+  fade(layerId, true, seconds),
+];
+
+/** Music fading away over `seconds`, then stopped. */
+export const musicOut = (layerId: string, seconds = 3): Action[] => [
+  fade(layerId, false, seconds),
+  { type: 'pause', layerId, delay: seconds } as Action,
+];
+
+/**
+ * How to join from the stage: a QR code of the audience page on a light tile, with the room
+ * code under it. Both are empty until the operator opens the audience room.
+ */
+export function joinCard(
+  k: Kit,
+  name: string,
+  box: Box,
+  opts: { ink: string; paper: string; codeFace: Face; codeSize?: number; radius?: number },
+): FrameLayer {
+  const tile = panel(k, name, box, opts.paper, { radius: opts.radius ?? 24 });
+  const pad = Math.round(box.w * 0.08);
+  const qrSize = box.w - pad * 2;
+  const codeSize = opts.codeSize ?? Math.round(box.w * 0.16);
+  place(
+    k,
+    tile,
+    words(k, `${name} · QR`, { x: 0, y: 0, w: qrSize, h: qrSize }, '{{join_url}}', {
+      qr: true,
+      color: opts.ink,
+      background: opts.paper,
+    }),
+    { x: pad, y: pad },
+  );
+  place(
+    k,
+    tile,
+    words(
+      k,
+      `${name} · code`,
+      { x: 0, y: 0, w: box.w - pad * 2, h: Math.round(codeSize * 1.3) },
+      '{{join_code}}',
+      { ...type(opts.codeFace, codeSize, opts.ink), letterSpacing: 0.12 },
+    ),
+    { x: pad, y: pad + qrSize + Math.round(pad * 0.4) },
+  );
+  return tile;
+}
+
+/** A layer that shows a value live: a score, a count, a list. */
+export function valueLayer(
+  k: Kit,
+  name: string,
+  box: Box,
+  varId: string,
+  style: Partial<StateLayer>,
+): StateLayer {
+  const layer = syntheticLayer(k.show, k.out, 'state') as StateLayer;
+  Object.assign(layer, { name, ...box, varId, display: 'value', background: 'transparent' }, style);
+  k.show.layers.push(layer);
+  return layer;
+}
+
+/** The title-safe width, for text centred across the stage. */
+export const across = (y: number, h: number): Box => ({ x: MX, y, w: W - 2 * MX, h });
+
+/**
+ * A plate: a panel with a hard offset shadow under it, the way a printed poster sits on a wall.
+ * Fade `outer`; put words in `paper`. `box` is the paper's place; the shadow falls beyond it.
+ */
+export function plate(
+  k: Kit,
+  name: string,
+  box: Box,
+  fill: string,
+  opts: { radius?: number; shadow?: string; offset?: number } = {},
+): { outer: FrameLayer; paper: FrameLayer } {
+  const offset = opts.offset ?? 14;
+  const outer = panel(k, name, { ...box, w: box.w + offset, h: box.h + offset }, 'transparent');
+  const shadow = panel(
+    k,
+    `${name} · shadow`,
+    { x: 0, y: 0, w: box.w, h: box.h },
+    opts.shadow ?? 'rgba(20, 12, 4, 0.45)',
+    {
+      radius: opts.radius ?? 18,
+    },
+  );
+  place(k, outer, shadow, { x: offset, y: offset });
+  const paper = panel(k, `${name} · paper`, { x: 0, y: 0, w: box.w, h: box.h }, fill, {
+    radius: opts.radius ?? 18,
+  });
+  place(k, outer, paper, { x: 0, y: 0 });
+  return { outer, paper };
 }

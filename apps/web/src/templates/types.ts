@@ -42,6 +42,16 @@ export interface TemplateSeed {
   limits: string[];
   assets: AssetSpec[];
   learn: LearnSpec[];
+  /**
+   * The cues whose stage is each scene's deliberate composition, by name, for the contact sheet;
+   * the first is the gallery thumbnail. Absent: the last cue of each scene.
+   */
+  heroes?: string[];
+  /**
+   * Moments that are games rather than choices (a guess, a tap race): every answer may lead to
+   * the same next scene. Any other vote must branch.
+   */
+  games?: string[];
   /** The visual bar this template holds itself to (templates.test.ts). */
   visual: {
     /** Smallest text the audience reads, in output pixels. */

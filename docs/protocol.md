@@ -9,13 +9,14 @@ Two transports carry the same ideas: the operator tab is authoritative and broad
 
 ### Operator → windows
 
-| `t`        | Fields                     | When                                                       |
-| ---------- | -------------------------- | ---------------------------------------------------------- |
-| `show`     | `show`                     | On start, on every `hello`, after edits                    |
-| `state`    | `seq, state, mode, offset` | After every engine change; `mode` is `rehearsal` or `show` |
-| `beat`     | `hostId`                   | Every 500 ms                                               |
-| `identify` | `outputId \| null`         | Operator pressed Identify                                  |
-| `closing`  | `hostId`                   | The operator tab is closing                                |
+| `t`        | Fields                     | When                                                                                |
+| ---------- | -------------------------- | ----------------------------------------------------------------------------------- |
+| `show`     | `show`                     | On start, on every `hello`, after edits                                             |
+| `state`    | `seq, state, mode, offset` | After every engine change; `mode` is `rehearsal` or `show`                          |
+| `beat`     | `hostId`                   | Every 500 ms                                                                        |
+| `identify` | `outputId \| null`         | Operator pressed Identify                                                           |
+| `join`     | `{ code, url } \| null`    | How phones join the open room, for join codes on stage; sent on hello and on change |
+| `closing`  | `hostId`                   | The operator tab is closing                                                         |
 
 ### Windows → operator
 

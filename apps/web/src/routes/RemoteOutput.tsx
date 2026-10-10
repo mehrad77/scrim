@@ -4,6 +4,7 @@ import { CLOSE, type OutputToRelay, type RelayToOutput } from '@scrim/protocol';
 import { FolderOpen, Maximize } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router';
+import { audienceUrl, type RoomInfo } from '../host/room.js';
 import { clientId } from '../lib/config.js';
 import { cn } from '../lib/cn.js';
 import { Stage } from '../render/Stage.js';
@@ -165,7 +166,18 @@ export default function RemoteOutput() {
       }
     >
       {state && (
-        <Stage show={show} state={state} outputId={outputId} variant="output" clock={clock} />
+        <Stage
+          show={show}
+          state={state}
+          outputId={outputId}
+          variant="output"
+          clock={clock}
+          join={
+            code && relayUrl
+              ? { code, url: audienceUrl({ code, relay: relayUrl } as RoomInfo) }
+              : null
+          }
+        />
       )}
       {!document.fullscreenElement && (
         <div

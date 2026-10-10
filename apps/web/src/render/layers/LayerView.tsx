@@ -1,5 +1,6 @@
 import type { EngineState } from '@scrim/engine';
 import type { Layer, Show } from '@scrim/format';
+import type { JoinInfo } from '@scrim/protocol';
 import type { StageVariant } from '../Stage.js';
 import { CounterLayerView } from './CounterLayerView.js';
 import { ImageLayerView } from './ImageLayerView.js';
@@ -15,6 +16,8 @@ export interface LayerViewProps<L extends Layer = Layer> {
   clock: () => number;
   onMediaEnded?: ((layerId: string) => void) | undefined;
   onAudioBlocked?: (() => void) | undefined;
+  /** How phones join: null while no room is open; absent where there is no running show. */
+  join?: JoinInfo | null | undefined;
 }
 
 export function LayerView(props: LayerViewProps) {

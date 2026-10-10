@@ -182,12 +182,20 @@ export const did = {
   /** A question or its answers changed. */
   moments: (ctx: LearnContext) =>
     JSON.stringify(ctx.show.moments.map((m) => [m.prompt, m.options])) !== ctx.baseline.moments,
+  /** A cue was changed in the editor after the show was made. */
+  cueEdited: (ctx: LearnContext) =>
+    ctx.show.cues.some((c) => c.updatedAt > ctx.show.createdAt + 1000),
   mapped: (ctx: LearnContext) => JSON.stringify(ctx.show.inputs) !== ctx.baseline.inputs,
   setlist: (ctx: LearnContext) => JSON.stringify(ctx.show.setlists ?? []) !== ctx.baseline.setlists,
   schedule: (ctx: LearnContext) =>
     JSON.stringify(ctx.show.schedule ?? null) !== ctx.baseline.schedule,
   /** Scenes were added, by a wizard or Import scenes. */
   scenes: (ctx: LearnContext) => ctx.show.scenes.length > ctx.baseline.scenes,
+  /** The cue of this name fired in a run. */
+  cue: (name: string) => (ctx: LearnContext) =>
+    logged(ctx, (t, kind) => kind === 'cue' && (t === name || t.startsWith(`${name} (`))),
+  /** A cue fired from MIDI: a pedal or a program change, hands-free. */
+  midi: (ctx: LearnContext) => logged(ctx, (t, kind) => kind === 'cue' && t.endsWith('(midi)')),
   room: (ctx: LearnContext) => logged(ctx, (t) => /^Audience room \w+ connected/.test(t)),
   relaxed: (ctx: LearnContext) => logged(ctx, (t) => t.startsWith('Relaxed performance:')),
   installation: (ctx: LearnContext) => logged(ctx, (t) => t.startsWith('Installation started')),

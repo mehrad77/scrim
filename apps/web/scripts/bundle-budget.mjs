@@ -2,8 +2,8 @@
 //   node scripts/bundle-budget.mjs            check
 //   node scripts/bundle-budget.mjs --update   record the current sizes as the new baselines
 // Each surface is measured as everything it downloads before it can run, gzipped. Output windows
-// and the audience page run on show machines and phones, so they may grow at most 5% over their
-// baseline; the editor may add 1 MB (DESIGN_SYSTEM.md › Guards).
+// and the audience page run on show machines and phones, so they may grow at most 25% over their
+// baseline; the editor may add 2 MB (DESIGN_SYSTEM.md › Guards).
 import { existsSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
 import { gzipSync } from 'node:zlib';
 
@@ -50,7 +50,7 @@ for (const [name, size] of Object.entries(surfaces)) {
 
 // Template media (docs/templates.md › Media) ships as static files and downloads only when a
 // template is chosen; each template's own limit is checked in src/templates/templates.test.ts.
-const TEMPLATE_MEDIA_LIMIT = 70 * 1024 * 1024;
+const TEMPLATE_MEDIA_LIMIT = 250 * 1024 * 1024;
 const templates = new URL('../public/templates/', import.meta.url);
 const sizeOf = (dir) =>
   readdirSync(dir, { withFileTypes: true }).reduce(

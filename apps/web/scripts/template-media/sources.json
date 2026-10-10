@@ -136,6 +136,1350 @@
         "url": "https://fonts.google.com/specimen/IBM+Plex+Sans",
         "licence": "OFL-1.1"
       }
+    },
+    {
+      "path": "museum/wave.webp",
+      "name": "Under the Wave off Kanagawa — Katsushika Hokusai (The Met, CC0).webp",
+      "fetch": {
+        "url": "https://images.metmuseum.org/CRDImages/as/original/DP130155.jpg"
+      },
+      "process": {
+        "quality": 85
+      },
+      "credit": {
+        "title": "Under the Wave off Kanagawa (Kanagawa oki nami ura), also known as The Great Wave, from the series Thirty-six Views of Mount Fuji",
+        "creator": "Katsushika Hokusai (1760–1849)",
+        "year": "ca. 1830–32",
+        "source": "The Metropolitan Museum of Art (accession JP1847, H. O. Havemeyer Collection, Bequest of Mrs. H. O. Havemeyer, 1929)",
+        "url": "https://www.metmuseum.org/art/collection/search/45434",
+        "licence": "CC0-1.0"
+      },
+      "notes": "The Great Wave, Met JP1847, woodblock print, 3859x2594, the vivid edge-to-edge impression (saturated Prussian blue, warm cream sky, no paper margin). Keep whole: default fit inside 1920x1080 leaves thin side bars (aspect 1.49). Composition: wave claw top-left/centre, Fuji small at lower centre-right, open cream sky upper right for a wall label if overlaid. Met Open Access CC0 (isPublicDomain true via API). AIC copies were blocked by a Cloudflare challenge for plain curl, so the Met is used."
+    },
+    {
+      "path": "museum/wave-detail-1.webp",
+      "name": "Under the Wave off Kanagawa (detail 1) — Katsushika Hokusai (The Met, CC0).webp",
+      "fetch": {
+        "url": "https://images.metmuseum.org/CRDImages/as/original/DP130155.jpg"
+      },
+      "process": {
+        "vf": "crop=iw*0.4405:iw*0.4405*9/16:iw*0.3498:ih*0.0694,scale=1920:1080:force_original_aspect_ratio=increase,crop=1920:1080",
+        "quality": 85
+      },
+      "credit": {
+        "title": "Under the Wave off Kanagawa (Kanagawa oki nami ura), also known as The Great Wave, from the series Thirty-six Views of Mount Fuji",
+        "creator": "Katsushika Hokusai (1760–1849)",
+        "year": "ca. 1830–32",
+        "source": "The Metropolitan Museum of Art (accession JP1847, H. O. Havemeyer Collection, Bequest of Mrs. H. O. Havemeyer, 1929)",
+        "url": "https://www.metmuseum.org/art/collection/search/45434",
+        "licence": "CC0-1.0"
+      },
+      "notes": "The great claw: the curling crest and its finger-like foam talons breaking left to right, with deep-blue wave body on the left edge and a wide band of empty cream sky to the right (good for a caption on the right third). Same source file as 'wave'; crop checked by rendering with ffmpeg."
+    },
+    {
+      "path": "museum/wave-detail-2.webp",
+      "name": "Under the Wave off Kanagawa (detail 2) — Katsushika Hokusai (The Met, CC0).webp",
+      "fetch": {
+        "url": "https://images.metmuseum.org/CRDImages/as/original/DP130155.jpg"
+      },
+      "process": {
+        "vf": "crop=iw*0.4043:iw*0.4043*9/16:iw*0.4664:ih*0.6615,scale=1920:1080:force_original_aspect_ratio=increase,crop=1920:1080",
+        "quality": 85
+      },
+      "credit": {
+        "title": "Under the Wave off Kanagawa (Kanagawa oki nami ura), also known as The Great Wave, from the series Thirty-six Views of Mount Fuji",
+        "creator": "Katsushika Hokusai (1760–1849)",
+        "year": "ca. 1830–32",
+        "source": "The Metropolitan Museum of Art (accession JP1847, H. O. Havemeyer Collection, Bequest of Mrs. H. O. Havemeyer, 1929)",
+        "url": "https://www.metmuseum.org/art/collection/search/45434",
+        "licence": "CC0-1.0"
+      },
+      "notes": "The boats and rowers: the lower oshiokuri-bune with its crouching oarsmen (blue-clad, heads down) gripping the oars at right, and the second boat with Fuji's snowy cone peeking above it at the top; dense blue-and-white swell fills the frame. Same source file as 'wave'; crop checked by rendering with ffmpeg."
+    },
+    {
+      "path": "museum/wave-detail-3.webp",
+      "name": "Under the Wave off Kanagawa (detail 3) — Katsushika Hokusai (The Met, CC0).webp",
+      "fetch": {
+        "url": "https://images.metmuseum.org/CRDImages/as/original/DP130155.jpg"
+      },
+      "process": {
+        "vf": "crop=iw*0.3317:iw*0.3317*9/16:iw*0.4794:ih*0.5127,scale=1920:1080:force_original_aspect_ratio=increase,crop=1920:1080",
+        "quality": 85
+      },
+      "credit": {
+        "title": "Under the Wave off Kanagawa (Kanagawa oki nami ura), also known as The Great Wave, from the series Thirty-six Views of Mount Fuji",
+        "creator": "Katsushika Hokusai (1760–1849)",
+        "year": "ca. 1830–32",
+        "source": "The Metropolitan Museum of Art (accession JP1847, H. O. Havemeyer Collection, Bequest of Mrs. H. O. Havemeyer, 1929)",
+        "url": "https://www.metmuseum.org/art/collection/search/45434",
+        "licence": "CC0-1.0"
+      },
+      "notes": "Mount Fuji small in the trough: the snow-capped cone centred low, framed by a boat's prow and the wave; grey graded sky with falling spray above (upper half calm, good for text). Upscaled ~1.5x from a 1280px-wide source window; still crisp. Same source file as 'wave'; crop checked by rendering with ffmpeg."
+    },
+    {
+      "path": "museum/wave-detail-4.webp",
+      "name": "Under the Wave off Kanagawa (detail 4) — Katsushika Hokusai (The Met, CC0).webp",
+      "fetch": {
+        "url": "https://images.metmuseum.org/CRDImages/as/original/DP130155.jpg"
+      },
+      "process": {
+        "vf": "crop=iw*0.3317:iw*0.3317*9/16:iw*0.0052:ih*0.0578,scale=1920:1080:force_original_aspect_ratio=increase,crop=1920:1080",
+        "quality": 85
+      },
+      "credit": {
+        "title": "Under the Wave off Kanagawa (Kanagawa oki nami ura), also known as The Great Wave, from the series Thirty-six Views of Mount Fuji",
+        "creator": "Katsushika Hokusai (1760–1849)",
+        "year": "ca. 1830–32",
+        "source": "The Metropolitan Museum of Art (accession JP1847, H. O. Havemeyer Collection, Bequest of Mrs. H. O. Havemeyer, 1929)",
+        "url": "https://www.metmuseum.org/art/collection/search/45434",
+        "licence": "CC0-1.0"
+      },
+      "notes": "The signature cartouche: the title cartouche 'Fugaku sanjūrokkei / Kanagawa oki nami ura' in its ruled box, and Hokusai's signature 'Hokusai aratame Iitsu hitsu' beside it, on aged cream paper, with the wave's back and a corner of foam at right. Upscaled ~1.5x. Same source file as 'wave'; crop checked by rendering with ffmpeg."
+    },
+    {
+      "path": "museum/print-2.webp",
+      "name": "Fine Wind, Clear Morning (Red Fuji) — Katsushika Hokusai (The Met, CC0).webp",
+      "fetch": {
+        "url": "https://images.metmuseum.org/CRDImages/as/original/DP141053.jpg"
+      },
+      "process": {
+        "quality": 85
+      },
+      "credit": {
+        "title": "South Wind, Clear Sky (Gaifū kaisei), also known as Red Fuji, from the series Thirty-six Views of Mount Fuji",
+        "creator": "Katsushika Hokusai (1760–1849)",
+        "year": "ca. 1830–32",
+        "source": "The Metropolitan Museum of Art (accession JP2960, Henry L. Phillips Collection, Bequest of Henry L. Phillips, 1939)",
+        "url": "https://www.metmuseum.org/art/collection/search/55736",
+        "licence": "CC0-1.0"
+      },
+      "notes": "Red Fuji: brick-red mountain rising diagonally from a green-blue forest base into a deep Prussian-blue sky full of white mackerel clouds. Strong, saturated impression, 3905x2674, landscape. Title cartouche top-left. Keep whole. Met Open Access CC0; accession JP2960."
+    },
+    {
+      "path": "museum/print-3.webp",
+      "name": "Kajikazawa in Kai Province — Katsushika Hokusai (The Met, CC0).webp",
+      "fetch": {
+        "url": "https://images.metmuseum.org/CRDImages/as/original/DP140973.jpg"
+      },
+      "process": {
+        "quality": 85
+      },
+      "credit": {
+        "title": "Kajikazawa in Kai Province (Kōshū Kajikazawa), from the series Thirty-six Views of Mount Fuji",
+        "creator": "Katsushika Hokusai (1760–1849)",
+        "year": "ca. 1830–32",
+        "source": "The Metropolitan Museum of Art (accession JP2581, The Howard Mansfield Collection, Purchase, Rogers Fund, 1936)",
+        "url": "https://www.metmuseum.org/art/collection/search/56727",
+        "licence": "CC0-1.0"
+      },
+      "notes": "A fisherman on a rocky promontory casting lines into churning blue surf, a boy beside him; Fuji's pale blue cone above a band of mist. Almost monochrome blues on cream, 3925x2603, landscape, with lots of calm cream space in the upper middle. Keep whole. Met Open Access CC0; accession JP2581."
+    },
+    {
+      "path": "museum/print-4.webp",
+      "name": "Sudden Shower over Shin-Ōhashi Bridge — Utagawa Hiroshige (The Met, CC0).webp",
+      "fetch": {
+        "url": "https://images.metmuseum.org/CRDImages/as/original/DP123602.jpg"
+      },
+      "process": {
+        "quality": 85
+      },
+      "credit": {
+        "title": "Sudden Shower over Shin-Ōhashi Bridge and Atake (Ōhashi Atake no yūdachi), from the series One Hundred Famous Views of Edo",
+        "creator": "Utagawa Hiroshige (1797–1858)",
+        "year": "1857",
+        "source": "The Metropolitan Museum of Art (accession JP3174, Gift of Mr. and Mrs. A. I. Sherr, 1956)",
+        "url": "https://www.metmuseum.org/art/collection/search/37386",
+        "licence": "CC0-1.0"
+      },
+      "notes": "Portrait (2515x3828): figures hurrying across a tan wooden bridge under fine slanting rain, dark indigo cloud band at top, teal river, misty far shore, a lone raftsman. This impression has the darkest, richest sky of the Met's copies; paper margin visible. Keep whole: fits as a tall panel centred with wide side space for labels. Met Open Access CC0; accession JP3174."
+    },
+    {
+      "path": "museum/print-5.webp",
+      "name": "The Whirlpools at Naruto — Utagawa Hiroshige (The Met, CC0).webp",
+      "fetch": {
+        "url": "https://images.metmuseum.org/CRDImages/as/original/DP122165.jpg"
+      },
+      "process": {
+        "quality": 85
+      },
+      "credit": {
+        "title": "Naruto Whirlpool, Awa Province (Awa, Naruto no fūha), from the series Views of Famous Places in the Sixty-Odd Provinces",
+        "creator": "Utagawa Hiroshige (1797–1858)",
+        "year": "ca. 1853",
+        "source": "The Metropolitan Museum of Art (accession JP1198, Rogers Fund, 1919)",
+        "url": "https://www.metmuseum.org/art/collection/search/53783",
+        "licence": "CC0-1.0"
+      },
+      "notes": "Portrait (2610x3809): a huge blue spiral whirlpool in the foreground, white-crested waves breaking against brown crags, birds and a distant shore under a cream sky; red title cartouche top-right. Vivid, crisp, small paper margin. Keep whole. Met Open Access CC0; accession JP1198."
+    },
+    {
+      "path": "museum/video-ocean.mp4",
+      "name": "Ocean surface waves — Mostafameraji (Wikimedia Commons, CC0).mp4",
+      "fetch": {
+        "url": "https://upload.wikimedia.org/wikipedia/commons/f/f0/Ocean_surface_waves_03.ogv"
+      },
+      "process": {
+        "start": 1,
+        "seconds": 17,
+        "xfade": 1,
+        "crf": 27
+      },
+      "credit": {
+        "title": "Ocean surface waves 03",
+        "creator": "Mostafameraji",
+        "year": "2020",
+        "source": "Wikimedia Commons",
+        "url": "https://commons.wikimedia.org/wiki/File:Ocean_surface_waves_03.ogv",
+        "licence": "CC0-1.0"
+      },
+      "notes": "1920x1080 25 fps Theora, 20.0 s, locked-off telephoto of open sea: rows of small teal-blue swells with white crests rolling in, no horizon, no shore, no people, no text, no cuts (scene-detect clean). Calm, even, steady; loops well with a 1 s crossfade. Colour is cool teal-grey, sits well beside the prints. NOTE: not PD-government footage; it is the uploader's own work released CC0 on Commons (verified LicenseShortName=CC0 via API). Commons was rate-limiting (HTTP 429) late in the session; the URL is the stable original."
+    },
+    {
+      "path": "museum/sfx-sea.m4a",
+      "name": "Sea Waves — Joseph Sardin (BigSoundBank, CC0).m4a",
+      "fetch": {
+        "url": "https://bigsoundbank.com/UPLOAD/bwf-en/0698.wav"
+      },
+      "process": {
+        "start": 20,
+        "seconds": 60,
+        "fadeIn": 2,
+        "fadeOut": 3
+      },
+      "credit": {
+        "title": "Sea Waves (sound #0698)",
+        "creator": "Joseph Sardin",
+        "year": "",
+        "source": "BigSoundBank / La Sonothèque",
+        "url": "https://bigsoundbank.com/sea-waves_s0698.html",
+        "licence": "CC0-1.0"
+      },
+      "notes": "48 kHz 16-bit stereo XY field recording (Tascam DR-40), 2:47, realistic seaside soundscape: continuous surf with gentle wave-break swells every few seconds. Very steady (integrated -15 LUFS, LRA 4.4 LU); spectrogram shows no birds, voices or engines. A 60 s excerpt from 0:20 loops cleanly with the fades. The page states CC0 (public-domain equivalent), no attribution required. Commons PD candidates were weaker (a 2003 MiniDisc beach clip; a pebble-beach clip with a motorboat and footsteps)."
+    },
+    {
+      "path": "gig/loop-earth.mp4",
+      "name": "ISS Timelapse: West Coast of the Americas — NASA (SVS, PD).mp4",
+      "fetch": {
+        "url": "https://svs.gsfc.nasa.gov/vis/a030000/a030100/a030180/iss028_nighttime_20110819_2304p.mp4"
+      },
+      "process": {
+        "start": 6,
+        "seconds": 18,
+        "xfade": 1,
+        "vf": "scale=1920:1080,eq=contrast=1.1:saturation=1.2,colorbalance=rs=0.05:gs=-0.06:bs=0.12:rm=0.06:gm=-0.05:bm=0.08:rh=0.02:bh=0.04",
+        "crf": 24
+      },
+      "credit": {
+        "title": "ISS Timelapse: West Coast of the Americas (Expedition 28 night pass, 19 Aug 2011)",
+        "creator": "NASA / ISS Expedition 28 crew; NASA Goddard SVS",
+        "year": "2011",
+        "source": "NASA Goddard Scientific Visualization Studio",
+        "url": "https://svs.gsfc.nasa.gov/30180/",
+        "licence": "PD",
+        "basis": "US government work (NASA); no NASA logo or insignia in the frames used"
+      },
+      "notes": "Night time-lapse from the ISS over the Pacific coast of North America: amber city lights streaming past under moonlit cloud, thin orange airglow line on the limb, stars above, an ISS solar array in the upper-right corner. 4096x2304 30 fps (exact 16:9; scaled to 1920x1080), 54.7 s, no text/logos, no cuts. The file is large (~735 MB); the 720p version is too small for the brief. Grade cools the shadows to navy and nudges mids toward violet while keeping the city lights warm; checked on a rendered frame, not crushed."
+    },
+    {
+      "path": "gig/loop-sun.mp4",
+      "name": "Solar Prominence Dance — NASA SDO (SVS, PD).mp4",
+      "fetch": {
+        "url": "https://svs.gsfc.nasa.gov/vis/a000000/a004000/a004038/Dec2012SolarBallet_HD1080.mp4"
+      },
+      "process": {
+        "start": 4,
+        "seconds": 20,
+        "xfade": 1,
+        "vf": "crop=1560:878:180:100,scale=1920:1080,hue=h=-30,eq=contrast=1.06:saturation=1.15,colorbalance=bs=0.1:bm=0.06",
+        "crf": 24
+      },
+      "credit": {
+        "title": "Solar Prominence Dance - December 31, 2012 (SDO/AIA 304 Å)",
+        "creator": "NASA/SDO (AIA); NASA Goddard SVS",
+        "year": "2012",
+        "source": "NASA Goddard Scientific Visualization Studio",
+        "url": "https://svs.gsfc.nasa.gov/4038/",
+        "licence": "PD",
+        "basis": "US government work (NASA); no NASA logo or insignia in the frames used"
+      },
+      "notes": "Full solar disk in 304 Å extreme ultraviolet from SDO: a churning, granular fiery surface with bright active regions and a twisting prominence on the left limb, slowly evolving over 40 s, no cuts. The source has a small date stamp in the lower-left; the crop (1560x878 from x180,y100) removes it and enlarges the disk to fill the frame height (disk fully inside, checked). Grade rotates hue -30° so the orange becomes hot magenta-red and lifts the black space to a deep navy. NASA-only (SDO)."
+    },
+    {
+      "path": "gig/loop-space.mp4",
+      "name": "Milky Way Zoom — NASA Goddard (SVS, PD).mp4",
+      "fetch": {
+        "url": "https://svs.gsfc.nasa.gov/vis/a020000/a020400/a020406/MilkyWayZoom_30fps_1080_h264_wStars.mp4"
+      },
+      "process": {
+        "start": 0,
+        "seconds": 17,
+        "xfade": 1.5,
+        "vf": "scale=1920:1080,eq=contrast=1.1:saturation=1.2,colorbalance=rs=0.05:gs=-0.06:bs=0.12:rm=0.06:gm=-0.05:bm=0.08:rh=0.02:bh=0.04",
+        "crf": 24
+      },
+      "credit": {
+        "title": "The Heliosphere Within The Milky Way Galaxy — MilkyWayZoom (with stars)",
+        "creator": "NASA Goddard Space Flight Center (visualization: Adriana Manrique Gutierrez; producer: Joy Ng)",
+        "year": "2025",
+        "source": "NASA Goddard Scientific Visualization Studio",
+        "url": "https://svs.gsfc.nasa.gov/20406/",
+        "licence": "PD",
+        "basis": "US government work (NASA); no NASA logo or insignia in the frames used"
+      },
+      "notes": "Slow, smooth push-in on a face-on spiral galaxy (artist's rendering of the Milky Way, NASA Goddard CGI) from a small spiral on black into its glowing core and dusty star-flecked arms; 20 s, no text, no cuts. File is actually 3840x2160 despite the '1080' name; scaled down. Grade gives the black a deep indigo cast and the arms a violet tint without crushing the core. Credits are NASA Goddard staff only (no ESA/Hubble/Webb material). The loop jumps from close-in back to wide at the seam, hence the 1.5 s crossfade."
+    },
+    {
+      "path": "gig/loop-aurora.mp4",
+      "name": "ISS Timelapse: Aurora Australis — NASA (SVS, PD).mp4",
+      "fetch": {
+        "url": "https://svs.gsfc.nasa.gov/vis/a030000/a030100/a030179/iss029_aurora_20110917_2304p.mp4"
+      },
+      "process": {
+        "start": 1,
+        "seconds": 18,
+        "xfade": 1,
+        "vf": "scale=1920:1080,colorchannelmixer=rr=1:rg=0.25:gg=0.45:gb=0.1:bg=0.85:bb=1,eq=contrast=1.06:saturation=1.15",
+        "crf": 24
+      },
+      "credit": {
+        "title": "ISS Timelapse: Aurora Australis (Expedition 29, 17 Sep 2011)",
+        "creator": "NASA / ISS Expedition 29 crew; NASA Goddard SVS",
+        "year": "2011",
+        "source": "NASA Goddard Scientific Visualization Studio",
+        "url": "https://svs.gsfc.nasa.gov/30179/",
+        "licence": "PD",
+        "basis": "US government work (NASA); no NASA logo or insignia in the frames used"
+      },
+      "notes": "Dramatic time-lapse from the ISS over the Indian Ocean: rivers of aurora light flowing over Earth with a red upper fringe and stars; ISS solar array (right) and module (top) frame the shot. 4096x2304 30 fps, 45.8 s, no text/logos, no cuts; the aurora is strongest in the first ~25 s, so the excerpt is 1–19 s. The grade is a strong recolour: a channel mix that turns the natural green aurora violet-blue and magenta with a red-violet top fringe (checked on a rendered frame, highlights intact). For natural green, use 'eq=contrast=1.08:saturation=1.25,colorbalance=bs=0.08:rs=0.06' instead. ~255 MB file."
+    },
+    {
+      "path": "gig/music-walkin.m4a",
+      "name": "Ambiant Shock — Komiku (Wikimedia Commons, CC0).m4a",
+      "fetch": {
+        "url": "https://upload.wikimedia.org/wikipedia/commons/c/c7/Komiku_-_05_-_Ambiant_Shock.ogg"
+      },
+      "process": {
+        "start": 0,
+        "seconds": 90,
+        "fadeIn": 2,
+        "fadeOut": 4
+      },
+      "credit": {
+        "title": "Ambiant Shock",
+        "creator": "Komiku",
+        "year": "2017",
+        "source": "Wikimedia Commons (from Free Music Archive)",
+        "url": "https://commons.wikimedia.org/wiki/File:Komiku_-_05_-_Ambiant_Shock.ogg",
+        "licence": "CC0-1.0"
+      },
+      "notes": "Instrumental ambient piece, 2:44, by Komiku, who wrote and recorded it and released it CC0 (so both composition and recording are CC0; Commons LicenseShortName=CC0). From the spectrogram the first ~90 s are sustained, evolving pads with no percussive hits; pulsing elements arrive after ~1:30, hence the 0–90 s excerpt. Quiet master (-17.7 LUFS), so it may need gain. NOT auditioned by ear (checked only by spectrogram and loudness), so give it a listen; if it is not dark enough, John Bartmann 'dark-dyne' (CC0, Commons) is the fallback. upload.wikimedia.org returned HTTP 429 to direct downloads during this session; analysis used the Commons MP3 transcode https://upload.wikimedia.org/wikipedia/commons/transcoded/c/c7/Komiku_-_05_-_Ambiant_Shock.ogg/Komiku_-_05_-_Ambiant_Shock.ogg.mp3, and the original URL above is stable once the limit clears."
+    },
+    {
+      "path": "memory-session/seaside-1.webp",
+      "name": "On the beach at Coney Island — Detroit Photographic Co. (Library of Congress, PD).webp",
+      "fetch": {
+        "url": "https://tile.loc.gov/storage-services/master/pnp/ppmsca/17900/17967u.tif"
+      },
+      "process": {
+        "vf": "crop=ih*0.87*16/9:ih*0.87:iw*0.055:ih*0.035,scale=1920:1080",
+        "quality": 84
+      },
+      "credit": {
+        "title": "On the beach at Coney Island",
+        "creator": "Detroit Photographic Co.",
+        "year": "1902",
+        "source": "Library of Congress",
+        "url": "https://www.loc.gov/item/2008678167/",
+        "licence": "PD",
+        "basis": "Published c. 1890–1905 by the Detroit Publishing Co. (photochrom); published before 1931, so public domain in the US; LoC lists no known restrictions"
+      },
+      "notes": "Colour photochrom, 5808x3023. Crowded sand full of children in sailor suits and Sunday best, a little girl in a yellow coat at centre, steamer on a turquoise sea, pale cream sky. Warm, busy, joyful. Crop removes the dark border and printed caption. Calm space for text: the pale sky band across the top ~20%."
+    },
+    {
+      "path": "memory-session/seaside-2.webp",
+      "name": "The Promenade, Blackpool — Detroit Publishing Co. (Library of Congress, PD).webp",
+      "fetch": {
+        "url": "https://tile.loc.gov/storage-services/master/pnp/ppmsc/08000/08014u.tif"
+      },
+      "process": {
+        "vf": "crop=iw*0.95:iw*0.95*9/16:iw*0.025:ih*0.04,scale=1920:1080",
+        "quality": 84
+      },
+      "credit": {
+        "title": "The Promenade, Blackpool",
+        "creator": "Detroit Publishing Co.",
+        "year": "c. 1890–1900",
+        "source": "Library of Congress",
+        "url": "https://www.loc.gov/item/2002696385/",
+        "licence": "PD",
+        "basis": "Published c. 1890–1905 by the Detroit Publishing Co. (photochrom); published before 1931, so public domain in the US; LoC lists no known restrictions"
+      },
+      "notes": "Colour photochrom, 3702x2780. Blackpool Tower rising over the promenade, horse trams and carriages, crowds strolling, big wheel at right, North Pier and sea at far left. Very recognisable for British residents. Crop keeps the tower top; open pale-green sky top-left and top-right for a title."
+    },
+    {
+      "path": "memory-session/seaside-3.webp",
+      "name": "Beach and ladies' bathing place, Margate — Detroit Publishing Co. (Library of Congress, PD).webp",
+      "fetch": {
+        "url": "https://tile.loc.gov/storage-services/master/pnp/ppmsc/08700/08707u.tif"
+      },
+      "process": {
+        "vf": "crop=iw*0.95:iw*0.95*9/16:iw*0.025:ih*0.2,scale=1920:1080",
+        "quality": 84
+      },
+      "credit": {
+        "title": "Beach and ladies' bathing place, Margate",
+        "creator": "Detroit Publishing Co.",
+        "year": "c. 1890–1900",
+        "source": "Library of Congress",
+        "url": "https://www.loc.gov/item/2002697068/",
+        "licence": "PD",
+        "basis": "Published c. 1890–1905 by the Detroit Publishing Co. (photochrom); published before 1931, so public domain in the US; LoC lists no known restrictions"
+      },
+      "notes": "Colour photochrom, 3670x2716. Rows of bathing machines being drawn into the surf by horses, paddlers in the shallows, packed sands and seafront terraces behind. Soft pastel palette (cream sky, grey-green sea). Lower third is calm water; good place for a caption."
+    },
+    {
+      "path": "memory-session/seaside-4.webp",
+      "name": "The pier, Clacton-on-Sea — Detroit Publishing Co. (Library of Congress, PD).webp",
+      "fetch": {
+        "url": "https://tile.loc.gov/storage-services/master/pnp/ppmsc/08100/08183u.tif"
+      },
+      "process": {
+        "vf": "crop=iw*0.95:iw*0.95*9/16:iw*0.03:ih*0.03,scale=1920:1080",
+        "quality": 84
+      },
+      "credit": {
+        "title": "The pier, Clacton-on-Sea",
+        "creator": "Detroit Publishing Co.",
+        "year": "c. 1890–1900",
+        "source": "Library of Congress",
+        "url": "https://www.loc.gov/item/2002696554/",
+        "licence": "PD",
+        "basis": "Published c. 1890–1905 by the Detroit Publishing Co. (photochrom); published before 1931, so public domain in the US; LoC lists no known restrictions"
+      },
+      "notes": "Colour photochrom, 3722x2727. Pier entrance with 'Hot & Cold Sea Water Baths' signs, bunting and signal flags, crowds walking out along the pier, paddle steamer and sailing boats on the sea. Lively and cheerful, lots of conversation prompts (steamer trips, penny admission). Busy lower half; sea/sky band at top for text."
+    },
+    {
+      "path": "memory-session/seaside-5.webp",
+      "name": "Blackpool, from Central Pier — Detroit Publishing Co. (Library of Congress, PD).webp",
+      "fetch": {
+        "url": "https://tile.loc.gov/storage-services/master/pnp/ppmsc/08000/08013u.tif"
+      },
+      "process": {
+        "vf": "crop=iw*0.95:iw*0.95*9/16:iw*0.025:ih*0.07,scale=1920:1080",
+        "quality": 84
+      },
+      "credit": {
+        "title": "Blackpool, from Central Pier",
+        "creator": "Detroit Publishing Co.",
+        "year": "c. 1890–1900",
+        "source": "Library of Congress",
+        "url": "https://www.loc.gov/item/2002696384/",
+        "licence": "PD",
+        "basis": "Published c. 1890–1905 by the Detroit Publishing Co. (photochrom); published before 1931, so public domain in the US; LoC lists no known restrictions"
+      },
+      "notes": "Colour photochrom, 3690x2779. The Tower and big wheel across the water, sailing boats, bathers on the sands, deep blue-green sea filling the lower half, soft clouds. The calmest and most colourful of the set; ideal full-bleed title or closing backdrop (text on the sea or sky)."
+    },
+    {
+      "path": "memory-session/seaside-6.webp",
+      "name": "On the beach at Atlantic City, N.J. — Detroit Publishing Co. (Library of Congress, PD).webp",
+      "fetch": {
+        "url": "https://tile.loc.gov/storage-services/master/pnp/ppmsca/19500/19541u.tif"
+      },
+      "process": {
+        "vf": "crop=iw*0.92:iw*0.92*9/16:iw*0.035:ih*0.08,scale=1920:1080",
+        "quality": 84
+      },
+      "credit": {
+        "title": "On the beach at Atlantic City, N.J.",
+        "creator": "Detroit Publishing Co.",
+        "year": "1905",
+        "source": "Library of Congress",
+        "url": "https://www.loc.gov/item/2009632310/",
+        "licence": "PD",
+        "basis": "Published 1905 by the Detroit Publishing Co. (copyright notice on the print, 1905); published before 1931, so public domain in the US"
+      },
+      "notes": "Sepia photograph (not colour), 5635x3744, very sharp. An ICE CREAM cart in the foreground left, a horse wearing a 'Base Ball, Inlet Park 3.30 to-day' banner, vendor in white, tents, flags and a huge bathing crowd with the pier behind. Great reminiscence prompt (ice cream, bathing costumes). Crop removes the card border and printed caption. Busier than the others; minimal free space (sky strip at top). Alternate colour pier if wanted: 'Iron pier, Llandudno' https://tile.loc.gov/storage-services/master/pnp/ppmsc/07400/07444u.tif (LoC 2001703507, same PD basis)."
+    },
+    {
+      "path": "memory-session/dance-1.webp",
+      "name": "American Legion dance held at Greenbelt on Memorial Day — Marjory Collins (Library of Congress, PD).webp",
+      "fetch": {
+        "url": "https://tile.loc.gov/storage-services/master/pnp/fsa/8d21000/8d21000/8d21014u.tif"
+      },
+      "process": {
+        "vf": "crop=iw*0.86:iw*0.86*9/16:iw*0.09:ih*0.24,scale=1920:1080",
+        "quality": 84
+      },
+      "credit": {
+        "title": "American Legion dance held at Greenbelt on Memorial Day",
+        "creator": "Marjory Collins",
+        "year": "1942",
+        "source": "Library of Congress",
+        "url": "https://commons.wikimedia.org/wiki/File:American_Legion_dance_held_at_Greenbelt_on_Memorial_Day8d21014v.jpg",
+        "licence": "PD",
+        "basis": "US government work: Farm Security Administration / Office of War Information photograph (Library of Congress FSA/OWI collection)"
+      },
+      "notes": "Black-and-white, 4766x4868 negative scan (cropped to 16:9). Couples waltzing in a community hall, women in long evening gowns, dance band on the stage under a big flag. Gentle, nostalgic ballroom feel. Crop removes the negative edge numbers. Mid-grey floor in the lower third suits a caption. LoC id fsa.8d21014."
+    },
+    {
+      "path": "memory-session/dance-2.webp",
+      "name": "Swingshift dance held weekly at the Main-Utica ballroom, Buffalo — Marjory Collins (Library of Congress, PD).webp",
+      "fetch": {
+        "url": "https://tile.loc.gov/storage-services/master/pnp/fsa/8d44000/8d44800/8d44854u.tif"
+      },
+      "process": {
+        "vf": "crop=iw*0.86:iw*0.86*9/16:iw*0.07:ih*0.27,scale=1920:1080",
+        "quality": 84
+      },
+      "credit": {
+        "title": "Swingshift dance held weekly at the Main-Utica ballroom, Buffalo",
+        "creator": "Marjory Collins",
+        "year": "1943",
+        "source": "Library of Congress",
+        "url": "https://commons.wikimedia.org/wiki/File:Swingshift_dance_held_weekly_at_the_Main-Utica_ballroom8d44854v.jpg",
+        "licence": "PD",
+        "basis": "US government work: Farm Security Administration / Office of War Information photograph (Library of Congress FSA/OWI collection)"
+      },
+      "notes": "Black-and-white, 12871x9801 (master is 126 MB). A packed ballroom floor of couples jiving and swinging, 1940s dresses, bows in hair. Energetic and happy. A man's head in the lower-right foreground; no real empty space, so use as a full-bleed image with a small caption band. LoC id fsa.8d44854."
+    },
+    {
+      "path": "memory-session/dance-3.webp",
+      "name": "Sailor jitterbugging at the senior prom, Greenbelt — Marjory Collins (Library of Congress, PD).webp",
+      "fetch": {
+        "url": "https://tile.loc.gov/storage-services/master/pnp/fsa/8d21000/8d21100/8d21135u.tif"
+      },
+      "process": {
+        "vf": "crop=iw*0.86:iw*0.86*9/16:iw*0.075:ih*0.14,scale=1920:1080",
+        "quality": 84
+      },
+      "credit": {
+        "title": "Sailor jitterbugging at the senior prom, Greenbelt",
+        "creator": "Marjory Collins",
+        "year": "1942",
+        "source": "Library of Congress",
+        "url": "https://commons.wikimedia.org/wiki/File:Sailor_jitterbugging_at_the_senior_prom8d21135v.jpg",
+        "licence": "PD",
+        "basis": "US government work: Farm Security Administration / Office of War Information photograph (Library of Congress FSA/OWI collection)"
+      },
+      "notes": "Black-and-white, 4854x4857. A young sailor mid-swing, arm outstretched to his partner, girls in prom gowns behind. Joyful and full of movement. The square negative cannot fit a 16:9 frame whole, so his feet are cropped. If a fit-inside layout is preferred, drop the crop (the uncropped scan has black negative edges). LoC id fsa.8d21135."
+    },
+    {
+      "path": "memory-session/picnic-1.webp",
+      "name": "A Sunday picnic in Rock Creek Park, Washington, D.C. — Marjory Collins (Library of Congress, PD).webp",
+      "fetch": {
+        "url": "https://tile.loc.gov/storage-services/master/pnp/fsa/8c34000/8c34800/8c34844u.tif"
+      },
+      "process": {
+        "vf": "crop=iw*0.86:iw*0.86*9/16:iw*0.07:ih*0.40,scale=1920:1080",
+        "quality": 84
+      },
+      "credit": {
+        "title": "A Sunday picnic in Rock Creek Park, Washington, D.C.",
+        "creator": "Marjory Collins",
+        "year": "1942",
+        "source": "Library of Congress",
+        "url": "https://commons.wikimedia.org/wiki/File:A_Sunday_picnic_in_Rock_Creek_Park_8c34844v.jpg",
+        "licence": "PD",
+        "basis": "US government work: Farm Security Administration / Office of War Information photograph (Library of Congress FSA/OWI collection)"
+      },
+      "notes": "Black-and-white, 4760x4800. A family sitting on a cloth spread on the grass with bottles, bread and a basket, a girl with a hair bow, a man in braces, an older man passing by. Sunny and relaxed. Bright grass in the lower right suits a caption. LoC id fsa.8c34844."
+    },
+    {
+      "path": "memory-session/picnic-2.webp",
+      "name": "A Sunday picnic in Rock Creek Park, Washington, D.C. (family group) — Marjory Collins (Library of Congress, PD).webp",
+      "fetch": {
+        "url": "https://tile.loc.gov/storage-services/master/pnp/fsa/8c34000/8c34800/8c34843u.tif"
+      },
+      "process": {
+        "vf": "crop=iw*0.86:iw*0.86*9/16:iw*0.06:ih*0.40,scale=1920:1080",
+        "quality": 84
+      },
+      "credit": {
+        "title": "A Sunday picnic in Rock Creek Park, Washington, D.C. (family group)",
+        "creator": "Marjory Collins",
+        "year": "1942",
+        "source": "Library of Congress",
+        "url": "https://commons.wikimedia.org/wiki/File:A_Sunday_picnic_in_Rock_Creek_Park_8c34843v.jpg",
+        "licence": "PD",
+        "basis": "US government work: Farm Security Administration / Office of War Information photograph (Library of Congress FSA/OWI collection)"
+      },
+      "notes": "Black-and-white, 4812x4782. Three generations picnicking on a blanket next to a park bench: grandmother, mothers, two boys perched on the bench, grandad standing in a straw hat, 1940s cars on the drive behind. Open lawn across the lower third suits text. LoC id fsa.8c34843."
+    },
+    {
+      "path": "memory-session/picnic-3.webp",
+      "name": "Sunday school picnic on the Fourth of July, on the edge of the Patuxent River — Marjory Collins (Library of Congress, PD).webp",
+      "fetch": {
+        "url": "https://tile.loc.gov/storage-services/master/pnp/fsa/8c34000/8c34900/8c34919u.tif"
+      },
+      "process": {
+        "vf": "crop=iw*0.84:iw*0.84*9/16:iw*0.10:ih*0.45,scale=1920:1080",
+        "quality": 84
+      },
+      "credit": {
+        "title": "Sunday school picnic on the Fourth of July, on the edge of the Patuxent River",
+        "creator": "Marjory Collins",
+        "year": "1942",
+        "source": "Library of Congress",
+        "url": "https://commons.wikimedia.org/wiki/File:Sunday_school_picnic_on_the_Fourth_of_July_8c34919v.jpg",
+        "licence": "PD",
+        "basis": "US government work: Farm Security Administration / Office of War Information photograph (Library of Congress FSA/OWI collection)"
+      },
+      "notes": "Black-and-white, 4857x4679. Under a weeping willow, ladies in summer hats sit with their shoes off, looking out at children paddling in the river. Peaceful and summery. The bright, hazy water across the top half is good for text. St. Mary's County, Maryland. LoC id fsa.8c34919."
+    },
+    {
+      "path": "memory-session/song-seaside.m4a",
+      "name": "I Do Like to Be Beside the Seaside — Arthur Norton (Harry Fay), Zonophone 1909 (Internet Archive, PD).m4a",
+      "fetch": {
+        "url": "https://archive.org/download/ArthurNortonharryFayIDoLikeToBeBesideTheSeasidezonophoneX429431909/arthur%20norton%20%28harry%20fay%29%20-%20i%20do%20like%20to%20be%20beside%20the%20seaside%20%28zonophone%20x-42943%29%20%281909%29.mp3"
+      },
+      "process": {
+        "start": 0,
+        "seconds": 194,
+        "fadeIn": 0.3,
+        "fadeOut": 2
+      },
+      "credit": {
+        "title": "I Do Like to Be Beside the Seaside",
+        "creator": "John A. Glover-Kind (words and music); sung by Arthur Norton (pseudonym of Harry Fay)",
+        "year": "1909",
+        "source": "Internet Archive (78rpm collection), Zonophone X-42943",
+        "url": "https://archive.org/details/ArthurNortonharryFayIDoLikeToBeBesideTheSeasidezonophoneX429431909",
+        "licence": "PD",
+        "basis": "Song published 1907; Glover-Kind died 1918. Recording published 1909 (Zonophone X-42943); in the US, sound recordings published before 1923 entered the public domain on 1 Jan 2022 (Music Modernization Act), and UK recording rights expired long ago"
+      },
+      "notes": "Whole song, 194 s, mono acoustic 78 transfer (128 kbps MP3). A male music-hall singer with orchestra, period-authentic and easy to sing along to, but with steady surface hiss/swish all the way through (the uploader says the disc is worn). A gentle clean-up would help if the pipeline allows it, e.g. af 'highpass=f=90,lowpass=f=5500,afftdn=nf=-25'. The 1909 Mark Sheridan original could not be found anywhere with a clear PD/CC0 status. Lyrics are from the published 1907 song, transcribed on English Wikipedia (I could not check them against a scan of the 1907 sheet music). The recording may not sing every verse.",
+      "lyrics": "Everyone delights to spend their summer's holiday\nDown beside the side of the silvery sea.\nI'm no exception to the rule, in fact, if I'd my way,\nI'd reside by the side of the silvery sea.\nBut when you're just the common garden Smith or Jones or Brown,\nAt business up in town, you've got to settle down.\nYou save up all the money you can till summer comes around,\nThen away you go to a spot you know where the cockleshells are found.\n\nChorus:\nOh! I do like to be beside the seaside!\nI do like to be beside the sea!\nOh I do like to stroll along the Prom, Prom, Prom!\nWhere the brass bands play, \"Tiddely-om-pom-pom!\"\nSo just let me be beside the seaside!\nI'll be beside myself with glee,\nAnd there's lots of girls beside,\nI should like to be beside, beside the seaside,\nBeside the sea!\n\nTimothy went to Blackpool for the day last Eastertide\nTo see what he could see by the side of the sea.\nAs soon as he reached the station there the first thing he espied\nWas the wine lodge door stood open invitingly.\nTo quench his thirst, he toddled inside and called out for a wine,\nWhich grew to eight or nine, till his nose began to shine.\nSaid he, \"What people see in the sea, I'm sure I fail to see,\"\nThen he caught the train back home again and to his wife said he:\n\n(Chorus)\n\nWilliam Sykes the burglar, he'd been out to work one night,\nFilled his bags with jewels, cash and plate.\nConstable Brown felt quite surprised when William hove in sight.\nSaid he, \"The hours you're keeping are far too late.\"\nSo he grabbed him by the collar and lodged him safe and sound in jail.\nNext morning, looking pale, Bill told a tearful tale.\nThe judge said, \"For a couple of months I'm sending you away!\"\nSaid Bill, \"How kind! Well, if you don't mind, where I spend my holiday!\"\n\nOh! I do like to be beside the seaside!\nI do like to be beside the sea!\nFor the sun's always shining as I make my way,\nAnd the brass bands play, \"Ta-ra-ra-boom-de-ay!\"\nSo just let me be beside the seaside!\nI'll be beside myself with glee,\nAnd there's lots of girls beside,\nI should like to be beside, beside the seaside,\nBeside the sea!"
+    },
+    {
+      "path": "memory-session/music-closing.m4a",
+      "name": "Clair de lune — Claude Debussy, Wright Brass of the US Air Force Band of Flight (Wikimedia Commons, PD).m4a",
+      "fetch": {
+        "url": "https://upload.wikimedia.org/wikipedia/commons/6/63/Clair_de_Lune_-_Wright_Brass_-_United_States_Air_Force_Band_of_Flight.mp3"
+      },
+      "process": {
+        "start": 0.7,
+        "seconds": 157,
+        "fadeIn": 1,
+        "fadeOut": 5
+      },
+      "credit": {
+        "title": "Clair de lune (Suite bergamasque)",
+        "creator": "Claude Debussy; performed by Wright Brass, United States Air Force Band of Flight",
+        "year": "1993 (album 'Blue Skies')",
+        "source": "Wikimedia Commons (from music.af.mil Public Domain Music)",
+        "url": "https://commons.wikimedia.org/wiki/File:Clair_de_Lune_-_Wright_Brass_-_United_States_Air_Force_Band_of_Flight.mp3",
+        "licence": "PD",
+        "basis": "Composition: Debussy died 1918. Performance and recording: US government work by the United States Air Force Band (PD-USGov-Military-Air Force)"
+      },
+      "notes": "Brass-quintet arrangement, soft and warm, 242 s in total. The excerpt runs 0.7–157.7 s and ends at a natural pause (silence at 157.9 s), with a 5 s fade. Quiet master (please normalise). I rejected the Commons piano recording by Laurens Goedhart, which is CC BY 3.0 despite being labelled PD, and the 1927 Edison 'Hotel Commodore Ensemble' disc, which is not yet PD in the US (1927 recordings enter the PD on 1 Jan 2028)."
+    },
+    {
+      "path": "memory-session/sfx-sea.m4a",
+      "name": "Waves on the shore — Dsw4 (Wikimedia Commons, PD).m4a",
+      "fetch": {
+        "url": "https://upload.wikimedia.org/wikipedia/commons/1/1f/Waves.ogg"
+      },
+      "process": {
+        "start": 10,
+        "seconds": 45,
+        "fadeIn": 2,
+        "fadeOut": 4
+      },
+      "credit": {
+        "title": "Waves",
+        "creator": "Dsw4 (Wikimedia Commons user)",
+        "year": "2008",
+        "source": "Wikimedia Commons",
+        "url": "https://commons.wikimedia.org/wiki/File:Waves.ogg",
+        "licence": "PD",
+        "basis": "Released into the public domain by the recordist ({{PD-self}}) on Wikimedia Commons"
+      },
+      "notes": "Stereo field recording of small waves washing in on a shore, recorded with a shotgun microphone, 287 s in total. The 10–55 s excerpt is steady and gentle (about -22 LUFS), with no voices or engines. Caveat: it was recorded on the shore of Lake Ontario, not the sea, though it sounds like gentle surf. A sea-shore alternative: 'On a pebble beach' (earthcalling, PD via pdsounds.org, 40 s) https://upload.wikimedia.org/wikipedia/commons/7/73/On_a_pebble_beach.ogg, but it includes a thrown stone, footsteps on pebbles and a distant motor boat. I rejected 'Ocean Waves on a Tropical Beach' (CC0) because the uploader and the credited author do not match."
+    },
+    {
+      "path": "gathering/bg-dawn.webp",
+      "name": "Sunset on the Sea — John Frederick Kensett (The Met, CC0).webp",
+      "fetch": {
+        "url": "https://images.metmuseum.org/CRDImages/ad/original/DT226485.jpg"
+      },
+      "process": {
+        "vf": "crop=iw*0.97:ih*0.97,scale=1920:1080:force_original_aspect_ratio=increase,crop=1920:1080",
+        "quality": 82
+      },
+      "credit": {
+        "title": "Sunset on the Sea",
+        "creator": "John Frederick Kensett",
+        "year": "1872",
+        "source": "The Metropolitan Museum of Art",
+        "url": "https://www.metmuseum.org/art/collection/search/11325",
+        "licence": "CC0-1.0"
+      },
+      "notes": "Glowing amber-orange sky with a soft low sun just above a calm grey-green sea horizon (~62% down); thin warm clouds at top. Almost no detail, ideal behind lyrics: text sits anywhere, best in the upper two-thirds or over the sea. Titled sunset but reads as a dawn glow. Original 3811x2597."
+    },
+    {
+      "path": "gathering/bg-hills.webp",
+      "name": "Pompton Plains, New Jersey — Jasper Francis Cropsey (The Met, CC0).webp",
+      "fetch": {
+        "url": "https://images.metmuseum.org/CRDImages/ad/original/DT214222.jpg"
+      },
+      "process": {
+        "vf": "crop=iw*0.96:ih*0.96,scale=1920:1080:force_original_aspect_ratio=increase,crop=1920:1080",
+        "quality": 82
+      },
+      "credit": {
+        "title": "Pompton Plains, New Jersey",
+        "creator": "Jasper Francis Cropsey",
+        "year": "1867",
+        "source": "The Metropolitan Museum of Art",
+        "url": "https://www.metmuseum.org/art/collection/search/10584",
+        "licence": "CC0-1.0"
+      },
+      "notes": "Wide valley in warm hazy autumn light: soft golden sky with light shafts takes the top ~55%, low blue hills and a silver river across the middle, golden fields below. Calm and low-detail; big empty sky for lyrics. Crop of 0.96 removes the unpainted canvas edge; artist's signature at bottom-left is mostly cropped by 16:9. Original 3811x2380."
+    },
+    {
+      "path": "gathering/bg-water.webp",
+      "name": "Twilight on the Sound, Darien, Connecticut — John Frederick Kensett (The Met, CC0).webp",
+      "fetch": {
+        "url": "https://images.metmuseum.org/CRDImages/ad/original/ap74.24.jpg"
+      },
+      "process": {
+        "vf": "crop=iw*0.97:ih*0.97,scale=1920:1080:force_original_aspect_ratio=increase,crop=1920:1080",
+        "quality": 82
+      },
+      "credit": {
+        "title": "Twilight on the Sound, Darien, Connecticut",
+        "creator": "John Frederick Kensett",
+        "year": "1872",
+        "source": "The Metropolitan Museum of Art",
+        "url": "https://www.metmuseum.org/art/collection/search/11329",
+        "licence": "CC0-1.0"
+      },
+      "notes": "Still water at dusk: pale grey-green sky fading to a rose-pink horizon, pink reflections on glassy water, dark tree mass on the right third, a tiny rowing boat lower centre. Upper half and left side are empty for text. Wide 2.2:1 original (2777x1272) so the 16:9 crop trims the sides only; output slightly upscaled from ~2260 px wide, fine because the paint is soft."
+    },
+    {
+      "path": "gathering/bg-notices.webp",
+      "name": "Sunrise — George Inness (The Met, CC0).webp",
+      "fetch": {
+        "url": "https://images.metmuseum.org/CRDImages/ad/original/DP232470.jpg"
+      },
+      "process": {
+        "vf": "crop=iw*0.97:ih*0.97,scale=1920:1080:force_original_aspect_ratio=increase,crop=1920:1080",
+        "quality": 82
+      },
+      "credit": {
+        "title": "Sunrise",
+        "creator": "George Inness",
+        "year": "1887",
+        "source": "The Metropolitan Museum of Art",
+        "url": "https://www.metmuseum.org/art/collection/search/11235",
+        "licence": "CC0-1.0"
+      },
+      "notes": "Tonalist, soft-focus meadow at sunrise: olive-gold haze, two thin trees (centre-left and right), a small figure in the field, warm light behind. Very low contrast and soft, so it works like a warm texture behind notice text (needs the dark gradient for legibility). Original 3917x2602."
+    },
+    {
+      "path": "gathering/music-gathering.m4a",
+      "name": "Gymnopédie No. 1 — Erik Satie, played by Robin Alciatore (Musopen via Wikimedia Commons, PD).m4a",
+      "fetch": {
+        "url": "https://upload.wikimedia.org/wikipedia/commons/9/90/Erik_Satie_-_gymnopedies_-_la_1_ere._lent_et_douloureux.ogg"
+      },
+      "process": {
+        "start": 2,
+        "seconds": 144,
+        "fadeIn": 1,
+        "fadeOut": 4
+      },
+      "credit": {
+        "title": "Gymnopédie No. 1 (Lent et douloureux)",
+        "creator": "Erik Satie (composer, d. 1925); Robin Alciatore (piano)",
+        "year": "1888 (composition); c. 2008 (recording)",
+        "source": "Musopen, via Wikimedia Commons",
+        "url": "https://commons.wikimedia.org/wiki/File:Erik_Satie_-_gymnopedies_-_la_1_ere._lent_et_douloureux.ogg",
+        "licence": "PD",
+        "basis": "Composition: Satie died 1925. Recording: released into the public domain by Musopen (Commons tags it Public domain, credit musopen.org)."
+      },
+      "notes": "Solo piano, clean modern stereo recording (44.1 kHz Vorbis ~160 kb/s), quiet and steady. Full file 183.6 s with 2.2 s silence at start; the excerpt 2–146 s covers the first statement and most of the second, ending at a soft dip at ~145 s, faded out over 4 s. Loops calmly."
+    },
+    {
+      "path": "birthday/photo-1.webp",
+      "name": "Boys fishing in a bayou, Schriever, Louisiana — Marion Post Wolcott (Library of Congress, PD).webp",
+      "fetch": {
+        "url": "https://tile.loc.gov/storage-services/master/pnp/fsac/1a34000/1a34300/1a34362u.tif"
+      },
+      "process": {
+        "vf": "crop=iw*0.935:ih*0.89:iw*0.035:ih*0.065,scale=1920:1080:force_original_aspect_ratio=decrease",
+        "quality": 82
+      },
+      "credit": {
+        "title": "Boys fishing in a bayou, Schriever, Louisiana",
+        "creator": "Marion Post Wolcott",
+        "year": "1940",
+        "source": "Library of Congress, FSA/OWI Collection",
+        "url": "https://hdl.loc.gov/loc.pnp/fsac.1a34362",
+        "licence": "PD",
+        "basis": "US government work: made by a Farm Security Administration photographer as part of official duties (LoC: no known restrictions; digital ID fsac.1a34362)."
+      },
+      "notes": "Childhood. Kodachrome (colour), June 1940: two small boys in straw hats fishing from a bank under willows, deep teal water, warm evening light on the boys at lower right. Landscape ~1.47:1, output 1591x1080; dark empty water on the left for a caption. Source is the LoC master TIFF (~45-65 MB); the crop removes the transparency mount and rounded corners."
+    },
+    {
+      "path": "birthday/photo-2.webp",
+      "name": "School children singing, Pie Town, New Mexico — Russell Lee (Library of Congress, PD).webp",
+      "fetch": {
+        "url": "https://tile.loc.gov/storage-services/master/pnp/fsac/1a34000/1a34100/1a34152u.tif"
+      },
+      "process": {
+        "vf": "crop=iw*0.90:ih*0.87:iw*0.05:ih*0.065,scale=1920:1080:force_original_aspect_ratio=decrease",
+        "quality": 82
+      },
+      "credit": {
+        "title": "School children singing, Pie Town, New Mexico",
+        "creator": "Russell Lee",
+        "year": "1940",
+        "source": "Library of Congress, FSA/OWI Collection",
+        "url": "https://hdl.loc.gov/loc.pnp/fsac.1a34152",
+        "licence": "PD",
+        "basis": "US government work: made by a Farm Security Administration photographer as part of official duties (LoC: no known restrictions; digital ID fsac.1a34152)."
+      },
+      "notes": "Childhood. Kodachrome, Oct 1940: rows of freckled children in overalls and print dresses singing, flowered wallpaper behind; very charming faces. Landscape, output 1598x1080; busy, keep whole. Source is the LoC master TIFF (~45-65 MB); the crop removes the transparency mount and rounded corners."
+    },
+    {
+      "path": "birthday/photo-3.webp",
+      "name": "On the ferris wheel at the Vermont state fair, Rutland — Jack Delano (Library of Congress, PD).webp",
+      "fetch": {
+        "url": "https://tile.loc.gov/storage-services/master/pnp/fsac/1a33000/1a33900/1a33918u.tif"
+      },
+      "process": {
+        "vf": "crop=iw*0.88:ih*0.91:iw*0.06:ih*0.045,scale=1920:1080:force_original_aspect_ratio=decrease",
+        "quality": 82
+      },
+      "credit": {
+        "title": "On the ferris wheel at the Vermont state fair, Rutland",
+        "creator": "Jack Delano",
+        "year": "1941",
+        "source": "Library of Congress, FSA/OWI Collection",
+        "url": "https://hdl.loc.gov/loc.pnp/fsac.1a33918",
+        "licence": "PD",
+        "basis": "US government work: made by a Farm Security Administration photographer as part of official duties (LoC: no known restrictions; digital ID fsac.1a33918)."
+      },
+      "notes": "Youth. Kodachrome, Sept 1941: white ferris wheel against a deep blue sky, two teenage girls chatting in the lowest seat (lower right). Portrait, output 745x1080 (keep whole, letterbox); striking graphic colour. Source is the LoC master TIFF (~45-65 MB); the crop removes the transparency mount and rounded corners."
+    },
+    {
+      "path": "birthday/photo-4.webp",
+      "name": "Girl worker at lunch also absorbing California sunshine, Douglas Aircraft Company, Long Beach, Calif. — Alfred T. Palmer (Library of Congress, PD).webp",
+      "fetch": {
+        "url": "https://tile.loc.gov/storage-services/master/pnp/fsac/1a35000/1a35300/1a35343u.tif"
+      },
+      "process": {
+        "vf": "crop=iw*0.85:ih*0.90:iw*0.075:ih*0.055,scale=1920:1080:force_original_aspect_ratio=decrease",
+        "quality": 82
+      },
+      "credit": {
+        "title": "Girl worker at lunch also absorbing California sunshine, Douglas Aircraft Company, Long Beach, Calif.",
+        "creator": "Alfred T. Palmer",
+        "year": "1942",
+        "source": "Library of Congress, FSA/OWI Collection",
+        "url": "https://hdl.loc.gov/loc.pnp/fsac.1a35343",
+        "licence": "PD",
+        "basis": "US government work: made by a Farm Security Administration photographer as part of official duties (LoC: no known restrictions; digital ID fsac.1a35343)."
+      },
+      "notes": "Youth. Kodachrome, Oct 1942: young woman in white blouse, rolled jeans and headscarf with pink bow, pouring from a red thermos against a riveted aluminium aircraft nose. Glamorous, very sharp (master 7448x9165). Portrait, output 829x1080 (keep whole). Source is the LoC master TIFF (large); the crop removes the transparency mount and rounded corners."
+    },
+    {
+      "path": "birthday/photo-5.webp",
+      "name": "Sailor jitterbugging at the senior prom — Marjory Collins (Library of Congress, PD).webp",
+      "fetch": {
+        "url": "https://tile.loc.gov/storage-services/master/pnp/fsa/8d21000/8d21100/8d21135a.tif"
+      },
+      "process": {
+        "vf": "crop=iw*0.845:ih*0.885:iw*0.085:ih*0.055,scale=1920:1080:force_original_aspect_ratio=decrease",
+        "quality": 82
+      },
+      "credit": {
+        "title": "Sailor jitterbugging at the senior prom",
+        "creator": "Marjory Collins",
+        "year": "1942",
+        "source": "Library of Congress, FSA/OWI Collection",
+        "url": "https://hdl.loc.gov/loc.pnp/fsa.8d21135",
+        "licence": "PD",
+        "basis": "US government work: made by a Farm Security Administration photographer as part of official duties (LoC: no known restrictions; digital ID fsa.8d21135)."
+      },
+      "notes": "Dance. Black-and-white, May-June 1942 (the same Marjory Collins prom series as Greenbelt, Maryland): a sailor in dress blues mid-jitterbug, reaching for his partner's hand at right, couples in gowns behind. Joyful and lively. Square-ish, output 1031x1080 (keep whole). Source is the LoC master TIFF (~45-65 MB); the crop removes the negative border and edge numbering."
+    },
+    {
+      "path": "birthday/photo-6.webp",
+      "name": "Thanksgiving dinner at the house of Earle Landis, Neffsville, Pennsylvania — Marjory Collins (Library of Congress, PD).webp",
+      "fetch": {
+        "url": "https://tile.loc.gov/storage-services/master/pnp/fsa/8d10000/8d10700/8d10757a.tif"
+      },
+      "process": {
+        "vf": "crop=iw*0.935:ih*0.905:iw*0.025:ih*0.04,scale=1920:1080:force_original_aspect_ratio=decrease",
+        "quality": 82
+      },
+      "credit": {
+        "title": "Thanksgiving dinner at the house of Earle Landis, Neffsville, Pennsylvania",
+        "creator": "Marjory Collins",
+        "year": "1942",
+        "source": "Library of Congress, FSA/OWI Collection",
+        "url": "https://hdl.loc.gov/loc.pnp/fsa.8d10757",
+        "licence": "PD",
+        "basis": "US government work: made by a Farm Security Administration photographer as part of official duties (LoC: no known restrictions; digital ID fsa.8d10757)."
+      },
+      "notes": "Family. Black-and-white, Nov 1942: three generations round a long table with a chrysanthemum centrepiece, father carving, mother passing plates, boy in front, light from tall windows. Warm and detailed (master 12816x9760, 241 MB TIFF). Landscape, output 1465x1080. Source is the LoC master TIFF (large); the crop removes the negative border and edge numbering."
+    },
+    {
+      "path": "birthday/photo-7.webp",
+      "name": "At the Vermont state fair, Rutland — Jack Delano (Library of Congress, PD).webp",
+      "fetch": {
+        "url": "https://tile.loc.gov/storage-services/master/pnp/fsac/1a33000/1a33900/1a33924u.tif"
+      },
+      "process": {
+        "vf": "crop=iw*0.94:ih*0.90:iw*0.03:ih*0.06,scale=1920:1080:force_original_aspect_ratio=decrease",
+        "quality": 82
+      },
+      "credit": {
+        "title": "At the Vermont state fair, Rutland",
+        "creator": "Jack Delano",
+        "year": "1941",
+        "source": "Library of Congress, FSA/OWI Collection",
+        "url": "https://hdl.loc.gov/loc.pnp/fsac.1a33924",
+        "licence": "PD",
+        "basis": "US government work: made by a Farm Security Administration photographer as part of official duties (LoC: no known restrictions; digital ID fsac.1a33924)."
+      },
+      "notes": "Celebrations. Kodachrome, Sept 1941: little girls in matching red-print dresses with blue bows and a small boy in a teal jumper at the fairground, rides and tents behind. Bright, sunny, nostalgic. Landscape, output 1647x1080. Source is the LoC master TIFF (~45-65 MB); the crop removes the transparency mount and rounded corners."
+    },
+    {
+      "path": "birthday/photo-8.webp",
+      "name": "Earle Landis' mother and father had a wedding anniversary on Thanksgiving day — Marjory Collins (Library of Congress, PD).webp",
+      "fetch": {
+        "url": "https://tile.loc.gov/storage-services/master/pnp/fsa/8d10000/8d10700/8d10740a.tif"
+      },
+      "process": {
+        "vf": "crop=iw*0.935:ih*0.905:iw*0.025:ih*0.065,scale=1920:1080:force_original_aspect_ratio=decrease",
+        "quality": 82
+      },
+      "credit": {
+        "title": "Earle Landis' mother and father had a wedding anniversary on Thanksgiving day",
+        "creator": "Marjory Collins",
+        "year": "1942",
+        "source": "Library of Congress, FSA/OWI Collection",
+        "url": "https://hdl.loc.gov/loc.pnp/fsa.8d10740",
+        "licence": "PD",
+        "basis": "US government work: made by a Farm Security Administration photographer as part of official duties (LoC: no known restrictions; digital ID fsa.8d10740)."
+      },
+      "notes": "Celebrations / a couple honoured: Neffsville, Pennsylvania, Nov 1942; the grandparents open anniversary presents after dinner, grandchild and family at the table with flowers. A gentle tie-in for a grandparent's party. Landscape, output 1463x1080 (master 12786x9750, 241 MB TIFF). Source is the LoC master TIFF (large); the crop removes the negative border and edge numbering."
+    },
+    {
+      "path": "birthday/photo-guess.webp",
+      "name": "Vermont state fair, Rutland — Jack Delano (Library of Congress, PD).webp",
+      "fetch": {
+        "url": "https://tile.loc.gov/storage-services/master/pnp/fsac/1a33000/1a33900/1a33915u.tif"
+      },
+      "process": {
+        "vf": "crop=iw*0.93:ih*0.88:iw*0.035:ih*0.08,scale=1920:1080:force_original_aspect_ratio=decrease",
+        "quality": 82
+      },
+      "credit": {
+        "title": "Vermont state fair, Rutland",
+        "creator": "Jack Delano",
+        "year": "1941",
+        "source": "Library of Congress, FSA/OWI Collection",
+        "url": "https://hdl.loc.gov/loc.pnp/fsac.1a33915",
+        "licence": "PD",
+        "basis": "US government work: made by a Farm Security Administration photographer as part of official duties (LoC: no known restrictions; digital ID fsac.1a33915)."
+      },
+      "notes": "Guess-the-decade photo: the year is 1941 (Sept 1941). An older couple picnicking on folding stools from the open trunk of a 1940s sedan, a second blue-grey car with licence plate 2A-517 beside them, tents and a fairground behind. The rounded cars, hats and coats give clues to the 1940s. Landscape, output 1580x1080. Source is the LoC master TIFF (~45-65 MB); the crop removes the transparency mount and rounded corners."
+    },
+    {
+      "path": "birthday/cake.webp",
+      "name": "Grandma Taylor blows out the candles on her eighty-third birthday — Marjory Collins (Library of Congress, PD).webp",
+      "fetch": {
+        "url": "https://tile.loc.gov/storage-services/master/pnp/fsa/8d21000/8d21000/8d21071a.tif"
+      },
+      "process": {
+        "vf": "crop=iw*0.83:ih*0.88:iw*0.095:ih*0.075,scale=1920:1080:force_original_aspect_ratio=decrease",
+        "quality": 82
+      },
+      "credit": {
+        "title": "Grandma Taylor blows out the candles on her eighty-third birthday",
+        "creator": "Marjory Collins",
+        "year": "1942",
+        "source": "Library of Congress, FSA/OWI Collection",
+        "url": "https://hdl.loc.gov/loc.pnp/fsa.8d21071",
+        "licence": "PD",
+        "basis": "US government work: made by a Farm Security Administration photographer as part of official duties (LoC: no known restrictions; digital ID fsa.8d21071)."
+      },
+      "notes": "Birthday cake with lit candles: an elderly woman blows out the candles on an iced cake on a checked tablecloth outdoors under sunlit trees, a younger woman and a boy smiling behind her. Black-and-white, May-June 1942. Square-ish, output 1017x1080; cake at lower centre-left. Perfect fit for a grandparent's birthday. Source is the LoC master TIFF (~45-65 MB); the crop removes the negative border and edge numbering."
+    },
+    {
+      "path": "birthday/video-fireworks.mp4",
+      "name": "Independence Day Fireworks, Washington DC — Lance Cheung, USDA (Wikimedia Commons, PD).mp4",
+      "fetch": {
+        "url": "https://upload.wikimedia.org/wikipedia/commons/b/b8/Independence_Day_Fireworks%2C_Washington_DC_%2820210704-OC-LSC-0053%29.webm"
+      },
+      "process": {
+        "start": 76,
+        "seconds": 16,
+        "xfade": 1
+      },
+      "credit": {
+        "title": "Independence Day Fireworks, Washington DC (20210704-OC-LSC-0053)",
+        "creator": "Lance Cheung, U.S. Department of Agriculture",
+        "year": "2021",
+        "source": "USDA via Wikimedia Commons",
+        "url": "https://commons.wikimedia.org/wiki/File:Independence_Day_Fireworks,_Washington_DC_(20210704-OC-LSC-0053).webm",
+        "licence": "PD",
+        "basis": "US government work (USDA photo by Lance Cheung, made in official duties)."
+      },
+      "notes": "1920x1080 AV1, 29.97 fps, 148 s, one locked-off shot (no cuts found). Two fireworks clusters burst left and right; the silhouette of the Marine Corps War Memorial (Iwo Jima statue) with its flag sits low in the centre, with dark trees at the bottom. 76-92 s is the busiest, most colourful part (pink, blue, green, white bursts in drifting magenta smoke). Burst-free night sky at top for text. Designers should know the memorial silhouette is in frame."
+    },
+    {
+      "path": "birthday/music-story.m4a",
+      "name": "Eine kleine Nachtmusik, I. Allegro — Mozart, Nicolas Lambinon Quartet, 1923 (Internet Archive, PD).m4a",
+      "fetch": {
+        "url": "https://archive.org/download/odeon-aa-79467-79468-mozart-eine-kleine-nachtmusik-k525-nicolas-lambinon-quartet/Odeon%20AA%2079%20467-68%20Mozart%20Eine%20kleine%20Nachtmusik%20in%20G%20K525%20%28i%29%2C%28ii%29%20Nicolas%20Lambinon%20Quartet.flac"
+      },
+      "process": {
+        "start": 1.5,
+        "seconds": 100,
+        "fadeIn": 0.5,
+        "fadeOut": 4
+      },
+      "credit": {
+        "title": "Eine kleine Nachtmusik, K. 525: I. Allegro",
+        "creator": "Wolfgang Amadeus Mozart (composer); Nicolas Lambinon String Quartet",
+        "year": "Recorded c. Nov 1923, Berlin; Odeon AA 79467, issued before July 1924",
+        "source": "Internet Archive (DogintheManger collection)",
+        "url": "https://archive.org/details/odeon-aa-79467-79468-mozart-eine-kleine-nachtmusik-k525-nicolas-lambinon-quartet",
+        "licence": "PD",
+        "basis": "Composition: Mozart died 1791. Recording: first published 1924 (the label shows 1925 at the latest); US sound recordings published before 1926 are in the public domain (100-year term under the Music Modernization Act)."
+      },
+      "notes": "COMPROMISE, please review: a historic acoustic 78 rpm transfer, mono, frequency range up to about 3 kHz, with light surface noise; it sounds charmingly vintage, not hi-fi. I found no PD/CC0 modern recording: the PD-tagged Commons files (\"European Archive\"/Musopen) are only PD under EU law, and no US military band recording turned up. The Allegro fills 1.5-213 s of this side; the excerpt 1.5-101.5 s covers the exposition and early development and fades out over 4 s. Suits a 'through the years' nostalgia slideshow."
+    },
+    {
+      "path": "birthday/music-birthday.m4a",
+      "name": "Happy Birthday to You — synthesized arrangement by Pracchia-78 (Wikimedia Commons, PD).m4a",
+      "fetch": {
+        "url": "https://upload.wikimedia.org/wikipedia/commons/0/02/Happy_Birthday_to_You.ogg"
+      },
+      "process": {
+        "start": 2.8,
+        "seconds": 83,
+        "fadeIn": 0.2,
+        "fadeOut": 2
+      },
+      "credit": {
+        "title": "Happy Birthday to You",
+        "creator": "Mildred J. Hill & Patty Hill (melody); arranged and rendered by Wikimedia user Pracchia-78",
+        "year": "melody 1893",
+        "source": "Wikimedia Commons",
+        "url": "https://commons.wikimedia.org/wiki/File:Happy_Birthday_to_You.ogg",
+        "licence": "PD",
+        "basis": "Song is public domain (melody 1893; US court ruled in 2016 that no valid copyright covered the lyrics); the recording was released into the public domain by its maker (Commons: Public domain, own work)."
+      },
+      "notes": "Instrumental, made in a software synthesizer with SoundFonts (a 'solo voices' patch plus reverb), stereo 44.1 kHz. The tune is played several times over about 75 s of music, steady level, natural tail at the end. It is pleasant but clearly synthetic, not a live band; I found no PD US military band recording that can be downloaded with curl (DVIDS blocks it)."
+    },
+    {
+      "path": "quiz/music-walkin.m4a",
+      "name": "Maple Leaf Rag — Scott Joplin, 1916 piano roll (Wikimedia Commons, PD).m4a",
+      "fetch": {
+        "url": "https://upload.wikimedia.org/wikipedia/commons/d/db/Maple_leaf_rag_-_played_by_Scott_Joplin_1916_V2.ogg"
+      },
+      "process": {
+        "start": 0.25,
+        "seconds": 90,
+        "fadeIn": 0,
+        "fadeOut": 3
+      },
+      "credit": {
+        "title": "Maple Leaf Rag (piano roll, Aeolian/Uni-Record 202705)",
+        "creator": "Scott Joplin (composer and performer)",
+        "year": "1899 composition; roll published 1916",
+        "source": "Wikimedia Commons",
+        "url": "https://commons.wikimedia.org/wiki/File:Maple_leaf_rag_-_played_by_Scott_Joplin_1916_V2.ogg",
+        "licence": "PD",
+        "basis": "Composition published 1899 and Joplin died 1917; the piano roll was published in 1916 (before 1926), so PD in the US; this file is a mechanical audio rendering of a scan of that roll (no new creative authorship). Commons tags it Public domain."
+      },
+      "notes": "Joplin's own piano-roll performance, clean modern piano sound (rendered from a roll scan, no surface noise), bright and bouncy, steady level throughout (~-24 dB RMS). Starts immediately (0.28 s lead-in). 90 s covers the A, B and repeat strains; fade out at the end. Alternative already downloaded: the 1906 US Marine Band 78 (File:1906 - Scott Joplin's Maple Leaf Rag (1899) played by the United States Marine Band.ogg, PD) - more period character but scratchy acoustic recording."
+    },
+    {
+      "path": "quiz/sfx-tick.m4a",
+      "name": "Clock, ticking — natalie (PDSounds via Wikimedia Commons, PD).m4a",
+      "fetch": {
+        "url": "https://upload.wikimedia.org/wikipedia/commons/5/56/Clock_ticking.ogg"
+      },
+      "process": {
+        "start": 0.05,
+        "seconds": 4,
+        "fadeIn": 0,
+        "fadeOut": 0
+      },
+      "credit": {
+        "title": "Clock, ticking",
+        "creator": "natalie (PDSounds)",
+        "year": "2007",
+        "source": "Wikimedia Commons (from pdsounds.org)",
+        "url": "https://commons.wikimedia.org/wiki/File:Clock_ticking.ogg",
+        "licence": "PD",
+        "basis": "Released into the public domain by the author on PDSounds (pdsounds.org record 216); Commons tags it Public domain."
+      },
+      "notes": "Crisp, big clockwork tick exactly once per second (transients at 0.10, 1.10, 2.10 ... s). The 0.05-4.05 s window holds exactly four ticks with matching gaps, so it loops seamlessly for a countdown; no fades on purpose."
+    },
+    {
+      "path": "quiz/sfx-correct.m4a",
+      "name": "Typewriter ding — _stubb (Freesound via Wikimedia Commons, CC0).m4a",
+      "fetch": {
+        "url": "https://upload.wikimedia.org/wikipedia/commons/9/9f/406243_stubb_typewriter-ding-near-mono.wav"
+      },
+      "process": {
+        "start": 0,
+        "seconds": 1.05,
+        "fadeIn": 0,
+        "fadeOut": 0.2
+      },
+      "credit": {
+        "title": "Typewriter ding (near, mono)",
+        "creator": "_stubb",
+        "year": "2017",
+        "source": "Wikimedia Commons (from Freesound 406243)",
+        "url": "https://commons.wikimedia.org/wiki/File:406243_stubb_typewriter-ding-near-mono.wav",
+        "licence": "CC0-1.0"
+      },
+      "notes": "A single clean, bright bell 'ding' (pure tone with a few harmonics, quick decay), about 0.6 s of sound. Reads as a classic 'correct!' ding. Could be layered/doubled for a ding-ding."
+    },
+    {
+      "path": "quiz/sfx-wrong.m4a",
+      "name": "Buzzer — David Pride (Wikimedia Commons, CC0).m4a",
+      "fetch": {
+        "url": "https://upload.wikimedia.org/wikipedia/commons/5/55/Buzzer.wav"
+      },
+      "process": {
+        "start": 0,
+        "seconds": 1.55,
+        "fadeIn": 0,
+        "fadeOut": 0.05
+      },
+      "credit": {
+        "title": "Buzzer",
+        "creator": "David Pride (Cotswold Jam)",
+        "year": "2016",
+        "source": "Wikimedia Commons",
+        "url": "https://commons.wikimedia.org/wiki/File:Buzzer.wav",
+        "licence": "CC0-1.0"
+      },
+      "notes": "A harsh, low, electronic game-show style 'wrong answer' buzz, constant for 1.5 s with a hard stop. Loud and rich in harmonics; may want -6 dB in the mix."
+    },
+    {
+      "path": "quiz/sfx-fanfare.m4a",
+      "name": "Jubilant Fanfare — United States Navy Band (Wikimedia Commons, PD).m4a",
+      "fetch": {
+        "url": "https://upload.wikimedia.org/wikipedia/commons/8/86/Jubilant_Fanfare.mp3"
+      },
+      "process": {
+        "start": 29.8,
+        "seconds": 7.4,
+        "fadeIn": 0.2,
+        "fadeOut": 0.4
+      },
+      "credit": {
+        "title": "Jubilant Fanfare",
+        "creator": "United States Navy Band (Ceremonial Band)",
+        "year": "1997",
+        "source": "Wikimedia Commons (from navyband.navy.mil)",
+        "url": "https://commons.wikimedia.org/wiki/File:Jubilant_Fanfare.mp3",
+        "licence": "PD",
+        "basis": "US federal government work: recording by the United States Navy Band (17 USC 105)."
+      },
+      "notes": "Brass and percussion fanfare. The excerpt is the closing phrase (30.0-36.5 s) which starts after a clear rest and ends on the final held chord, so it works as a self-contained ~7 s winner's flourish. Alternatives: Ceremonial Fanfare (USAF Heritage of America Band, PD) and CC0 concert-hall applause (File:277021 sandermotions applause-2.wav, 6.3 s), both already in the local sfx folder."
+    },
+    {
+      "path": "school-play/backdrop-meadow.webp",
+      "name": "Wivenhoe Park, Essex — John Constable (National Gallery of Art, CC0).webp",
+      "fetch": {
+        "url": "https://upload.wikimedia.org/wikipedia/commons/0/01/John_Constable%2C_Wivenhoe_Park%2C_Essex%2C_1816%2C_NGA_1147.jpg"
+      },
+      "process": {
+        "vf": "scale=1920:1080:force_original_aspect_ratio=increase,crop=1920:1080",
+        "quality": 82
+      },
+      "credit": {
+        "title": "Wivenhoe Park, Essex",
+        "creator": "John Constable",
+        "year": "1816",
+        "source": "National Gallery of Art, Washington (via Wikimedia Commons)",
+        "url": "https://www.nga.gov/collection/art-object-page.1147.html",
+        "licence": "CC0-1.0"
+      },
+      "notes": "Sunny English parkland: a bright green sloping meadow with black-and-white cows and a rustic wooden fence in the foreground (lower left), a calm lake with swans and a rowing boat across the middle, a dark band of trees and a red-brick house beyond, and a huge billowing white-cloud blue sky filling the top 45%. Very wide original (4000x2160, 1.85:1) so the 16:9 crop only trims the sides. Sky is the natural place for a title; it is busy with clouds, so use a bold storybook title with a shadow/plate."
+    },
+    {
+      "path": "school-play/backdrop-road.webp",
+      "name": "The Avenue at Middelharnis — Meindert Hobbema (Wikimedia Commons, PD).webp",
+      "fetch": {
+        "url": "https://upload.wikimedia.org/wikipedia/commons/6/62/Meindert_Hobbema_001.jpg"
+      },
+      "process": {
+        "vf": "scale=1920:1080:force_original_aspect_ratio=increase,crop=1920:1080:0:(ih-1080)*0.85",
+        "quality": 82
+      },
+      "credit": {
+        "title": "The Avenue at Middelharnis",
+        "creator": "Meindert Hobbema",
+        "year": "1689",
+        "source": "The National Gallery, London (photo via Wikimedia Commons)",
+        "url": "https://commons.wikimedia.org/wiki/File:Meindert_Hobbema_001.jpg",
+        "licence": "PD",
+        "basis": "PD-Art: faithful photograph of a 2D painting whose artist died in 1709."
+      },
+      "notes": "The classic 'road into the distance': a straight, rutted sandy lane runs from the bottom centre to a vanishing point in the middle, lined by two rows of very tall, thin, bare-trunked poplars; a man with a dog walks up it. Village church tower on the left horizon, red-roofed farm on the right, a tree nursery in the right foreground. Large soft blue sky with a white cumulus at right. Strong one-point perspective - perfect start line for the race. Crop keeps the foreground road (offset 0.85) and trims a little of the sky; poplar tops still in frame. Upper-left sky is the calmest space for text. Cooler, greyer greens than the other backdrops."
+    },
+    {
+      "path": "school-play/backdrop-tree.webp",
+      "name": "A Summer Afternoon — Asher Brown Durand (Wikimedia Commons, PD).webp",
+      "fetch": {
+        "url": "https://upload.wikimedia.org/wikipedia/commons/0/0d/HRSOA_AsherDurand-Summer_Afternoon.jpg"
+      },
+      "process": {
+        "vf": "scale=1920:1080:force_original_aspect_ratio=increase,crop=1920:1080:0:(ih-1080)*0.8",
+        "quality": 82
+      },
+      "credit": {
+        "title": "A Summer Afternoon",
+        "creator": "Asher Brown Durand",
+        "year": "1849",
+        "source": "Wikimedia Commons (image via artnet)",
+        "url": "https://commons.wikimedia.org/wiki/File:HRSOA_AsherDurand-Summer_Afternoon.jpg",
+        "licence": "PD",
+        "basis": "PD-Art: faithful photograph of a 2D painting whose artist died in 1886."
+      },
+      "notes": "Warm, drowsy afternoon: a great spreading elm/oak with a thick trunk right of centre throws deep shade over a grassy bank where cows and sheep drink at a shallow stream; one cow lies resting in the shade (lower right) - ideal for the hare's nap. Lighter woodland and a hazy sunlit valley at left, pale cream-blue sky upper left (the empty area for text). Rich golden-greens. The 16:9 crop (offset 0.8) keeps the animals and stream and trims some sky."
+    },
+    {
+      "path": "school-play/backdrop-finish.webp",
+      "name": "Peace and Plenty — George Inness (The Met, CC0).webp",
+      "fetch": {
+        "url": "https://images.metmuseum.org/CRDImages/ad/original/DP159755.jpg"
+      },
+      "process": {
+        "vf": "scale=1920:1080:force_original_aspect_ratio=increase,crop=1920:1080:0:(ih-1080)*0.6,eq=brightness=0.03:contrast=1.12:saturation=1.15:gamma=1.12",
+        "quality": 82
+      },
+      "credit": {
+        "title": "Peace and Plenty",
+        "creator": "George Inness",
+        "year": "1865",
+        "source": "The Metropolitan Museum of Art",
+        "url": "https://www.metmuseum.org/art/collection/search/11232",
+        "licence": "CC0-1.0"
+      },
+      "notes": "Golden sunset over a wide harvest valley: an amber-and-rose evening sky across the top half, two big dark trees silhouetted left of centre, a river glinting in the middle distance, rolling hills behind, and stooks of harvested wheat with tiny harvesters in the warm foreground. Celebratory, end-of-day mood for the finish and curtain call. The original is quite dark and brownish, so the process adds a gentle lift (brightness/contrast/saturation/gamma); the sky (top 40%) is the space for 'The End' / cast names. If you want something brighter and greener, an alternative is Thomas Cole's 'View from Mount Holyoke (The Oxbow)', Met 10497, CC0, a literal hilltop view (already downloaded at a/cand/oxbow.jpg)."
+    },
+    {
+      "path": "school-play/hare.webp",
+      "name": "Young Hare — Albrecht Dürer (Albertina via Google Arts & Culture, PD).webp",
+      "fetch": {
+        "url": "https://upload.wikimedia.org/wikipedia/commons/4/44/Albrecht_D%C3%BCrer_-_Hare%2C_1502_-_Google_Art_Project.jpg"
+      },
+      "process": {
+        "quality": 85
+      },
+      "credit": {
+        "title": "Young Hare (Feldhase)",
+        "creator": "Albrecht Dürer",
+        "year": "1502",
+        "source": "Albertina, Vienna (Google Arts & Culture, via Wikimedia Commons)",
+        "url": "https://commons.wikimedia.org/wiki/File:Albrecht_D%C3%BCrer_-_Hare,_1502_-_Google_Art_Project.jpg",
+        "licence": "PD",
+        "basis": "PD-Art: faithful photograph of a 2D watercolour whose artist died in 1528."
+      },
+      "notes": "The famous watercolour: a crouching brown hare facing three-quarters right, ears up, every hair painted, on a plain cream paper ground with a soft shadow to the right; Dürer's 1502 date and AD monogram below. Portrait (3731x4123, almost square). Kept whole (no crop); the cream background is not transparent, so present it as a framed 'portrait card' on the stage rather than cut-out."
+    },
+    {
+      "path": "school-play/tortoise.webp",
+      "name": "Testudo carbonaria — J. de C. Sowerby & Edward Lear (Biodiversity Heritage Library, PD).webp",
+      "fetch": {
+        "url": "https://archive.org/download/monographtestud00bell/page/n59.jpg"
+      },
+      "process": {
+        "vf": "crop=3100:2000:300:1140,scale=1920:1080:force_original_aspect_ratio=decrease",
+        "quality": 85
+      },
+      "credit": {
+        "title": "Testudo carbonaria (red-footed tortoise), plate from Thomas Bell, A Monograph of the Testudinata",
+        "creator": "James de Carle Sowerby (drawing) and Edward Lear (lithograph); printed by C. Hullmandel",
+        "year": "1832-1836",
+        "source": "Smithsonian Libraries / Biodiversity Heritage Library (Internet Archive)",
+        "url": "https://archive.org/details/monographtestud00bell/page/n59",
+        "licence": "PD",
+        "basis": "Published in London 1832-36; artists died 1871 (Sowerby) and 1888 (Lear)."
+      },
+      "notes": "Hand-coloured lithograph of a red-footed tortoise striding to the right, head up with a bright eye, glossy black domed shell with golden-yellow scute patches, yellow-spotted legs, a tuft of grey grass behind its head, on a pale cream paper ground. Charming and friendly - a natural 'hero' for the race, and walking toward the finish (right). The process crops the full book page (3415x4895) to the animal with a margin of paper all round (whole tortoise kept, caption and page edges dropped), giving ~1.55:1. The scan is a moderately compressed JPEG; fine at <=1920 px but do not enlarge further."
+    },
+    {
+      "path": "school-play/music-morning.m4a",
+      "name": "Morning Mood (Peer Gynt) — Edvard Grieg, Musopen Symphony (Wikimedia Commons, PD).m4a",
+      "fetch": {
+        "url": "https://upload.wikimedia.org/wikipedia/commons/c/c2/Grieg_-_Peer_Gynt_Suite_No._1%2C_Op._46_-_I._Morning_Mood_%28Musopen_Symphony%29.flac"
+      },
+      "process": {
+        "start": 0.1,
+        "seconds": 90,
+        "fadeIn": 0,
+        "fadeOut": 4
+      },
+      "credit": {
+        "title": "Peer Gynt Suite No. 1, Op. 46 - I. Morning Mood",
+        "creator": "Edvard Grieg (composer); Musopen Symphony Orchestra (Czech National Symphony Orchestra)",
+        "year": "1875 composition; recorded 2012",
+        "source": "Musopen via Wikimedia Commons",
+        "url": "https://commons.wikimedia.org/wiki/File:Grieg_-_Peer_Gynt_Suite_No._1,_Op._46_-_I._Morning_Mood_(Musopen_Symphony).flac",
+        "licence": "PD",
+        "basis": "Composition: Grieg died 1907. Recording: made for Musopen's Kickstarter project and released into the public domain by Musopen; Commons tags it Public domain."
+      },
+      "notes": "Full orchestra, clean modern studio sound. 0-45 s: the flute/oboe sunrise theme passing back and forth; 45-75 s: the warm full-orchestra sunrise climax (loudest); 75-90 s settles down, fade out 4 s. Perfect for the meadow opening."
+    },
+    {
+      "path": "school-play/music-race.m4a",
+      "name": "William Tell Overture (finale) — Gioachino Rossini, United States Marine Band (Wikimedia Commons, PD).m4a",
+      "fetch": {
+        "url": "https://upload.wikimedia.org/wikipedia/commons/4/43/Gioachino_Rossini%2C_William_Tell_Overture_%28military_band_version%2C_2000%29.ogg"
+      },
+      "process": {
+        "start": 451,
+        "seconds": 85,
+        "fadeIn": 0.3,
+        "fadeOut": 3
+      },
+      "credit": {
+        "title": "William Tell Overture (transcr. Wenzel Sedlak), from Grand Scenes",
+        "creator": "Gioachino Rossini (composer); United States Marine Band, Timothy Foley (director)",
+        "year": "1829 composition; recorded June 2000",
+        "source": "United States Marine Band via Wikimedia Commons",
+        "url": "https://commons.wikimedia.org/wiki/File:Gioachino_Rossini,_William_Tell_Overture_(military_band_version,_2000).ogg",
+        "licence": "PD",
+        "basis": "Composition: Rossini died 1868, Sedlak transcription 19th century. Recording: US federal government work by the United States Marine Band (17 USC 105)."
+      },
+      "notes": "Wind-band version of the famous finale. The excerpt begins at 7:31 with the trumpet call that ends the Ranz des vaches (about 11 s), then the galloping 'Lone Ranger' galop from ~7:43 onward; 85 s of non-stop racing energy, fade out 3 s. Level is moderate (band recording, ~-32 dB RMS); normalise if needed."
+    },
+    {
+      "path": "school-play/sfx-whistle.m4a",
+      "name": "Referee whistle blow — SpliceSound (Freesound via Wikimedia Commons, CC0).m4a",
+      "fetch": {
+        "url": "https://upload.wikimedia.org/wikipedia/commons/7/7d/218318_splicesound_referee-whistle-blow-gymnasium.wav"
+      },
+      "process": {
+        "start": 0.05,
+        "seconds": 1.8,
+        "fadeIn": 0,
+        "fadeOut": 0.4
+      },
+      "credit": {
+        "title": "Referee whistle blow, gymnasium",
+        "creator": "SpliceSound",
+        "year": "2014",
+        "source": "Wikimedia Commons (from Freesound 218318)",
+        "url": "https://commons.wikimedia.org/wiki/File:218318_splicesound_referee-whistle-blow-gymnasium.wav",
+        "licence": "CC0-1.0"
+      },
+      "notes": "One sharp, short pea-whistle blast (~0.5 s, starts at 0.09 s) with a natural gym-hall reverb tail; trimmed to 1.8 s with a short fade. 'Ready, steady... go!' start signal."
     }
   ]
 }

@@ -202,6 +202,7 @@ function Installation({ host, outputId }: { host: ShowHost; outputId: string | n
           outputId={output.id}
           variant="output"
           onMediaEnded={onEnded}
+          join={snap.join}
         />
       )}
     </div>

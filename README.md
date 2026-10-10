@@ -31,7 +31,7 @@ pnpm dev:relay
 pnpm dev
 ```
 
-Open http://localhost:5173. The Library's start gallery offers a blank show, **The demo** (a ten-minute interactive piece with a vote, a branch and a performer trigger, with a Learn checklist), and starters for an audience vote, slides with cues and a performer counter. ⌘K (Ctrl+K) finds any command, `?` lists the keys, and ⌘, (Ctrl+,) opens Preferences.
+Open http://localhost:5173. The Library's start gallery offers a blank show, **The demo** (a ten-minute interactive piece with a vote, a branch and a performer trigger, with a Learn checklist), and the **template gallery**: whole shows for a school play, a Sunday gathering, a care-home memory session, a museum installation, a choose-your-own-adventure, a quiz night, a birthday surprise and a band's live visuals, each with real public-domain pictures, music and video and a Learn checklist ([docs/templates.md](docs/templates.md)). Three small starters teach one idea each. ⌘K (Ctrl+K) finds any command, `?` lists the keys, and ⌘, (Ctrl+,) opens Preferences.
 
 For phones on the venue network, open the app by this machine's LAN address (for example `http://192.168.1.20:5173`), or set that address in the operator view's audience panel. In development the relay is reached on the same host at port 8790; set `VITE_RELAY_URL` to point the app elsewhere.
 
@@ -105,6 +105,7 @@ An output can also live on another device: copy its link from the operator view 
 | [docs/protocol.md](docs/protocol.md)                     | BroadcastChannel and relay messages, roles and keys, limits, clock sync, close codes                                |
 | [docs/operator-guide.md](docs/operator-guide.md)         | Show-night runbook: before doors, during the show, when something goes wrong                                        |
 | [docs/installation-guide.md](docs/installation-guide.md) | Running a show unattended: the kiosk page, opening hours, kept room codes, Chrome flags and policies                |
+| [docs/templates.md](docs/templates.md)                   | The template gallery: how a template is made, its media pipeline and licence rules, the visual bar and the checks   |
 | [docs/research/](docs/research/README.md)                | Background research for planned features: show-control output, GPU compositor, UI/UX                                |
 
 ## Contributing

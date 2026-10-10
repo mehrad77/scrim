@@ -148,8 +148,13 @@ export const AudioLayerSchema = z.object({
 export const TextLayerSchema = z.object({
   ...LayerBase,
   kind: z.literal('text'),
-  /** May contain {{varName}} placeholders, filled from show state. */
+  /**
+   * May contain {{varName}} placeholders, filled from show state, and the built-ins {{caption}},
+   * {{join_code}} and {{join_url}} (how phones join the open room).
+   */
   text: z.string(),
+  /** Draw the text as a QR code, in the text colour: `{{join_url}}` makes a join code. */
+  qr: z.boolean().optional(),
   ...TextStyle,
 });
 

@@ -1,6 +1,214 @@
 {
   "version": 1,
   "files": {
+    "birthday/cake.webp": {
+      "name": "Grandma Taylor blows out the candles on her eighty-third birthday — Marjory Collins (Library of Congress, PD).webp",
+      "mime": "image/webp",
+      "bytes": 143040,
+      "sha256": "2726a246fc0f6349c8f5d4e1ff8d5060a2384ca5cf68430b7469e68379370420",
+      "recipe": "65f11ae574163bbcff46f1a2e577a234a43085533167e5576b6f7ed015d86c84",
+      "credit": {
+        "title": "Grandma Taylor blows out the candles on her eighty-third birthday",
+        "creator": "Marjory Collins",
+        "year": "1942",
+        "source": "Library of Congress, FSA/OWI Collection",
+        "url": "https://hdl.loc.gov/loc.pnp/fsa.8d21071",
+        "licence": "PD",
+        "basis": "US government work: made by a Farm Security Administration photographer as part of official duties (LoC: no known restrictions; digital ID fsa.8d21071)."
+      }
+    },
+    "birthday/music-birthday.m4a": {
+      "name": "Happy Birthday to You — synthesized arrangement by Pracchia-78 (Wikimedia Commons, PD).m4a",
+      "mime": "audio/mp4",
+      "bytes": 1698442,
+      "sha256": "412192d20a227bf7914af61163ad997ba2952fe977da68574b9070b13fdcea17",
+      "recipe": "b10461972c957541f61775dc74995ea362851dcf7d2e0db2580230c11e4afd29",
+      "credit": {
+        "title": "Happy Birthday to You",
+        "creator": "Mildred J. Hill & Patty Hill (melody); arranged and rendered by Wikimedia user Pracchia-78",
+        "year": "melody 1893",
+        "source": "Wikimedia Commons",
+        "url": "https://commons.wikimedia.org/wiki/File:Happy_Birthday_to_You.ogg",
+        "licence": "PD",
+        "basis": "Song is public domain (melody 1893; US court ruled in 2016 that no valid copyright covered the lyrics); the recording was released into the public domain by its maker (Commons: Public domain, own work)."
+      }
+    },
+    "birthday/music-story.m4a": {
+      "name": "Eine kleine Nachtmusik, I. Allegro — Mozart, Nicolas Lambinon Quartet, 1923 (Internet Archive, PD).m4a",
+      "mime": "audio/mp4",
+      "bytes": 2045548,
+      "sha256": "f641570405c9f454034366ac3dca7954a6a64d62942c92f102c0e4a2e99071c6",
+      "recipe": "cc5ab54724b6b022f02b0065f97ce7d8e00ac2663605b04d2cc5e2eb0d5e26fd",
+      "credit": {
+        "title": "Eine kleine Nachtmusik, K. 525: I. Allegro",
+        "creator": "Wolfgang Amadeus Mozart (composer); Nicolas Lambinon String Quartet",
+        "year": "Recorded c. Nov 1923, Berlin; Odeon AA 79467, issued before July 1924",
+        "source": "Internet Archive (DogintheManger collection)",
+        "url": "https://archive.org/details/odeon-aa-79467-79468-mozart-eine-kleine-nachtmusik-k525-nicolas-lambinon-quartet",
+        "licence": "PD",
+        "basis": "Composition: Mozart died 1791. Recording: first published 1924 (the label shows 1925 at the latest); US sound recordings published before 1926 are in the public domain (100-year term under the Music Modernization Act)."
+      }
+    },
+    "birthday/photo-1.webp": {
+      "name": "Boys fishing in a bayou, Schriever, Louisiana — Marion Post Wolcott (Library of Congress, PD).webp",
+      "mime": "image/webp",
+      "bytes": 118296,
+      "sha256": "d54f71c55629e9a5117f50ebae63cc05be08c22ad6b009cd625e88041919a418",
+      "recipe": "8313dcb7132322897c18859d9b8fda992af031770ce36fb093a1429f0f31b231",
+      "credit": {
+        "title": "Boys fishing in a bayou, Schriever, Louisiana",
+        "creator": "Marion Post Wolcott",
+        "year": "1940",
+        "source": "Library of Congress, FSA/OWI Collection",
+        "url": "https://hdl.loc.gov/loc.pnp/fsac.1a34362",
+        "licence": "PD",
+        "basis": "US government work: made by a Farm Security Administration photographer as part of official duties (LoC: no known restrictions; digital ID fsac.1a34362)."
+      }
+    },
+    "birthday/photo-2.webp": {
+      "name": "School children singing, Pie Town, New Mexico — Russell Lee (Library of Congress, PD).webp",
+      "mime": "image/webp",
+      "bytes": 143306,
+      "sha256": "8e6cfc542855d24bd6314e8d3c9eca7cbf7261ecc1db087dcf59e0beace7e593",
+      "recipe": "0e1e64aa0586ec2064335a8670c449cf48b4007d4049ea996310c3548a530d33",
+      "credit": {
+        "title": "School children singing, Pie Town, New Mexico",
+        "creator": "Russell Lee",
+        "year": "1940",
+        "source": "Library of Congress, FSA/OWI Collection",
+        "url": "https://hdl.loc.gov/loc.pnp/fsac.1a34152",
+        "licence": "PD",
+        "basis": "US government work: made by a Farm Security Administration photographer as part of official duties (LoC: no known restrictions; digital ID fsac.1a34152)."
+      }
+    },
+    "birthday/photo-3.webp": {
+      "name": "On the ferris wheel at the Vermont state fair, Rutland — Jack Delano (Library of Congress, PD).webp",
+      "mime": "image/webp",
+      "bytes": 68926,
+      "sha256": "344b72bd6a44ffebf7483a53bd3ab2a2f1c1b56e825383e9196c46dd1ab34ae9",
+      "recipe": "d75b00b4d555af8771df9bedbe09d9ce13b69daae20a3b66ca2d069b45c07eca",
+      "credit": {
+        "title": "On the ferris wheel at the Vermont state fair, Rutland",
+        "creator": "Jack Delano",
+        "year": "1941",
+        "source": "Library of Congress, FSA/OWI Collection",
+        "url": "https://hdl.loc.gov/loc.pnp/fsac.1a33918",
+        "licence": "PD",
+        "basis": "US government work: made by a Farm Security Administration photographer as part of official duties (LoC: no known restrictions; digital ID fsac.1a33918)."
+      }
+    },
+    "birthday/photo-4.webp": {
+      "name": "Girl worker at lunch also absorbing California sunshine, Douglas Aircraft Company, Long Beach, Calif. — Alfred T. Palmer (Library of Congress, PD).webp",
+      "mime": "image/webp",
+      "bytes": 64944,
+      "sha256": "2e47e132483af59c4dfab725b0dad0603e2026959b3d6bef53a5ca89706d7b94",
+      "recipe": "23020ee9e2f996988926b7dd84a9190fcd789b4ae0b7cca792cdfc9e314c7e9b",
+      "credit": {
+        "title": "Girl worker at lunch also absorbing California sunshine, Douglas Aircraft Company, Long Beach, Calif.",
+        "creator": "Alfred T. Palmer",
+        "year": "1942",
+        "source": "Library of Congress, FSA/OWI Collection",
+        "url": "https://hdl.loc.gov/loc.pnp/fsac.1a35343",
+        "licence": "PD",
+        "basis": "US government work: made by a Farm Security Administration photographer as part of official duties (LoC: no known restrictions; digital ID fsac.1a35343)."
+      }
+    },
+    "birthday/photo-5.webp": {
+      "name": "Sailor jitterbugging at the senior prom — Marjory Collins (Library of Congress, PD).webp",
+      "mime": "image/webp",
+      "bytes": 58798,
+      "sha256": "3608c3019ad5a5d31a383b1ac1f62b6229e22a84c8cce7457ab9b2f10b8de11e",
+      "recipe": "bf09d3d57ff4f3997e3a906831e537c795778a9641eb156d79d7ea81da94b266",
+      "credit": {
+        "title": "Sailor jitterbugging at the senior prom",
+        "creator": "Marjory Collins",
+        "year": "1942",
+        "source": "Library of Congress, FSA/OWI Collection",
+        "url": "https://hdl.loc.gov/loc.pnp/fsa.8d21135",
+        "licence": "PD",
+        "basis": "US government work: made by a Farm Security Administration photographer as part of official duties (LoC: no known restrictions; digital ID fsa.8d21135)."
+      }
+    },
+    "birthday/photo-6.webp": {
+      "name": "Thanksgiving dinner at the house of Earle Landis, Neffsville, Pennsylvania — Marjory Collins (Library of Congress, PD).webp",
+      "mime": "image/webp",
+      "bytes": 144976,
+      "sha256": "a231b606ee1f1b824d20ca66ff501117f29cfff525aa656163f04023c00e0b86",
+      "recipe": "020ee9aacedffa546821b575fcabb66fb03728f474731b128480e0133c009682",
+      "credit": {
+        "title": "Thanksgiving dinner at the house of Earle Landis, Neffsville, Pennsylvania",
+        "creator": "Marjory Collins",
+        "year": "1942",
+        "source": "Library of Congress, FSA/OWI Collection",
+        "url": "https://hdl.loc.gov/loc.pnp/fsa.8d10757",
+        "licence": "PD",
+        "basis": "US government work: made by a Farm Security Administration photographer as part of official duties (LoC: no known restrictions; digital ID fsa.8d10757)."
+      }
+    },
+    "birthday/photo-7.webp": {
+      "name": "At the Vermont state fair, Rutland — Jack Delano (Library of Congress, PD).webp",
+      "mime": "image/webp",
+      "bytes": 190622,
+      "sha256": "969c4f9a34f9dc6d349b22d1d0bd1a6cba1bb1e5632398ec20cb15c0007a986a",
+      "recipe": "6bf97131a02755e1ddc3d6de38960e604f0ba9d6a476dd4d4393426fcce911af",
+      "credit": {
+        "title": "At the Vermont state fair, Rutland",
+        "creator": "Jack Delano",
+        "year": "1941",
+        "source": "Library of Congress, FSA/OWI Collection",
+        "url": "https://hdl.loc.gov/loc.pnp/fsac.1a33924",
+        "licence": "PD",
+        "basis": "US government work: made by a Farm Security Administration photographer as part of official duties (LoC: no known restrictions; digital ID fsac.1a33924)."
+      }
+    },
+    "birthday/photo-8.webp": {
+      "name": "Earle Landis' mother and father had a wedding anniversary on Thanksgiving day — Marjory Collins (Library of Congress, PD).webp",
+      "mime": "image/webp",
+      "bytes": 115440,
+      "sha256": "1127216f643706d2eab08d6a1f308ae9cd60c5b588a875ab81fa0d3b2660967c",
+      "recipe": "5f8910ad44f19a656c0c2cf4431a84d41adaa7cd1a5d86bb56a9ff116f3ff545",
+      "credit": {
+        "title": "Earle Landis' mother and father had a wedding anniversary on Thanksgiving day",
+        "creator": "Marjory Collins",
+        "year": "1942",
+        "source": "Library of Congress, FSA/OWI Collection",
+        "url": "https://hdl.loc.gov/loc.pnp/fsa.8d10740",
+        "licence": "PD",
+        "basis": "US government work: made by a Farm Security Administration photographer as part of official duties (LoC: no known restrictions; digital ID fsa.8d10740)."
+      }
+    },
+    "birthday/photo-guess.webp": {
+      "name": "Vermont state fair, Rutland — Jack Delano (Library of Congress, PD).webp",
+      "mime": "image/webp",
+      "bytes": 116088,
+      "sha256": "339bc84fdfb91ae4103c346ff27760eccc23258513ac35c28a99baeae57ebc71",
+      "recipe": "41e0a9d6d45104d76bb886d4eb5d83624f0808feb378f4c3fd9d36e2e281d5ff",
+      "credit": {
+        "title": "Vermont state fair, Rutland",
+        "creator": "Jack Delano",
+        "year": "1941",
+        "source": "Library of Congress, FSA/OWI Collection",
+        "url": "https://hdl.loc.gov/loc.pnp/fsac.1a33915",
+        "licence": "PD",
+        "basis": "US government work: made by a Farm Security Administration photographer as part of official duties (LoC: no known restrictions; digital ID fsac.1a33915)."
+      }
+    },
+    "birthday/video-fireworks.mp4": {
+      "name": "Independence Day Fireworks, Washington DC — Lance Cheung, USDA (Wikimedia Commons, PD).mp4",
+      "mime": "video/mp4",
+      "bytes": 11070386,
+      "sha256": "35f209f31a004d833d15e39b54bd8443ee4facb4ed8fb10ba3d167da7cb8fea8",
+      "recipe": "7db0b5e13bd73a16f18bbaacde868e351f311e9571021187e82d4ede1d8df0e8",
+      "credit": {
+        "title": "Independence Day Fireworks, Washington DC (20210704-OC-LSC-0053)",
+        "creator": "Lance Cheung, U.S. Department of Agriculture",
+        "year": "2021",
+        "source": "USDA via Wikimedia Commons",
+        "url": "https://commons.wikimedia.org/wiki/File:Independence_Day_Fireworks,_Washington_DC_(20210704-OC-LSC-0053).webm",
+        "licence": "PD",
+        "basis": "US government work (USDA photo by Lance Cheung, made in official duties)."
+      }
+    },
     "fonts/Anton.woff2": {
       "name": "Anton.woff2",
       "mime": "font/woff2",
@@ -128,6 +336,785 @@
         "licence": "OFL-1.1"
       },
       "licenceFile": "fonts/OFL-IBMPlexSans.txt"
+    },
+    "gathering/bg-dawn.webp": {
+      "name": "Sunset on the Sea — John Frederick Kensett (The Met, CC0).webp",
+      "mime": "image/webp",
+      "bytes": 64872,
+      "sha256": "aefd98c0634583673b15dc69eb3889b85cc9e2b26a6f30a4bfbbb22041579d06",
+      "recipe": "494ae1603f10b1b1a3172e6c24f01b338a5d0d5954e11450d8dde4bd23a8cab4",
+      "credit": {
+        "title": "Sunset on the Sea",
+        "creator": "John Frederick Kensett",
+        "year": "1872",
+        "source": "The Metropolitan Museum of Art",
+        "url": "https://www.metmuseum.org/art/collection/search/11325",
+        "licence": "CC0-1.0"
+      }
+    },
+    "gathering/bg-hills.webp": {
+      "name": "Pompton Plains, New Jersey — Jasper Francis Cropsey (The Met, CC0).webp",
+      "mime": "image/webp",
+      "bytes": 314500,
+      "sha256": "84a71c2995cf7f619dda7068bf8617a2f093b94b06862f5a714e8e6b1951a4f1",
+      "recipe": "9d55965ad9a79ee3dbd8d6aa673710f1090d0e29762210d44390a8b397ba83e6",
+      "credit": {
+        "title": "Pompton Plains, New Jersey",
+        "creator": "Jasper Francis Cropsey",
+        "year": "1867",
+        "source": "The Metropolitan Museum of Art",
+        "url": "https://www.metmuseum.org/art/collection/search/10584",
+        "licence": "CC0-1.0"
+      }
+    },
+    "gathering/bg-notices.webp": {
+      "name": "Sunrise — George Inness (The Met, CC0).webp",
+      "mime": "image/webp",
+      "bytes": 146556,
+      "sha256": "5f9c5f6af00a0e59ce7f3d44bf2c3febd6f56d8f7898de619271392b2f8f3751",
+      "recipe": "d3dd88ee9148c88acd724e3d8be48927c4bd932301782058621b6b979a4403fc",
+      "credit": {
+        "title": "Sunrise",
+        "creator": "George Inness",
+        "year": "1887",
+        "source": "The Metropolitan Museum of Art",
+        "url": "https://www.metmuseum.org/art/collection/search/11235",
+        "licence": "CC0-1.0"
+      }
+    },
+    "gathering/bg-water.webp": {
+      "name": "Twilight on the Sound, Darien, Connecticut — John Frederick Kensett (The Met, CC0).webp",
+      "mime": "image/webp",
+      "bytes": 488992,
+      "sha256": "86fcf0554fdc17162ec6661265f3da9a678d4275374c9850f48717d6e3fa93a9",
+      "recipe": "883a705b0cb5d5ca9c88de449f0a581e863cc40b241cc0315e4d59226d081114",
+      "credit": {
+        "title": "Twilight on the Sound, Darien, Connecticut",
+        "creator": "John Frederick Kensett",
+        "year": "1872",
+        "source": "The Metropolitan Museum of Art",
+        "url": "https://www.metmuseum.org/art/collection/search/11329",
+        "licence": "CC0-1.0"
+      }
+    },
+    "gathering/music-gathering.m4a": {
+      "name": "Gymnopédie No. 1 — Erik Satie, played by Robin Alciatore (Musopen via Wikimedia Commons, PD).m4a",
+      "mime": "audio/mp4",
+      "bytes": 2948222,
+      "sha256": "6f7a7acde6e6f9ae95f8f327cc5cd9a3bd64e37d792f8e2ce85b97fb86667d8d",
+      "recipe": "ba512025205e2ea3f8584b788425e8cecf3aab430bce10a170d2b8adab5cfedd",
+      "credit": {
+        "title": "Gymnopédie No. 1 (Lent et douloureux)",
+        "creator": "Erik Satie (composer, d. 1925); Robin Alciatore (piano)",
+        "year": "1888 (composition); c. 2008 (recording)",
+        "source": "Musopen, via Wikimedia Commons",
+        "url": "https://commons.wikimedia.org/wiki/File:Erik_Satie_-_gymnopedies_-_la_1_ere._lent_et_douloureux.ogg",
+        "licence": "PD",
+        "basis": "Composition: Satie died 1925. Recording: released into the public domain by Musopen (Commons tags it Public domain, credit musopen.org)."
+      }
+    },
+    "gig/loop-aurora.mp4": {
+      "name": "ISS Timelapse: Aurora Australis — NASA (SVS, PD).mp4",
+      "mime": "video/mp4",
+      "bytes": 5595237,
+      "sha256": "7a3c846e0c46063fba8085d731d979f5ef684751ca3e370ba24bb1c29df9824e",
+      "recipe": "79b55c6afbd142dbc73811d6f6e8008d0e015367371f9b3b703da947fb45a3cc",
+      "credit": {
+        "title": "ISS Timelapse: Aurora Australis (Expedition 29, 17 Sep 2011)",
+        "creator": "NASA / ISS Expedition 29 crew; NASA Goddard SVS",
+        "year": "2011",
+        "source": "NASA Goddard Scientific Visualization Studio",
+        "url": "https://svs.gsfc.nasa.gov/30179/",
+        "licence": "PD",
+        "basis": "US government work (NASA); no NASA logo or insignia in the frames used"
+      }
+    },
+    "gig/loop-earth.mp4": {
+      "name": "ISS Timelapse: West Coast of the Americas — NASA (SVS, PD).mp4",
+      "mime": "video/mp4",
+      "bytes": 8265816,
+      "sha256": "056e67cc60fb1a1216fca4ea685114396e5361cdd515f107ca5831494cca5fce",
+      "recipe": "143041efa12912b3ea9e4b6306cb0dd5f251f1038a61aa5ad98404bdd0104524",
+      "credit": {
+        "title": "ISS Timelapse: West Coast of the Americas (Expedition 28 night pass, 19 Aug 2011)",
+        "creator": "NASA / ISS Expedition 28 crew; NASA Goddard SVS",
+        "year": "2011",
+        "source": "NASA Goddard Scientific Visualization Studio",
+        "url": "https://svs.gsfc.nasa.gov/30180/",
+        "licence": "PD",
+        "basis": "US government work (NASA); no NASA logo or insignia in the frames used"
+      }
+    },
+    "gig/loop-space.mp4": {
+      "name": "Milky Way Zoom — NASA Goddard (SVS, PD).mp4",
+      "mime": "video/mp4",
+      "bytes": 11421342,
+      "sha256": "86e745c7775d907772ed31ebe9c852ab405cb47c8c7d91865956b981c09d266b",
+      "recipe": "ae8cc486eb186bdf0543f3f12c17bb48818dd988d5d96203ec36880b86b27d4b",
+      "credit": {
+        "title": "The Heliosphere Within The Milky Way Galaxy — MilkyWayZoom (with stars)",
+        "creator": "NASA Goddard Space Flight Center (visualization: Adriana Manrique Gutierrez; producer: Joy Ng)",
+        "year": "2025",
+        "source": "NASA Goddard Scientific Visualization Studio",
+        "url": "https://svs.gsfc.nasa.gov/20406/",
+        "licence": "PD",
+        "basis": "US government work (NASA); no NASA logo or insignia in the frames used"
+      }
+    },
+    "gig/loop-sun.mp4": {
+      "name": "Solar Prominence Dance — NASA SDO (SVS, PD).mp4",
+      "mime": "video/mp4",
+      "bytes": 8766690,
+      "sha256": "8c05045d3fc93d2bca3d14d92f25e40c67901a855fdbfe1dfe8ecbedfb1d0d23",
+      "recipe": "8abc51cb516842166f578e0fc1397e9266925d2a2ff1632ddbd367610ac99ad8",
+      "credit": {
+        "title": "Solar Prominence Dance - December 31, 2012 (SDO/AIA 304 Å)",
+        "creator": "NASA/SDO (AIA); NASA Goddard SVS",
+        "year": "2012",
+        "source": "NASA Goddard Scientific Visualization Studio",
+        "url": "https://svs.gsfc.nasa.gov/4038/",
+        "licence": "PD",
+        "basis": "US government work (NASA); no NASA logo or insignia in the frames used"
+      }
+    },
+    "gig/music-walkin.m4a": {
+      "name": "Ambiant Shock — Komiku (Wikimedia Commons, CC0).m4a",
+      "mime": "audio/mp4",
+      "bytes": 2008101,
+      "sha256": "6468c2790498924c0f3d88115250a8eb77757daacb9e979caa71d0da82f4a6dc",
+      "recipe": "abae0bd4262666eaff0104801a06d9c0e4d1dca6f1f376f355fcabc556b2b704",
+      "credit": {
+        "title": "Ambiant Shock",
+        "creator": "Komiku",
+        "year": "2017",
+        "source": "Wikimedia Commons (from Free Music Archive)",
+        "url": "https://commons.wikimedia.org/wiki/File:Komiku_-_05_-_Ambiant_Shock.ogg",
+        "licence": "CC0-1.0"
+      }
+    },
+    "memory-session/dance-1.webp": {
+      "name": "American Legion dance held at Greenbelt on Memorial Day — Marjory Collins (Library of Congress, PD).webp",
+      "mime": "image/webp",
+      "bytes": 157446,
+      "sha256": "d72392ffd0079d92e680ca1feb9b0cac7c23e68f9d3bfbdbbcf6807fb9e3f9c5",
+      "recipe": "51f4eb0bd61e43933971d28baf980fcc8b0f9653c6efcf8bd28cf63ab49b988e",
+      "credit": {
+        "title": "American Legion dance held at Greenbelt on Memorial Day",
+        "creator": "Marjory Collins",
+        "year": "1942",
+        "source": "Library of Congress",
+        "url": "https://commons.wikimedia.org/wiki/File:American_Legion_dance_held_at_Greenbelt_on_Memorial_Day8d21014v.jpg",
+        "licence": "PD",
+        "basis": "US government work: Farm Security Administration / Office of War Information photograph (Library of Congress FSA/OWI collection)"
+      }
+    },
+    "memory-session/dance-2.webp": {
+      "name": "Swingshift dance held weekly at the Main-Utica ballroom, Buffalo — Marjory Collins (Library of Congress, PD).webp",
+      "mime": "image/webp",
+      "bytes": 80662,
+      "sha256": "417dc80fa469e59d1c8ff0d93df6ee2a763dceab293b668b0e746882614cf980",
+      "recipe": "32485d7d87f63b94d3a2991b534f9b4ef4d26f4133ef092916233d95c4a21b5c",
+      "credit": {
+        "title": "Swingshift dance held weekly at the Main-Utica ballroom, Buffalo",
+        "creator": "Marjory Collins",
+        "year": "1943",
+        "source": "Library of Congress",
+        "url": "https://commons.wikimedia.org/wiki/File:Swingshift_dance_held_weekly_at_the_Main-Utica_ballroom8d44854v.jpg",
+        "licence": "PD",
+        "basis": "US government work: Farm Security Administration / Office of War Information photograph (Library of Congress FSA/OWI collection)"
+      }
+    },
+    "memory-session/dance-3.webp": {
+      "name": "Sailor jitterbugging at the senior prom, Greenbelt — Marjory Collins (Library of Congress, PD).webp",
+      "mime": "image/webp",
+      "bytes": 109208,
+      "sha256": "31deeccdd54ded713eac3bf9f8d4830d54d225c6497321a6c9f26c8255a080d7",
+      "recipe": "8e2d0d6458df6ce85c30dec256d47d8619c5e1545d84eef70c174946caf14895",
+      "credit": {
+        "title": "Sailor jitterbugging at the senior prom, Greenbelt",
+        "creator": "Marjory Collins",
+        "year": "1942",
+        "source": "Library of Congress",
+        "url": "https://commons.wikimedia.org/wiki/File:Sailor_jitterbugging_at_the_senior_prom8d21135v.jpg",
+        "licence": "PD",
+        "basis": "US government work: Farm Security Administration / Office of War Information photograph (Library of Congress FSA/OWI collection)"
+      }
+    },
+    "memory-session/music-closing.m4a": {
+      "name": "Clair de lune — Claude Debussy, Wright Brass of the US Air Force Band of Flight (Wikimedia Commons, PD).m4a",
+      "mime": "audio/mp4",
+      "bytes": 3226371,
+      "sha256": "9d8ca7c2755ed0895abcae721f947812f07206d67ffb352b2e278264879ed0df",
+      "recipe": "27f62319809fe0764571e1b4abd100d9ba129b012a61d8f111795d75a07fe4c5",
+      "credit": {
+        "title": "Clair de lune (Suite bergamasque)",
+        "creator": "Claude Debussy; performed by Wright Brass, United States Air Force Band of Flight",
+        "year": "1993 (album 'Blue Skies')",
+        "source": "Wikimedia Commons (from music.af.mil Public Domain Music)",
+        "url": "https://commons.wikimedia.org/wiki/File:Clair_de_Lune_-_Wright_Brass_-_United_States_Air_Force_Band_of_Flight.mp3",
+        "licence": "PD",
+        "basis": "Composition: Debussy died 1918. Performance and recording: US government work by the United States Air Force Band (PD-USGov-Military-Air Force)"
+      }
+    },
+    "memory-session/picnic-1.webp": {
+      "name": "A Sunday picnic in Rock Creek Park, Washington, D.C. — Marjory Collins (Library of Congress, PD).webp",
+      "mime": "image/webp",
+      "bytes": 284082,
+      "sha256": "0aedac1b553a32595ea03e5a9e0843250c22333b1ae2d9b860e522613208597e",
+      "recipe": "04e84ffc384bbb8250a284b590a8550c80b7c570decd7bee54772c2f62c9ec31",
+      "credit": {
+        "title": "A Sunday picnic in Rock Creek Park, Washington, D.C.",
+        "creator": "Marjory Collins",
+        "year": "1942",
+        "source": "Library of Congress",
+        "url": "https://commons.wikimedia.org/wiki/File:A_Sunday_picnic_in_Rock_Creek_Park_8c34844v.jpg",
+        "licence": "PD",
+        "basis": "US government work: Farm Security Administration / Office of War Information photograph (Library of Congress FSA/OWI collection)"
+      }
+    },
+    "memory-session/picnic-2.webp": {
+      "name": "A Sunday picnic in Rock Creek Park, Washington, D.C. (family group) — Marjory Collins (Library of Congress, PD).webp",
+      "mime": "image/webp",
+      "bytes": 281184,
+      "sha256": "b93614269063bb0ac75d768373908863e6afb791e4196eb192dd98e479d9e693",
+      "recipe": "dc6422b2cc72d43599987a4b426bf9a3f589f9772adb77efb015358073902b39",
+      "credit": {
+        "title": "A Sunday picnic in Rock Creek Park, Washington, D.C. (family group)",
+        "creator": "Marjory Collins",
+        "year": "1942",
+        "source": "Library of Congress",
+        "url": "https://commons.wikimedia.org/wiki/File:A_Sunday_picnic_in_Rock_Creek_Park_8c34843v.jpg",
+        "licence": "PD",
+        "basis": "US government work: Farm Security Administration / Office of War Information photograph (Library of Congress FSA/OWI collection)"
+      }
+    },
+    "memory-session/picnic-3.webp": {
+      "name": "Sunday school picnic on the Fourth of July, on the edge of the Patuxent River — Marjory Collins (Library of Congress, PD).webp",
+      "mime": "image/webp",
+      "bytes": 223290,
+      "sha256": "57be0106a18dd5c4b603fa11f2b008a1f04f6b637fff27b55f4ada95706fa446",
+      "recipe": "c717013b48dc4f51b9986f1f4ad9f18f472e6710ee049dc43136db1ab152b022",
+      "credit": {
+        "title": "Sunday school picnic on the Fourth of July, on the edge of the Patuxent River",
+        "creator": "Marjory Collins",
+        "year": "1942",
+        "source": "Library of Congress",
+        "url": "https://commons.wikimedia.org/wiki/File:Sunday_school_picnic_on_the_Fourth_of_July_8c34919v.jpg",
+        "licence": "PD",
+        "basis": "US government work: Farm Security Administration / Office of War Information photograph (Library of Congress FSA/OWI collection)"
+      }
+    },
+    "memory-session/seaside-1.webp": {
+      "name": "On the beach at Coney Island — Detroit Photographic Co. (Library of Congress, PD).webp",
+      "mime": "image/webp",
+      "bytes": 315890,
+      "sha256": "c83eac0e1b6a3b1439f6926d4d1d190879cb69a94f5da599256a4e576dfe0735",
+      "recipe": "9e81916de15e5ac1d42ffe7fff34652f61e134720eb31290b03f1e30ac0ea7b6",
+      "credit": {
+        "title": "On the beach at Coney Island",
+        "creator": "Detroit Photographic Co.",
+        "year": "1902",
+        "source": "Library of Congress",
+        "url": "https://www.loc.gov/item/2008678167/",
+        "licence": "PD",
+        "basis": "Published c. 1890–1905 by the Detroit Publishing Co. (photochrom); published before 1931, so public domain in the US; LoC lists no known restrictions"
+      }
+    },
+    "memory-session/seaside-2.webp": {
+      "name": "The Promenade, Blackpool — Detroit Publishing Co. (Library of Congress, PD).webp",
+      "mime": "image/webp",
+      "bytes": 257596,
+      "sha256": "3d1285cdd2483e2a18120df44e2dc098c03a4b10ff67b6f150787c3875427df0",
+      "recipe": "af70bc22ec6f49827144f7a8b07e15750339274e310b79862bdae3fa1d585da1",
+      "credit": {
+        "title": "The Promenade, Blackpool",
+        "creator": "Detroit Publishing Co.",
+        "year": "c. 1890–1900",
+        "source": "Library of Congress",
+        "url": "https://www.loc.gov/item/2002696385/",
+        "licence": "PD",
+        "basis": "Published c. 1890–1905 by the Detroit Publishing Co. (photochrom); published before 1931, so public domain in the US; LoC lists no known restrictions"
+      }
+    },
+    "memory-session/seaside-3.webp": {
+      "name": "Beach and ladies' bathing place, Margate — Detroit Publishing Co. (Library of Congress, PD).webp",
+      "mime": "image/webp",
+      "bytes": 312696,
+      "sha256": "77a6add49b504237ed1d5715107bdc0db92d5bbf18f37bf6ac908c4c7ab5ec47",
+      "recipe": "f52dd6512141500cec9eb4f8d7e52b3f3606278a4221e78b0d23dabde8a2e4a4",
+      "credit": {
+        "title": "Beach and ladies' bathing place, Margate",
+        "creator": "Detroit Publishing Co.",
+        "year": "c. 1890–1900",
+        "source": "Library of Congress",
+        "url": "https://www.loc.gov/item/2002697068/",
+        "licence": "PD",
+        "basis": "Published c. 1890–1905 by the Detroit Publishing Co. (photochrom); published before 1931, so public domain in the US; LoC lists no known restrictions"
+      }
+    },
+    "memory-session/seaside-4.webp": {
+      "name": "The pier, Clacton-on-Sea — Detroit Publishing Co. (Library of Congress, PD).webp",
+      "mime": "image/webp",
+      "bytes": 349164,
+      "sha256": "b45348d961b9724e1400cf450198edba41c0508087e1d3bba6839d083bf53dbe",
+      "recipe": "e95b6f1043ede18b2e3e8ac3d24a17fd94d226b2eb141eced90f9bf88193cb36",
+      "credit": {
+        "title": "The pier, Clacton-on-Sea",
+        "creator": "Detroit Publishing Co.",
+        "year": "c. 1890–1900",
+        "source": "Library of Congress",
+        "url": "https://www.loc.gov/item/2002696554/",
+        "licence": "PD",
+        "basis": "Published c. 1890–1905 by the Detroit Publishing Co. (photochrom); published before 1931, so public domain in the US; LoC lists no known restrictions"
+      }
+    },
+    "memory-session/seaside-5.webp": {
+      "name": "Blackpool, from Central Pier — Detroit Publishing Co. (Library of Congress, PD).webp",
+      "mime": "image/webp",
+      "bytes": 233520,
+      "sha256": "3bb5d7489067ea9c770b2526caa05c25a39d696cb906746bd5ab7ee9f6b33bfd",
+      "recipe": "c935bf2c0ccce654eb5b80cddf27ae640765d47d7b71e9b89724381be1f89cb2",
+      "credit": {
+        "title": "Blackpool, from Central Pier",
+        "creator": "Detroit Publishing Co.",
+        "year": "c. 1890–1900",
+        "source": "Library of Congress",
+        "url": "https://www.loc.gov/item/2002696384/",
+        "licence": "PD",
+        "basis": "Published c. 1890–1905 by the Detroit Publishing Co. (photochrom); published before 1931, so public domain in the US; LoC lists no known restrictions"
+      }
+    },
+    "memory-session/seaside-6.webp": {
+      "name": "On the beach at Atlantic City, N.J. — Detroit Publishing Co. (Library of Congress, PD).webp",
+      "mime": "image/webp",
+      "bytes": 255144,
+      "sha256": "4dde612a7d1a2d6ca6a5d66c54a44ff786c2f579c67eb9afdf86ccbe810af933",
+      "recipe": "0497f08f891d1b1e643cb3bed24abf9c19d839fb5dda82fa45ea48a6b46e67da",
+      "credit": {
+        "title": "On the beach at Atlantic City, N.J.",
+        "creator": "Detroit Publishing Co.",
+        "year": "1905",
+        "source": "Library of Congress",
+        "url": "https://www.loc.gov/item/2009632310/",
+        "licence": "PD",
+        "basis": "Published 1905 by the Detroit Publishing Co. (copyright notice on the print, 1905); published before 1931, so public domain in the US"
+      }
+    },
+    "memory-session/sfx-sea.m4a": {
+      "name": "Waves on the shore — Dsw4 (Wikimedia Commons, PD).m4a",
+      "mime": "audio/mp4",
+      "bytes": 925276,
+      "sha256": "df1332c05ac38238c2a94c2bb29aa6a9fe13c0fd5812b0c39a7af31f69818d13",
+      "recipe": "bb50274b3a2e8d2622a49df08d429a0d71745baf567662421fb14b9e63f6b6b2",
+      "credit": {
+        "title": "Waves",
+        "creator": "Dsw4 (Wikimedia Commons user)",
+        "year": "2008",
+        "source": "Wikimedia Commons",
+        "url": "https://commons.wikimedia.org/wiki/File:Waves.ogg",
+        "licence": "PD",
+        "basis": "Released into the public domain by the recordist ({{PD-self}}) on Wikimedia Commons"
+      }
+    },
+    "memory-session/song-seaside.m4a": {
+      "name": "I Do Like to Be Beside the Seaside — Arthur Norton (Harry Fay), Zonophone 1909 (Internet Archive, PD).m4a",
+      "mime": "audio/mp4",
+      "bytes": 3950187,
+      "sha256": "dd93589b7922831a3afc456d79024a4d3751819b6c6c85590258dcd155153ba3",
+      "recipe": "4dddd0dae62e84724896e4b0a9cd5a4fcd22c70242d1adf3f2b18ae45c39e4b1",
+      "credit": {
+        "title": "I Do Like to Be Beside the Seaside",
+        "creator": "John A. Glover-Kind (words and music); sung by Arthur Norton (pseudonym of Harry Fay)",
+        "year": "1909",
+        "source": "Internet Archive (78rpm collection), Zonophone X-42943",
+        "url": "https://archive.org/details/ArthurNortonharryFayIDoLikeToBeBesideTheSeasidezonophoneX429431909",
+        "licence": "PD",
+        "basis": "Song published 1907; Glover-Kind died 1918. Recording published 1909 (Zonophone X-42943); in the US, sound recordings published before 1923 entered the public domain on 1 Jan 2022 (Music Modernization Act), and UK recording rights expired long ago"
+      }
+    },
+    "museum/print-2.webp": {
+      "name": "Fine Wind, Clear Morning (Red Fuji) — Katsushika Hokusai (The Met, CC0).webp",
+      "mime": "image/webp",
+      "bytes": 364744,
+      "sha256": "5cf934d0b719dd3f62295894940f4700785e24781ea394d1189ce127fe95ecf2",
+      "recipe": "63ce5d02c1fa06c7afa950e6b534451d5ac2c113c562656674cedf5dcda7e0b7",
+      "credit": {
+        "title": "South Wind, Clear Sky (Gaifū kaisei), also known as Red Fuji, from the series Thirty-six Views of Mount Fuji",
+        "creator": "Katsushika Hokusai (1760–1849)",
+        "year": "ca. 1830–32",
+        "source": "The Metropolitan Museum of Art (accession JP2960, Henry L. Phillips Collection, Bequest of Henry L. Phillips, 1939)",
+        "url": "https://www.metmuseum.org/art/collection/search/55736",
+        "licence": "CC0-1.0"
+      }
+    },
+    "museum/print-3.webp": {
+      "name": "Kajikazawa in Kai Province — Katsushika Hokusai (The Met, CC0).webp",
+      "mime": "image/webp",
+      "bytes": 352562,
+      "sha256": "dbef316321ba70a2f3b045318ab49c4437b7e79583ad5382bd1d5ab4a860723a",
+      "recipe": "fe8bd8270306587a9bfd48f2929df0796fa30eb21cb3282d60f071274b40c6a9",
+      "credit": {
+        "title": "Kajikazawa in Kai Province (Kōshū Kajikazawa), from the series Thirty-six Views of Mount Fuji",
+        "creator": "Katsushika Hokusai (1760–1849)",
+        "year": "ca. 1830–32",
+        "source": "The Metropolitan Museum of Art (accession JP2581, The Howard Mansfield Collection, Purchase, Rogers Fund, 1936)",
+        "url": "https://www.metmuseum.org/art/collection/search/56727",
+        "licence": "CC0-1.0"
+      }
+    },
+    "museum/print-4.webp": {
+      "name": "Sudden Shower over Shin-Ōhashi Bridge — Utagawa Hiroshige (The Met, CC0).webp",
+      "mime": "image/webp",
+      "bytes": 155438,
+      "sha256": "9da1ef287f4deb94f73e6366061fae6b75f35e083cf2fd42f896ec721144c06a",
+      "recipe": "4df22106b811cdaba459adc6651b45843f31a1c366ac77dfd73bc7fc9063bf25",
+      "credit": {
+        "title": "Sudden Shower over Shin-Ōhashi Bridge and Atake (Ōhashi Atake no yūdachi), from the series One Hundred Famous Views of Edo",
+        "creator": "Utagawa Hiroshige (1797–1858)",
+        "year": "1857",
+        "source": "The Metropolitan Museum of Art (accession JP3174, Gift of Mr. and Mrs. A. I. Sherr, 1956)",
+        "url": "https://www.metmuseum.org/art/collection/search/37386",
+        "licence": "CC0-1.0"
+      }
+    },
+    "museum/print-5.webp": {
+      "name": "The Whirlpools at Naruto — Utagawa Hiroshige (The Met, CC0).webp",
+      "mime": "image/webp",
+      "bytes": 164932,
+      "sha256": "dd5dd17cf056c8a86b4fc2ff4569caf2230065df479c6925b866dc2ac99b6ca7",
+      "recipe": "c1fd129992df000a3a9de5eeea85c20bfec6879ef39975e0971e69652a3c2ff6",
+      "credit": {
+        "title": "Naruto Whirlpool, Awa Province (Awa, Naruto no fūha), from the series Views of Famous Places in the Sixty-Odd Provinces",
+        "creator": "Utagawa Hiroshige (1797–1858)",
+        "year": "ca. 1853",
+        "source": "The Metropolitan Museum of Art (accession JP1198, Rogers Fund, 1919)",
+        "url": "https://www.metmuseum.org/art/collection/search/53783",
+        "licence": "CC0-1.0"
+      }
+    },
+    "museum/sfx-sea.m4a": {
+      "name": "Sea Waves — Joseph Sardin (BigSoundBank, CC0).m4a",
+      "mime": "audio/mp4",
+      "bytes": 1227953,
+      "sha256": "a1b9c54a12186eb12ef6ddf01fbf79b399a05e11ace8597a82ac0ece7335225b",
+      "recipe": "68b6b115e1eb59bdc7346a0a041bf0dfecb17c80cb46626bd6663e3dde3709e1",
+      "credit": {
+        "title": "Sea Waves (sound #0698)",
+        "creator": "Joseph Sardin",
+        "year": "",
+        "source": "BigSoundBank / La Sonothèque",
+        "url": "https://bigsoundbank.com/sea-waves_s0698.html",
+        "licence": "CC0-1.0"
+      }
+    },
+    "museum/video-ocean.mp4": {
+      "name": "Ocean surface waves — Mostafameraji (Wikimedia Commons, CC0).mp4",
+      "mime": "video/mp4",
+      "bytes": 16874405,
+      "sha256": "402077cb8c5e2fd0eeec895e23695090790c3fa6fa4095c20718f5e3fa1416ca",
+      "recipe": "7ddd134c2392fb40bc0b25e79fe27d25468e30df4774d6ae48da43730265f16f",
+      "credit": {
+        "title": "Ocean surface waves 03",
+        "creator": "Mostafameraji",
+        "year": "2020",
+        "source": "Wikimedia Commons",
+        "url": "https://commons.wikimedia.org/wiki/File:Ocean_surface_waves_03.ogv",
+        "licence": "CC0-1.0"
+      }
+    },
+    "museum/wave-detail-1.webp": {
+      "name": "Under the Wave off Kanagawa (detail 1) — Katsushika Hokusai (The Met, CC0).webp",
+      "mime": "image/webp",
+      "bytes": 327306,
+      "sha256": "7eb6ab3702151792853124c148bb7f5512aa509721c0c9a6daadef10d0a85bde",
+      "recipe": "2d3b7402942a9ea2b1d8f5346761e78263d16c481001b24f6fc5715eb4a22555",
+      "credit": {
+        "title": "Under the Wave off Kanagawa (Kanagawa oki nami ura), also known as The Great Wave, from the series Thirty-six Views of Mount Fuji",
+        "creator": "Katsushika Hokusai (1760–1849)",
+        "year": "ca. 1830–32",
+        "source": "The Metropolitan Museum of Art (accession JP1847, H. O. Havemeyer Collection, Bequest of Mrs. H. O. Havemeyer, 1929)",
+        "url": "https://www.metmuseum.org/art/collection/search/45434",
+        "licence": "CC0-1.0"
+      }
+    },
+    "museum/wave-detail-2.webp": {
+      "name": "Under the Wave off Kanagawa (detail 2) — Katsushika Hokusai (The Met, CC0).webp",
+      "mime": "image/webp",
+      "bytes": 415300,
+      "sha256": "1d5c78ef47d17e230c2872b3f3ba1ff8990660052b17094e3fdda268b36100e2",
+      "recipe": "9681ed5742558651a61b15030f13f0a9390a5f9ba689043f7e274f797ab3514d",
+      "credit": {
+        "title": "Under the Wave off Kanagawa (Kanagawa oki nami ura), also known as The Great Wave, from the series Thirty-six Views of Mount Fuji",
+        "creator": "Katsushika Hokusai (1760–1849)",
+        "year": "ca. 1830–32",
+        "source": "The Metropolitan Museum of Art (accession JP1847, H. O. Havemeyer Collection, Bequest of Mrs. H. O. Havemeyer, 1929)",
+        "url": "https://www.metmuseum.org/art/collection/search/45434",
+        "licence": "CC0-1.0"
+      }
+    },
+    "museum/wave-detail-3.webp": {
+      "name": "Under the Wave off Kanagawa (detail 3) — Katsushika Hokusai (The Met, CC0).webp",
+      "mime": "image/webp",
+      "bytes": 298130,
+      "sha256": "97a73bc8b5fc1bcdf124f0e8337629374bbea9fa3e60a29022ae1b21ce81a901",
+      "recipe": "2ae5570337af7928e9deff1f937c9865ecdb3d65ea186aadcdc7ffd1db5e5080",
+      "credit": {
+        "title": "Under the Wave off Kanagawa (Kanagawa oki nami ura), also known as The Great Wave, from the series Thirty-six Views of Mount Fuji",
+        "creator": "Katsushika Hokusai (1760–1849)",
+        "year": "ca. 1830–32",
+        "source": "The Metropolitan Museum of Art (accession JP1847, H. O. Havemeyer Collection, Bequest of Mrs. H. O. Havemeyer, 1929)",
+        "url": "https://www.metmuseum.org/art/collection/search/45434",
+        "licence": "CC0-1.0"
+      }
+    },
+    "museum/wave-detail-4.webp": {
+      "name": "Under the Wave off Kanagawa (detail 4) — Katsushika Hokusai (The Met, CC0).webp",
+      "mime": "image/webp",
+      "bytes": 278394,
+      "sha256": "ff5052cf266d0d700fced2c9587cd1f0ebe47be3cdb846b838facc4eb9e41f1d",
+      "recipe": "7977ae95563f4c248b2e2cc198e72f29d0aefb4bbd18883a8e25449f07cd67cc",
+      "credit": {
+        "title": "Under the Wave off Kanagawa (Kanagawa oki nami ura), also known as The Great Wave, from the series Thirty-six Views of Mount Fuji",
+        "creator": "Katsushika Hokusai (1760–1849)",
+        "year": "ca. 1830–32",
+        "source": "The Metropolitan Museum of Art (accession JP1847, H. O. Havemeyer Collection, Bequest of Mrs. H. O. Havemeyer, 1929)",
+        "url": "https://www.metmuseum.org/art/collection/search/45434",
+        "licence": "CC0-1.0"
+      }
+    },
+    "museum/wave.webp": {
+      "name": "Under the Wave off Kanagawa — Katsushika Hokusai (The Met, CC0).webp",
+      "mime": "image/webp",
+      "bytes": 405246,
+      "sha256": "50cec75f53d2efe802ecb4eca863c9d1ae11b34c71695f850d2fbddb7721d038",
+      "recipe": "39383cb1f787ffea15bd768a6bca5b51df58ca0f4601ea7fd6d25c297e522feb",
+      "credit": {
+        "title": "Under the Wave off Kanagawa (Kanagawa oki nami ura), also known as The Great Wave, from the series Thirty-six Views of Mount Fuji",
+        "creator": "Katsushika Hokusai (1760–1849)",
+        "year": "ca. 1830–32",
+        "source": "The Metropolitan Museum of Art (accession JP1847, H. O. Havemeyer Collection, Bequest of Mrs. H. O. Havemeyer, 1929)",
+        "url": "https://www.metmuseum.org/art/collection/search/45434",
+        "licence": "CC0-1.0"
+      }
+    },
+    "quiz/music-walkin.m4a": {
+      "name": "Maple Leaf Rag — Scott Joplin, 1916 piano roll (Wikimedia Commons, PD).m4a",
+      "mime": "audio/mp4",
+      "bytes": 1848916,
+      "sha256": "4b8a1c32405e7fdd00ebdea7ee15efb120cd01815dbeea4c2bacdec322957b57",
+      "recipe": "d11548fb5cf3d2fb522fe4db6b471b9441dc460ddfba6dc91c9b13b92f85f82e",
+      "credit": {
+        "title": "Maple Leaf Rag (piano roll, Aeolian/Uni-Record 202705)",
+        "creator": "Scott Joplin (composer and performer)",
+        "year": "1899 composition; roll published 1916",
+        "source": "Wikimedia Commons",
+        "url": "https://commons.wikimedia.org/wiki/File:Maple_leaf_rag_-_played_by_Scott_Joplin_1916_V2.ogg",
+        "licence": "PD",
+        "basis": "Composition published 1899 and Joplin died 1917; the piano roll was published in 1916 (before 1926), so PD in the US; this file is a mechanical audio rendering of a scan of that roll (no new creative authorship). Commons tags it Public domain."
+      }
+    },
+    "quiz/sfx-correct.m4a": {
+      "name": "Typewriter ding — _stubb (Freesound via Wikimedia Commons, CC0).m4a",
+      "mime": "audio/mp4",
+      "bytes": 22097,
+      "sha256": "f221a4063d443a558ad783892741581998d737b546c9b5f8826234beae0d043d",
+      "recipe": "53c6fd8842c2e4b8d679f1583ed90cfb786420292565cc7c3d6d9591361aa2f9",
+      "credit": {
+        "title": "Typewriter ding (near, mono)",
+        "creator": "_stubb",
+        "year": "2017",
+        "source": "Wikimedia Commons (from Freesound 406243)",
+        "url": "https://commons.wikimedia.org/wiki/File:406243_stubb_typewriter-ding-near-mono.wav",
+        "licence": "CC0-1.0"
+      }
+    },
+    "quiz/sfx-fanfare.m4a": {
+      "name": "Jubilant Fanfare — United States Navy Band (Wikimedia Commons, PD).m4a",
+      "mime": "audio/mp4",
+      "bytes": 152331,
+      "sha256": "be06575ee1d261e2c7c014ae28b1fa2bebd377136f43cd49c15add23d7eac3ef",
+      "recipe": "7b8adc5f2988ea5b105ffe8760d11f6cff2912b4fa91883a2bef9df2bc556f9d",
+      "credit": {
+        "title": "Jubilant Fanfare",
+        "creator": "United States Navy Band (Ceremonial Band)",
+        "year": "1997",
+        "source": "Wikimedia Commons (from navyband.navy.mil)",
+        "url": "https://commons.wikimedia.org/wiki/File:Jubilant_Fanfare.mp3",
+        "licence": "PD",
+        "basis": "US federal government work: recording by the United States Navy Band (17 USC 105)."
+      }
+    },
+    "quiz/sfx-tick.m4a": {
+      "name": "Clock, ticking — natalie (PDSounds via Wikimedia Commons, PD).m4a",
+      "mime": "audio/mp4",
+      "bytes": 82653,
+      "sha256": "df40ce111b3956b81071e02fd9638f8c29bf7a00b913842ac803a3e08fc2fffa",
+      "recipe": "a49c5301aa724092b61bc757956ec04b20f6dc21f85e92e4ff13f12b63348650",
+      "credit": {
+        "title": "Clock, ticking",
+        "creator": "natalie (PDSounds)",
+        "year": "2007",
+        "source": "Wikimedia Commons (from pdsounds.org)",
+        "url": "https://commons.wikimedia.org/wiki/File:Clock_ticking.ogg",
+        "licence": "PD",
+        "basis": "Released into the public domain by the author on PDSounds (pdsounds.org record 216); Commons tags it Public domain."
+      }
+    },
+    "quiz/sfx-wrong.m4a": {
+      "name": "Buzzer — David Pride (Wikimedia Commons, CC0).m4a",
+      "mime": "audio/mp4",
+      "bytes": 32418,
+      "sha256": "93e8c9a838df0d16b3fe265bc94a96e9a276648f943b3c435904782ab875e1ed",
+      "recipe": "6b36750231a4db61d76512f6f461857c376ac63b1f2092ce2654401d8a31ac3b",
+      "credit": {
+        "title": "Buzzer",
+        "creator": "David Pride (Cotswold Jam)",
+        "year": "2016",
+        "source": "Wikimedia Commons",
+        "url": "https://commons.wikimedia.org/wiki/File:Buzzer.wav",
+        "licence": "CC0-1.0"
+      }
+    },
+    "school-play/backdrop-finish.webp": {
+      "name": "Peace and Plenty — George Inness (The Met, CC0).webp",
+      "mime": "image/webp",
+      "bytes": 176118,
+      "sha256": "a248fe81f8318a6c9fca04e581916229b053806314bca1936dc704845bed5041",
+      "recipe": "d3f47bcffa9e38b8096a28ef7ed41b78d75f2196e1a1ba31be9fdf8c895f4d8c",
+      "credit": {
+        "title": "Peace and Plenty",
+        "creator": "George Inness",
+        "year": "1865",
+        "source": "The Metropolitan Museum of Art",
+        "url": "https://www.metmuseum.org/art/collection/search/11232",
+        "licence": "CC0-1.0"
+      }
+    },
+    "school-play/backdrop-meadow.webp": {
+      "name": "Wivenhoe Park, Essex — John Constable (National Gallery of Art, CC0).webp",
+      "mime": "image/webp",
+      "bytes": 285974,
+      "sha256": "69c911cc450fa3c04cae9e08eff21537249dd94a17688a6aefea7a528922b38d",
+      "recipe": "c1ba1b4afa4d99f526d13d30c9a64632271238b2410700ca520987ca347c4d1e",
+      "credit": {
+        "title": "Wivenhoe Park, Essex",
+        "creator": "John Constable",
+        "year": "1816",
+        "source": "National Gallery of Art, Washington (via Wikimedia Commons)",
+        "url": "https://www.nga.gov/collection/art-object-page.1147.html",
+        "licence": "CC0-1.0"
+      }
+    },
+    "school-play/backdrop-road.webp": {
+      "name": "The Avenue at Middelharnis — Meindert Hobbema (Wikimedia Commons, PD).webp",
+      "mime": "image/webp",
+      "bytes": 248816,
+      "sha256": "51e171403d0449ef498180f04790b1cb28325a1e7d06c2e70910069f2800c70c",
+      "recipe": "6c911f7cdd4db6124d003b041bfa124a97eb1eaa332f0707014f859af312a94d",
+      "credit": {
+        "title": "The Avenue at Middelharnis",
+        "creator": "Meindert Hobbema",
+        "year": "1689",
+        "source": "The National Gallery, London (photo via Wikimedia Commons)",
+        "url": "https://commons.wikimedia.org/wiki/File:Meindert_Hobbema_001.jpg",
+        "licence": "PD",
+        "basis": "PD-Art: faithful photograph of a 2D painting whose artist died in 1709."
+      }
+    },
+    "school-play/backdrop-tree.webp": {
+      "name": "A Summer Afternoon — Asher Brown Durand (Wikimedia Commons, PD).webp",
+      "mime": "image/webp",
+      "bytes": 436274,
+      "sha256": "c978a38222fdf446c1b97cdfb6953169bd3e33b483db135c79f792a1d45d0458",
+      "recipe": "66d391487763640ce2c008d66bd35fcc11465d977960bedad174226f303b2e7a",
+      "credit": {
+        "title": "A Summer Afternoon",
+        "creator": "Asher Brown Durand",
+        "year": "1849",
+        "source": "Wikimedia Commons (image via artnet)",
+        "url": "https://commons.wikimedia.org/wiki/File:HRSOA_AsherDurand-Summer_Afternoon.jpg",
+        "licence": "PD",
+        "basis": "PD-Art: faithful photograph of a 2D painting whose artist died in 1886."
+      }
+    },
+    "school-play/hare.webp": {
+      "name": "Young Hare — Albrecht Dürer (Albertina via Google Arts & Culture, PD).webp",
+      "mime": "image/webp",
+      "bytes": 156116,
+      "sha256": "9a6928a5a966f96ba6ac64f978db00f9177d63eb36092636f4d68bbe8656d2a3",
+      "recipe": "84afda639dd427e3fcb6e99b6e9c9ca4a2d8fbf48a5db03619142be39e9dbc8b",
+      "credit": {
+        "title": "Young Hare (Feldhase)",
+        "creator": "Albrecht Dürer",
+        "year": "1502",
+        "source": "Albertina, Vienna (Google Arts & Culture, via Wikimedia Commons)",
+        "url": "https://commons.wikimedia.org/wiki/File:Albrecht_D%C3%BCrer_-_Hare,_1502_-_Google_Art_Project.jpg",
+        "licence": "PD",
+        "basis": "PD-Art: faithful photograph of a 2D watercolour whose artist died in 1528."
+      }
+    },
+    "school-play/music-morning.m4a": {
+      "name": "Morning Mood (Peer Gynt) — Edvard Grieg, Musopen Symphony (Wikimedia Commons, PD).m4a",
+      "mime": "audio/mp4",
+      "bytes": 1849094,
+      "sha256": "4a71ee371ef52a2b54598dfeb83f7b91d118f8a2599b50ea51eea20357e61419",
+      "recipe": "14ee9da09a931f7828d8c69f3618104ba93edf0423d77f411c508efc92b858e0",
+      "credit": {
+        "title": "Peer Gynt Suite No. 1, Op. 46 - I. Morning Mood",
+        "creator": "Edvard Grieg (composer); Musopen Symphony Orchestra (Czech National Symphony Orchestra)",
+        "year": "1875 composition; recorded 2012",
+        "source": "Musopen via Wikimedia Commons",
+        "url": "https://commons.wikimedia.org/wiki/File:Grieg_-_Peer_Gynt_Suite_No._1,_Op._46_-_I._Morning_Mood_(Musopen_Symphony).flac",
+        "licence": "PD",
+        "basis": "Composition: Grieg died 1907. Recording: made for Musopen's Kickstarter project and released into the public domain by Musopen; Commons tags it Public domain."
+      }
+    },
+    "school-play/music-race.m4a": {
+      "name": "William Tell Overture (finale) — Gioachino Rossini, United States Marine Band (Wikimedia Commons, PD).m4a",
+      "mime": "audio/mp4",
+      "bytes": 1743691,
+      "sha256": "97fecc86a100edd004c1e63b53fd0b484d0f2c349bd3d884f4b75c54ccb0aad6",
+      "recipe": "2ed06415165665a5eb4747257ffc6769320004891220e3040c7da877e5d9cf2e",
+      "credit": {
+        "title": "William Tell Overture (transcr. Wenzel Sedlak), from Grand Scenes",
+        "creator": "Gioachino Rossini (composer); United States Marine Band, Timothy Foley (director)",
+        "year": "1829 composition; recorded June 2000",
+        "source": "United States Marine Band via Wikimedia Commons",
+        "url": "https://commons.wikimedia.org/wiki/File:Gioachino_Rossini,_William_Tell_Overture_(military_band_version,_2000).ogg",
+        "licence": "PD",
+        "basis": "Composition: Rossini died 1868, Sedlak transcription 19th century. Recording: US federal government work by the United States Marine Band (17 USC 105)."
+      }
+    },
+    "school-play/sfx-whistle.m4a": {
+      "name": "Referee whistle blow — SpliceSound (Freesound via Wikimedia Commons, CC0).m4a",
+      "mime": "audio/mp4",
+      "bytes": 37063,
+      "sha256": "3d26f3aea770f8c3f5e863a3372fb0734629d095a23ebd49f071c311a2060071",
+      "recipe": "861485991924060e5077a38ed4906a314c7f1f33b9595c2ffbabbf50e9c83b5c",
+      "credit": {
+        "title": "Referee whistle blow, gymnasium",
+        "creator": "SpliceSound",
+        "year": "2014",
+        "source": "Wikimedia Commons (from Freesound 218318)",
+        "url": "https://commons.wikimedia.org/wiki/File:218318_splicesound_referee-whistle-blow-gymnasium.wav",
+        "licence": "CC0-1.0"
+      }
+    },
+    "school-play/tortoise.webp": {
+      "name": "Testudo carbonaria — J. de C. Sowerby & Edward Lear (Biodiversity Heritage Library, PD).webp",
+      "mime": "image/webp",
+      "bytes": 204204,
+      "sha256": "267748cd7e8a6021fb8cef3fc6c23d5390efad74a85d3bab2a6f2cbb3f2d3fcd",
+      "recipe": "1ea3b78453bbd60d6d2269d7e9f0828ff75d6b7b7b0b023323179f0af63e5137",
+      "credit": {
+        "title": "Testudo carbonaria (red-footed tortoise), plate from Thomas Bell, A Monograph of the Testudinata",
+        "creator": "James de Carle Sowerby (drawing) and Edward Lear (lithograph); printed by C. Hullmandel",
+        "year": "1832-1836",
+        "source": "Smithsonian Libraries / Biodiversity Heritage Library (Internet Archive)",
+        "url": "https://archive.org/details/monographtestud00bell/page/n59",
+        "licence": "PD",
+        "basis": "Published in London 1832-36; artists died 1871 (Sowerby) and 1888 (Lear)."
+      }
     }
   }
 }
