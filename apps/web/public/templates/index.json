@@ -1,6 +1,149 @@
 {
   "version": 1,
   "files": {
+    "adventure/music-calm.m4a": {
+      "name": "Anitra's Dance (Peer Gynt) — Edvard Grieg, Musopen Symphony (Wikimedia Commons, CC0).m4a",
+      "mime": "audio/mp4",
+      "bytes": 1807619,
+      "sha256": "43ba62a494b5fa5a64f8d4ea413bc807f0a551c0b3ca92709be5c394ef1955b0",
+      "recipe": "5618868e6fbfa88bac31005217eae6c968343581b50a5b419a53bfc38c13a9e7",
+      "credit": {
+        "title": "Peer Gynt Suite No. 1, Op. 46 - III. Anitra's Dance",
+        "creator": "Edvard Grieg (composer); Musopen Symphony Orchestra",
+        "year": "1875 composition; recording c. 2012",
+        "source": "Musopen via Wikimedia Commons",
+        "url": "https://commons.wikimedia.org/wiki/File:Grieg,_Peer_Gynt_Suite_No._1,_Op._46_-_III._Anitra%27s_Dance.ogg",
+        "licence": "CC0-1.0"
+      }
+    },
+    "adventure/music-tense.m4a": {
+      "name": "In the Hall of the Mountain King — Edvard Grieg, Musopen Symphony (Wikimedia Commons, PD).m4a",
+      "mime": "audio/mp4",
+      "bytes": 1850014,
+      "sha256": "e665f04299348ad179c97486009a3a3744b10ab1f7c5351d3662d56a591fc22e",
+      "recipe": "720c2e152e1d0a12f2e7bf6d382c0f996af033f0c704fa8346d1c29f286e62ff",
+      "credit": {
+        "title": "Peer Gynt Suite No. 1, Op. 46 - IV. In the Hall of the Mountain King",
+        "creator": "Edvard Grieg (composer); Musopen Symphony Orchestra (Czech National Symphony Orchestra)",
+        "year": "1875 composition; recorded 2012",
+        "source": "Musopen via Wikimedia Commons",
+        "url": "https://commons.wikimedia.org/wiki/File:Grieg_-_Peer_Gynt_Suite_No._1,_Op._46_-_IV._In_the_Hall_of_the_Mountain_King_(Musopen_Symphony).flac",
+        "licence": "PD",
+        "basis": "Composition: Grieg died 1907. Recording: made for Musopen's Kickstarter project and released into the public domain by Musopen; Commons tags it Public domain."
+      }
+    },
+    "adventure/scene-1.webp": {
+      "name": "The Nightingale: the fisherman at night — Edmund Dulac (Wikimedia Commons, PD).webp",
+      "mime": "image/webp",
+      "bytes": 216274,
+      "sha256": "2ab5fc81650dc70730f21a0158fbf2ac2fffc847637a9db4444f1b094b99f38f",
+      "recipe": "ae57a8cac914be59538d47aab32a033c50f065de9c6d7b4c0e6f7cadda632ee1",
+      "credit": {
+        "title": "The Nightingale (colour plate facing p. 81), Stories from Hans Andersen",
+        "creator": "Edmund Dulac",
+        "year": "1910",
+        "source": "Wikimedia Commons (scan of Stories from Hans Andersen, Hodder & Stoughton, New York 1910; Internet Archive storiesfromhansa00anderich)",
+        "url": "https://commons.wikimedia.org/wiki/File:Stories_from_Hans_Andersen_-_Edmund_Dulac_color_plate_at_page_081.jpg",
+        "licence": "PD",
+        "basis": "Published 1910 (PD in the US); Edmund Dulac died 1953 (PD in the EU since 2024). Faithful scan of a 2D print."
+      }
+    },
+    "adventure/scene-2.webp": {
+      "name": "The ship struck upon a rock — Edmund Dulac (Wikimedia Commons, PD).webp",
+      "mime": "image/webp",
+      "bytes": 214720,
+      "sha256": "00f9de72e12b43a1847a9dee31c03495002e538b2234af3f67907f8493099adb",
+      "recipe": "29e8ec373f0d7d4768283ef5d0af00cb9877109b6494001314e67a8c9f566085",
+      "credit": {
+        "title": "'The ship struck upon a rock' (Sindbad), Stories from the Arabian Nights",
+        "creator": "Edmund Dulac",
+        "year": "1907",
+        "source": "Wikimedia Commons (via Turnbull Rare Books scan)",
+        "url": "https://commons.wikimedia.org/wiki/File:Illustration_by_Edmund_Dulac_5.jpg",
+        "licence": "PD",
+        "basis": "Published 1907 (Hodder & Stoughton); Edmund Dulac died 1953 (PD in the EU since 2024). Faithful scan of a 2D print."
+      }
+    },
+    "adventure/scene-3.webp": {
+      "name": "The Mermaid: rescue in the storm — Edmund Dulac (Wikimedia Commons, PD).webp",
+      "mime": "image/webp",
+      "bytes": 262580,
+      "sha256": "fd60c8657513d63da7e6ff5e30332c50b3a5ee8f4aec93c8e51772b922dd19d4",
+      "recipe": "d5c041ed84c8e0c223a0d8bac0682ecc0d84517ab9c907b9f8639eea4de5e277",
+      "credit": {
+        "title": "The Mermaid (colour plate facing p. 169), Stories from Hans Andersen",
+        "creator": "Edmund Dulac",
+        "year": "1910",
+        "source": "Wikimedia Commons (scan of Stories from Hans Andersen, Hodder & Stoughton, New York 1910; Internet Archive storiesfromhansa00anderich)",
+        "url": "https://commons.wikimedia.org/wiki/File:Stories_from_Hans_Andersen_-_Edmund_Dulac_color_plate_at_page_169.jpg",
+        "licence": "PD",
+        "basis": "Published 1910 (PD in the US); Edmund Dulac died 1953 (PD in the EU since 2024). Faithful scan of a 2D print."
+      }
+    },
+    "adventure/scene-4.webp": {
+      "name": "The castle beyond the autumn wood — Edmund Dulac (Wikimedia Commons, PD).webp",
+      "mime": "image/webp",
+      "bytes": 206836,
+      "sha256": "5c320684da64cd2900a7ceea43714c15f170c4d1af426e054d1acd1a0bbe3008",
+      "recipe": "60328ddf04fd251c3dd632518ab87ec32c5dd7041a855309a19b6e63a2942221",
+      "credit": {
+        "title": "Colour plate facing p. 233, Stories from Hans Andersen",
+        "creator": "Edmund Dulac",
+        "year": "1910",
+        "source": "Wikimedia Commons (scan of Stories from Hans Andersen, Hodder & Stoughton, New York 1910; Internet Archive storiesfromhansa00anderich)",
+        "url": "https://commons.wikimedia.org/wiki/File:Stories_from_Hans_Andersen_-_Edmund_Dulac_color_plate_at_page_233.jpg",
+        "licence": "PD",
+        "basis": "Published 1910 (PD in the US); Edmund Dulac died 1953 (PD in the EU since 2024). Faithful scan of a 2D print."
+      }
+    },
+    "adventure/scene-5.webp": {
+      "name": "The Mermaid: the Sea King's treasure garden — Edmund Dulac (Wikimedia Commons, PD).webp",
+      "mime": "image/webp",
+      "bytes": 241088,
+      "sha256": "bee564f60481b1e050fc7743c497896bfbdc7b09fda43670a4467142971a9e1a",
+      "recipe": "67f309c588aafb0830064a304d9ab3db179b09187f90328f383bfa97ee3df2a6",
+      "credit": {
+        "title": "The Mermaid (colour plate facing p. 155), Stories from Hans Andersen",
+        "creator": "Edmund Dulac",
+        "year": "1910",
+        "source": "Wikimedia Commons (scan of Stories from Hans Andersen, Hodder & Stoughton, New York 1910; Internet Archive storiesfromhansa00anderich)",
+        "url": "https://commons.wikimedia.org/wiki/File:Stories_from_Hans_Andersen_-_Edmund_Dulac_color_plate_at_page155.jpg",
+        "licence": "PD",
+        "basis": "Published 1910 (PD in the US); Edmund Dulac died 1953 (PD in the EU since 2024). Faithful scan of a 2D print."
+      }
+    },
+    "adventure/scene-6.webp": {
+      "name": "The Snow Queen: arriving at the cottage — Edmund Dulac (Wikimedia Commons, PD).webp",
+      "mime": "image/webp",
+      "bytes": 234964,
+      "sha256": "4473042bc2586ac095eae3270134e46814f851d0eba6425c73ca06bc42aefe94",
+      "recipe": "1cdd5b2151d8b759ec6fe728c2baf3ab705682d8908a434eb70a3b01907db338",
+      "credit": {
+        "title": "The Snow Queen (colour plate facing p. 23), Stories from Hans Andersen",
+        "creator": "Edmund Dulac",
+        "year": "1910",
+        "source": "Wikimedia Commons (scan of Stories from Hans Andersen, Hodder & Stoughton, New York 1910; Internet Archive storiesfromhansa00anderich)",
+        "url": "https://commons.wikimedia.org/wiki/File:Stories_from_Hans_Andersen_-_Edmund_Dulac_color_plate_at_page_023.jpg",
+        "licence": "PD",
+        "basis": "Published 1910 (PD in the US); Edmund Dulac died 1953 (PD in the EU since 2024). Faithful scan of a 2D print."
+      }
+    },
+    "adventure/scene-7.webp": {
+      "name": "The Snow Queen: magic over the rooftops — Edmund Dulac (Wikimedia Commons, PD).webp",
+      "mime": "image/webp",
+      "bytes": 294640,
+      "sha256": "64ea3393197d48f229ea2b51d701134c638610f6ba3cdb931b0e469f32d1a64f",
+      "recipe": "c9a6617dd4d557f51afe2c7dd58bb698657bfbb73d408a802c30d374b505f009",
+      "credit": {
+        "title": "The Snow Queen (colour plate facing p. 11), Stories from Hans Andersen",
+        "creator": "Edmund Dulac",
+        "year": "1910",
+        "source": "Wikimedia Commons (scan of Stories from Hans Andersen, Hodder & Stoughton, New York 1910; Internet Archive storiesfromhansa00anderich)",
+        "url": "https://commons.wikimedia.org/wiki/File:Stories_from_Hans_Andersen_-_Edmund_Dulac_color_plate_at_page_011.jpg",
+        "licence": "PD",
+        "basis": "Published 1910 (PD in the US); Edmund Dulac died 1953 (PD in the EU since 2024). Faithful scan of a 2D print."
+      }
+    },
     "birthday/cake.webp": {
       "name": "Grandma Taylor blows out the candles on her eighty-third birthday — Marjory Collins (Library of Congress, PD).webp",
       "mime": "image/webp",

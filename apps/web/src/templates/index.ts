@@ -1,3 +1,4 @@
+import { ADVENTURE } from './adventure.js';
 import { BIRTHDAY } from './birthday.js';
 import { GATHERING } from './gathering.js';
 import { GIG } from './gig.js';
@@ -13,6 +14,7 @@ export const TEMPLATES: TemplateSeed[] = [
   GATHERING,
   MEMORY_SESSION,
   MUSEUM,
+  ADVENTURE,
   QUIZ,
   BIRTHDAY,
   GIG,

@@ -720,7 +720,7 @@ For each user, **Ideas** links to the cross-cutting ideas in [Accessible to all]
   - No accounts, and local-only storage.
   - The simple editor, and wizards for a choice point (a new scene for each option, and "You chose …" on stage), a quiz question (the room against the quizmaster) and a photo story.
   - No free text keeps guests' phones to votes and taps.
-  - The **Lighthouse at the Edge of the Map**, **Big Quiz** and **Happy 80th!** templates: a storybook adventure, a game-show quiz, and a birthday with photos and candles to blow out from phones.
+  - The **Lost Light**, **Big Quiz** and **Happy 80th!** templates: a storybook adventure, a game-show quiz, and a birthday with photos and candles to blow out from phones.
 - **Gaps:**
   - Media capture inside the app.
   - Read-aloud help for younger readers.

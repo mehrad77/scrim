@@ -1480,6 +1480,191 @@
         "licence": "CC0-1.0"
       },
       "notes": "One sharp, short pea-whistle blast (~0.5 s, starts at 0.09 s) with a natural gym-hall reverb tail; trimmed to 1.8 s with a short fade. 'Ready, steady... go!' start signal."
+    },
+    {
+      "path": "adventure/scene-1.webp",
+      "name": "The Nightingale: the fisherman at night — Edmund Dulac (Wikimedia Commons, PD).webp",
+      "fetch": {
+        "url": "https://upload.wikimedia.org/wikipedia/commons/6/6f/Stories_from_Hans_Andersen_-_Edmund_Dulac_color_plate_at_page_081.jpg"
+      },
+      "process": {
+        "quality": 85
+      },
+      "credit": {
+        "title": "The Nightingale (colour plate facing p. 81), Stories from Hans Andersen",
+        "creator": "Edmund Dulac",
+        "year": "1910",
+        "source": "Wikimedia Commons (scan of Stories from Hans Andersen, Hodder & Stoughton, New York 1910; Internet Archive storiesfromhansa00anderich)",
+        "url": "https://commons.wikimedia.org/wiki/File:Stories_from_Hans_Andersen_-_Edmund_Dulac_color_plate_at_page_081.jpg",
+        "licence": "PD",
+        "basis": "Published 1910 (PD in the US); Edmund Dulac died 1953 (PD in the EU since 2024). Faithful scan of a 2D print."
+      },
+      "notes": "OPENING. Still, misty night water in pale teal and blue-grey; a small wooden boat with a rounded rush canopy floats in the centre, a lone fisherman standing in it, hauling a net, his gear and a lantern-like bundle on board; a low moon glows on the horizon at left behind his boat. Dark golden-bronze leaves hang from an overhanging branch across the top; a dark bush silhouette lower left. Calm, hushed, magical - 'one night a small boat pushed off from the shore toward the edge of the map'. Portrait plate (1752x2202, ~4:5): kept whole, not full-bleed - put it on a deep-teal stage with gold frame; the pale water/sky in the middle third is the calmest area. Dulac signature lower right."
+    },
+    {
+      "path": "adventure/scene-2.webp",
+      "name": "The ship struck upon a rock — Edmund Dulac (Wikimedia Commons, PD).webp",
+      "fetch": {
+        "url": "https://upload.wikimedia.org/wikipedia/commons/a/a2/Illustration_by_Edmund_Dulac_5.jpg"
+      },
+      "process": {
+        "quality": 85
+      },
+      "credit": {
+        "title": "'The ship struck upon a rock' (Sindbad), Stories from the Arabian Nights",
+        "creator": "Edmund Dulac",
+        "year": "1907",
+        "source": "Wikimedia Commons (via Turnbull Rare Books scan)",
+        "url": "https://commons.wikimedia.org/wiki/File:Illustration_by_Edmund_Dulac_5.jpg",
+        "licence": "PD",
+        "basis": "Published 1907 (Hodder & Stoughton); Edmund Dulac died 1953 (PD in the EU since 2024). Faithful scan of a 2D print."
+      },
+      "notes": "THE CHOICE. A small high-prowed wooden ship with a great pale sail heels over in a boiling sea of white-crested turquoise waves, driven between dark blue-black rocky crags (left and top right); tiny sailors hunched on deck. Stormy, dramatic, but stylised and not frightening. Story hook: the storm drives the boat to the rocks - climb ashore into the dark forest, or ride the waves out to the open sea? Portrait (1280x1788): the lowest-resolution scene here, fine at 1080 px tall but do not enlarge; kept whole. A thin pale paper margin shows on the right edge - a plain frame hides it."
+    },
+    {
+      "path": "adventure/scene-3.webp",
+      "name": "The Mermaid: rescue in the storm — Edmund Dulac (Wikimedia Commons, PD).webp",
+      "fetch": {
+        "url": "https://upload.wikimedia.org/wikipedia/commons/e/eb/Stories_from_Hans_Andersen_-_Edmund_Dulac_color_plate_at_page_169.jpg"
+      },
+      "process": {
+        "quality": 85
+      },
+      "credit": {
+        "title": "The Mermaid (colour plate facing p. 169), Stories from Hans Andersen",
+        "creator": "Edmund Dulac",
+        "year": "1910",
+        "source": "Wikimedia Commons (scan of Stories from Hans Andersen, Hodder & Stoughton, New York 1910; Internet Archive storiesfromhansa00anderich)",
+        "url": "https://commons.wikimedia.org/wiki/File:Stories_from_Hans_Andersen_-_Edmund_Dulac_color_plate_at_page_169.jpg",
+        "licence": "PD",
+        "basis": "Published 1910 (PD in the US); Edmund Dulac died 1953 (PD in the EU since 2024). Faithful scan of a 2D print."
+      },
+      "notes": "SEA PATH. Wild teal-green and deep-blue night sea, foam and glittering spray filling the whole picture, a shaft of pale moonlight in the cloudy sky at top; in the middle a mermaid with long dark hair swims holding a young man's head above the waves. Read it as: 'out at sea, someone rises from the waves to help you'. All-over texture, no empty sky - put text on a plate beside the picture. Portrait 1752x2201, kept whole."
+    },
+    {
+      "path": "adventure/scene-4.webp",
+      "name": "The castle beyond the autumn wood — Edmund Dulac (Wikimedia Commons, PD).webp",
+      "fetch": {
+        "url": "https://upload.wikimedia.org/wikipedia/commons/5/5a/Stories_from_Hans_Andersen_-_Edmund_Dulac_color_plate_at_page_233.jpg"
+      },
+      "process": {
+        "quality": 85
+      },
+      "credit": {
+        "title": "Colour plate facing p. 233, Stories from Hans Andersen",
+        "creator": "Edmund Dulac",
+        "year": "1910",
+        "source": "Wikimedia Commons (scan of Stories from Hans Andersen, Hodder & Stoughton, New York 1910; Internet Archive storiesfromhansa00anderich)",
+        "url": "https://commons.wikimedia.org/wiki/File:Stories_from_Hans_Andersen_-_Edmund_Dulac_color_plate_at_page_233.jpg",
+        "licence": "PD",
+        "basis": "Published 1910 (PD in the US); Edmund Dulac died 1953 (PD in the EU since 2024). Faithful scan of a 2D print."
+      },
+      "notes": "FOREST PATH. An enchanted autumn wood in russet, amber and old gold: wind-bent trees and drifting leaves, a rocky slope of pale stones in the foreground, and on the hill above a dark, spired, many-turreted castle silhouetted against a stormy olive-gold sky (upper left). A girl in a long red dress stoops among the bracken at lower right as if searching or gathering. Mysterious rather than scary - 'the forest path leads up to a castle no map has ever shown'. The only warm-brown (non-teal) plate in the set, which makes a nice contrast for the land route. Portrait 1757x2206, kept whole."
+    },
+    {
+      "path": "adventure/scene-5.webp",
+      "name": "The Mermaid: the Sea King's treasure garden — Edmund Dulac (Wikimedia Commons, PD).webp",
+      "fetch": {
+        "url": "https://upload.wikimedia.org/wikipedia/commons/3/3f/Stories_from_Hans_Andersen_-_Edmund_Dulac_color_plate_at_page155.jpg"
+      },
+      "process": {
+        "quality": 85
+      },
+      "credit": {
+        "title": "The Mermaid (colour plate facing p. 155), Stories from Hans Andersen",
+        "creator": "Edmund Dulac",
+        "year": "1910",
+        "source": "Wikimedia Commons (scan of Stories from Hans Andersen, Hodder & Stoughton, New York 1910; Internet Archive storiesfromhansa00anderich)",
+        "url": "https://commons.wikimedia.org/wiki/File:Stories_from_Hans_Andersen_-_Edmund_Dulac_color_plate_at_page155.jpg",
+        "licence": "PD",
+        "basis": "Published 1910 (PD in the US); Edmund Dulac died 1953 (PD in the EU since 2024). Faithful scan of a 2D print."
+      },
+      "notes": "ENDING A - TREASURE / GLOW. Deep under the sea: a glowing amber-gold and coral-red world of branching coral, shells and sea plants; a crowned, bearded merman with a scaly green tail lounges at right, a big friendly-faced fish and a long dark eel swim past, scallop shells and pearls lie scattered on the sea floor. Warm, glittering, jewel-box colours - 'you found the Sea King's hidden treasure'. Busy all over; text on a separate plate. Portrait 1750x2205, kept whole."
+    },
+    {
+      "path": "adventure/scene-6.webp",
+      "name": "The Snow Queen: arriving at the cottage — Edmund Dulac (Wikimedia Commons, PD).webp",
+      "fetch": {
+        "url": "https://upload.wikimedia.org/wikipedia/commons/0/09/Stories_from_Hans_Andersen_-_Edmund_Dulac_color_plate_at_page_023.jpg"
+      },
+      "process": {
+        "quality": 85
+      },
+      "credit": {
+        "title": "The Snow Queen (colour plate facing p. 23), Stories from Hans Andersen",
+        "creator": "Edmund Dulac",
+        "year": "1910",
+        "source": "Wikimedia Commons (scan of Stories from Hans Andersen, Hodder & Stoughton, New York 1910; Internet Archive storiesfromhansa00anderich)",
+        "url": "https://commons.wikimedia.org/wiki/File:Stories_from_Hans_Andersen_-_Edmund_Dulac_color_plate_at_page_023.jpg",
+        "licence": "PD",
+        "basis": "Published 1910 (PD in the US); Edmund Dulac died 1953 (PD in the EU since 2024). Faithful scan of a 2D print."
+      },
+      "notes": "ENDING B - HOMECOMING. A cosy cream-walled cottage with a steep thatched roof, a little turret, leaded windows and a wooden toy-soldier figure by the door, surrounded by a garden of flowers; a kindly old woman in a big sun hat, shawl and white apron leans on a crook and stoops from a little wooden jetty to greet a girl who has just arrived in a rowing boat on the river below. Warm golden-cream and green - 'and at last the boat bumped gently against the jetty at home'. Portrait 1755x2207, kept whole."
+    },
+    {
+      "path": "adventure/scene-7.webp",
+      "name": "The Snow Queen: magic over the rooftops — Edmund Dulac (Wikimedia Commons, PD).webp",
+      "fetch": {
+        "url": "https://upload.wikimedia.org/wikipedia/commons/0/0b/Stories_from_Hans_Andersen_-_Edmund_Dulac_color_plate_at_page_011.jpg"
+      },
+      "process": {
+        "quality": 85
+      },
+      "credit": {
+        "title": "The Snow Queen (colour plate facing p. 11), Stories from Hans Andersen",
+        "creator": "Edmund Dulac",
+        "year": "1910",
+        "source": "Wikimedia Commons (scan of Stories from Hans Andersen, Hodder & Stoughton, New York 1910; Internet Archive storiesfromhansa00anderich)",
+        "url": "https://commons.wikimedia.org/wiki/File:Stories_from_Hans_Andersen_-_Edmund_Dulac_color_plate_at_page_011.jpg",
+        "licence": "PD",
+        "basis": "Published 1910 (PD in the US); Edmund Dulac died 1953 (PD in the EU since 2024). Faithful scan of a 2D print."
+      },
+      "notes": "ENDING C - MAGICAL SKY. Night over a snowy old town: steep snow-laden roofs with warm glowing yellow windows, a tall dark church tower with a glowing gold clock face; a shimmering, ghostly pale-green figure of swirling snow and starlight sweeps through the sky at upper left, and the deep teal night sky is dusted with sparkling snowflakes/stars. Teal-and-gold, wondrous - 'the sky itself opened and glittered above you'. Portrait 1753x2203, kept whole. Alternatives already downloaded in a/adv/full/: 035 (Snow Queen on her glowing ice throne, p. 71), 046 (the sea witch's tentacled lair, p. 183), 047 (mermaid on marble palace steps at the sea, p. 189), 037 (lantern-lit garden bridge, p. 89)."
+    },
+    {
+      "path": "adventure/music-tense.m4a",
+      "name": "In the Hall of the Mountain King — Edvard Grieg, Musopen Symphony (Wikimedia Commons, PD).m4a",
+      "fetch": {
+        "url": "https://upload.wikimedia.org/wikipedia/commons/8/84/Grieg_-_Peer_Gynt_Suite_No._1%2C_Op._46_-_IV._In_the_Hall_of_the_Mountain_King_%28Musopen_Symphony%29.flac"
+      },
+      "process": {
+        "start": 63,
+        "seconds": 90,
+        "fadeIn": 1,
+        "fadeOut": 1
+      },
+      "credit": {
+        "title": "Peer Gynt Suite No. 1, Op. 46 - IV. In the Hall of the Mountain King",
+        "creator": "Edvard Grieg (composer); Musopen Symphony Orchestra (Czech National Symphony Orchestra)",
+        "year": "1875 composition; recorded 2012",
+        "source": "Musopen via Wikimedia Commons",
+        "url": "https://commons.wikimedia.org/wiki/File:Grieg_-_Peer_Gynt_Suite_No._1,_Op._46_-_IV._In_the_Hall_of_the_Mountain_King_(Musopen_Symphony).flac",
+        "licence": "PD",
+        "basis": "Composition: Grieg died 1907. Recording: made for Musopen's Kickstarter project and released into the public domain by Musopen; Commons tags it Public domain."
+      },
+      "notes": "Clean modern orchestral recording (154 s total). The excerpt starts at 1:03, mid-crescendo, where the theme is already moving through the strings, then accelerates and swells to the full-orchestra frenzy (~1:40-2:28, the loudest part) and ends on the final crashing chords at about 2:30 (so the natural ending is included; the 1 s fade only tidies the tail). If you want a longer, quieter build, start at 0 instead (0:00-1:00 is pizzicato and bassoons, very soft)."
+    },
+    {
+      "path": "adventure/music-calm.m4a",
+      "name": "Anitra's Dance (Peer Gynt) — Edvard Grieg, Musopen Symphony (Wikimedia Commons, CC0).m4a",
+      "fetch": {
+        "url": "https://upload.wikimedia.org/wikipedia/commons/2/25/Grieg%2C_Peer_Gynt_Suite_No._1%2C_Op._46_-_III._Anitra%27s_Dance.ogg"
+      },
+      "process": {
+        "start": 0.2,
+        "seconds": 88,
+        "fadeIn": 0,
+        "fadeOut": 4
+      },
+      "credit": {
+        "title": "Peer Gynt Suite No. 1, Op. 46 - III. Anitra's Dance",
+        "creator": "Edvard Grieg (composer); Musopen Symphony Orchestra",
+        "year": "1875 composition; recording c. 2012",
+        "source": "Musopen via Wikimedia Commons",
+        "url": "https://commons.wikimedia.org/wiki/File:Grieg,_Peer_Gynt_Suite_No._1,_Op._46_-_III._Anitra%27s_Dance.ogg",
+        "licence": "CC0-1.0"
+      },
+      "notes": "Light, lilting string mazurka with triangle; delicate and a little mysterious - good under the opening narration and the gentle endings. The first ~88 s are the first statement of the dance; the music naturally thins out at ~1:25-1:30, where the fade lands. Same orchestra and sound as the tense cue, so the pair sounds coherent."
     }
   ]
 }
