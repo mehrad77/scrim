@@ -120,6 +120,8 @@ Media files are shared between shows with the same media ids, for example a copy
 
 ## The relay
 
+The public app is [scrim.shab.boo](https://scrim.shab.boo). Its relay is [relay.scrim.shab.boo](https://relay.scrim.shab.boo). Source: [github.com/mehrad77/scrim](https://github.com/mehrad77/scrim).
+
 `apps/relay` is a Cloudflare Worker that routes each room code to one `Room` Durable Object:
 
 - **Sockets.** It uses hibernatable WebSockets with a role and client id attached to each socket.

@@ -348,7 +348,7 @@ Design and rehearsal loop many times. Review feeds the next rehearsal. Touring r
 - **Who:** the designer, sometimes with the producer.
 - **Goal:** find out in minutes whether Scrim can do their show.
 - **Steps:**
-  1. Open the link.
+  1. Open [scrim.shab.boo](https://scrim.shab.boo).
   2. Open the **Demo show**.
   3. Press GO and watch an output open in a second window.
   4. Try a vote from their own phone.
@@ -358,8 +358,8 @@ Design and rehearsal loop many times. Review feeds the next rehearsal. Touring r
   - The app works offline once loaded.
   - The library asks to keep shows persistently.
 - **Risks and gaps:**
-  - Phones need the machine's LAN address or a deployed relay; `localhost` won't reach them.
-  - There is no hosted public instance yet.
+  - On a show machine, phones need that machine's LAN address; `localhost` won't reach them.
+  - The public app is [scrim.shab.boo](https://scrim.shab.boo). Its relay is [relay.scrim.shab.boo](https://relay.scrim.shab.boo).
 
 ### 2. Design
 

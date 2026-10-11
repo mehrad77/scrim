@@ -5,7 +5,7 @@ A runbook for the stage manager or operator running a show in Scrim.
 ## Before the day
 
 - [ ] Use Chrome or Edge on the show machine and keep it updated before tech week, not during the run.
-- [ ] Open the show once while online, so the app is cached for offline use.
+- [ ] Open [scrim.shab.boo](https://scrim.shab.boo) once while online, so the app is cached for offline use.
 - [ ] In the library, choose **Keep my shows** so the browser will not clear storage.
 - [ ] Export a `.scrim` backup to a USB stick. It is the master copy if the machine fails.
 - [ ] For screens on other devices: import the same `.scrim` file on each device once.

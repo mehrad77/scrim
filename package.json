@@ -3,6 +3,14 @@
   "private": true,
   "homepage": "https://scrim.shab.boo",
   "repository": "https://github.com/mehrad77/scrim",
+  "bugs": "https://github.com/mehrad77/scrim/issues",
+  "keywords": [
+    "show-control",
+    "theater",
+    "projection",
+    "cloudflare-workers",
+    "durable-objects"
+  ],
   "type": "module",
   "packageManager": "pnpm@11.5.0",
   "scripts": {

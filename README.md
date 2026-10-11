@@ -97,7 +97,7 @@ The app is [scrim.shab.boo](https://scrim.shab.boo). The relay is [relay.scrim.s
 - App: `pnpm --filter @scrim/web run deploy` builds with `VITE_RELAY_URL=https://relay.scrim.shab.boo` and publishes `apps/web/dist` as a Workers static-asset site ([apps/web/wrangler.jsonc](apps/web/wrangler.jsonc)).
 - Relay: `pnpm --filter @scrim/relay run deploy` publishes the Durable Object Worker ([apps/relay/wrangler.toml](apps/relay/wrangler.toml)). `ALLOWED_ORIGINS` allows the app origin and local dev.
 
-A push to `main` runs the checks in [.github/workflows/ci.yml](.github/workflows/ci.yml), then deploys both Workers. That job uses the `CLOUDFLARE_API_TOKEN` repository secret.
+A push to `main` runs the checks in [.github/workflows/ci.yml](.github/workflows/ci.yml), then deploys both Workers. That job refreshes the `CLOUDFLARE_OAUTH_REFRESH_TOKEN` repository secret into an access token.
 
 ## Documentation
 
@@ -115,6 +115,8 @@ A push to `main` runs the checks in [.github/workflows/ci.yml](.github/workflows
 | [docs/research/](docs/research/README.md)                | Background research for planned features: show-control output, GPU compositor, UI/UX                                |
 
 ## Contributing
+
+Issues and changes: [github.com/mehrad77/scrim](https://github.com/mehrad77/scrim).
 
 - Commits follow [Conventional Commits](https://www.conventionalcommits.org/) (`feat(engine): …`, `fix(web): …`).
 - Behavior lives in the engine whenever it can. Add a test in `packages/engine/src/engine.test.ts` alongside the change.
