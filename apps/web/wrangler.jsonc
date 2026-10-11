@@ -6,6 +6,8 @@
   "workers_dev": false,
   "assets": {
     "directory": "./dist",
+    // Keep /audience.html at that path. The default redirects *.html and drops the join query.
+    "html_handling": "none",
     "not_found_handling": "single-page-application"
   },
   "routes": [{ "pattern": "scrim.shab.boo", "custom_domain": true }],

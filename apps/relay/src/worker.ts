@@ -80,7 +80,10 @@ function originAllowed(request: Request, env: Env): boolean {
   const allowed = env.ALLOWED_ORIGINS.split(',').map((s) => s.trim());
   if (allowed.includes('*')) return true;
   const origin = request.headers.get('Origin');
-  return !!origin && allowed.includes(origin);
+  // Browsers send Origin on a cross-site POST. The load test and other non-browser clients do not,
+  // and a page cannot omit the header, so an absent Origin is not another website.
+  if (!origin) return true;
+  return allowed.includes(origin);
 }
 
 function corsHeaders(request: Request, env: Env): Record<string, string> {
