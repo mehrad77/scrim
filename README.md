@@ -1,3 +1,5 @@
+<a href="https://0rwx.com/"><img src=".github/ai-x.png" alt="AI:X: made by AI, curated by me" title="AI:X: made by AI, curated by me (0rwx.com)" width="44" align="right"></a>
+
 # Scrim
 
 Browser-native show control and projection for interactive theater. Open a link, build a show, press GO.
